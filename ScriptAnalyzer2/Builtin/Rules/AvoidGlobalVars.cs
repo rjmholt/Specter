@@ -8,6 +8,7 @@ using System.Globalization;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer;
 using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 {
@@ -19,6 +20,21 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [Rule("AvoidGlobalVars", typeof(Strings), nameof(Strings.AvoidGlobalVarsDescription))]
     public class AvoidGlobalVars : ScriptRule
     {
+        private static readonly IReadOnlySet<string> s_allowedGlobalVariables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Error",
+            "Debug",
+            "Verbose",
+            "Warning",
+            "Confirm",
+            "WhatIf",
+            "Progress",
+            "Information",
+            "ErrorView",
+            "LastExitCode",
+        };
+
+
         public AvoidGlobalVars(RuleInfo ruleInfo) : base(ruleInfo)
         {
         }
@@ -42,6 +58,12 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             {
                 if (varAst.VariablePath.IsGlobal)
                 {
+                    string variableName = varAst.GetNameWithoutScope();
+                    if (s_allowedGlobalVariables.Contains(variableName))
+                    {
+                        continue;
+                    }
+
                     yield return CreateDiagnostic(
                             string.Format(CultureInfo.CurrentCulture, Strings.AvoidGlobalVarsError, varAst.VariablePath.UserPath),
                             varAst);
