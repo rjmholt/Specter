@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Management.Automation.Language;
 using System.Globalization;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
 {
@@ -17,6 +18,15 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
     [Rule("AvoidUsingWMICmdlet", typeof(Strings), nameof(Strings.AvoidUsingWMICmdletDescription))]
     public class AvoidUsingWMICmdlet : ScriptRule
     {
+        private static readonly IReadOnlySet<string> s_wmiCmdlets = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Get-WmiObject",
+            "Remove-WmiObject",
+            "Invoke-WmiMethod",
+            "Register-WmiEvent",
+            "Set-WmiInstance",
+        };
+
         public AvoidUsingWMICmdlet(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
@@ -29,61 +39,38 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
         {
             if (ast == null) throw new ArgumentNullException(Strings.NullAstErrorMessage);
 
-            // Rule is applicable only when PowerShell Version is < 3.0, since CIM cmdlet was introduced in 3.0
-            int majorPSVersion = GetPSRequiredVersionMajor(ast);
-            if (!(3 > majorPSVersion && 0 < majorPSVersion))
+            // Rule is applicable only when PowerShell Version is > 3.0, since CIM cmdlet was introduced in 3.0
+            int majorPSVersion = ast.GetPSRequiredVersionMajor();
+            if (majorPSVersion > 0 && majorPSVersion < 3)
             {
-                // Finds all CommandAsts.
-                IEnumerable<Ast> commandAsts = ast.FindAll(testAst => testAst is CommandAst, true);
-
-                // Iterate all CommandAsts and check the command name
-                foreach (CommandAst cmdAst in commandAsts)
-                {
-                    if (cmdAst.GetCommandName() != null && 
-                        (String.Equals(cmdAst.GetCommandName(), "get-wmiobject", StringComparison.OrdinalIgnoreCase) 
-                            || String.Equals(cmdAst.GetCommandName(), "remove-wmiobject", StringComparison.OrdinalIgnoreCase)
-                            || String.Equals(cmdAst.GetCommandName(), "invoke-wmimethod", StringComparison.OrdinalIgnoreCase)
-                            || String.Equals(cmdAst.GetCommandName(), "register-wmievent", StringComparison.OrdinalIgnoreCase)
-                            || String.Equals(cmdAst.GetCommandName(), "set-wmiinstance", StringComparison.OrdinalIgnoreCase))
-                        )
-                    {
-                        if (String.IsNullOrWhiteSpace(fileName))
-                        {
-                            yield return CreateDiagnostic(
-                                String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletErrorScriptDefinition),
-                                cmdAst.Extent);
-                        }
-                        else
-                        {
-                            yield return CreateDiagnostic(
-                                String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletError, System.IO.Path.GetFileName(fileName)),
-                                cmdAst.Extent);
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// GetPSMajorVersion: Retrieves Major PowerShell Version when supplied using #requires keyword in the script
-        /// </summary>
-        /// <returns>The name of this rule</returns>
-        private int GetPSRequiredVersionMajor(Ast ast)
-        {
-            if (ast == null) throw new ArgumentNullException(Strings.NullAstErrorMessage);
-
-            IEnumerable<Ast> scriptBlockAsts = ast.FindAll(testAst => testAst is ScriptBlockAst, true);
-            
-            foreach (ScriptBlockAst scriptBlockAst in scriptBlockAsts)
-            {
-                if (null != scriptBlockAst.ScriptRequirements && null != scriptBlockAst.ScriptRequirements.RequiredPSVersion)
-                {
-                    return scriptBlockAst.ScriptRequirements.RequiredPSVersion.Major;
-                }
+                yield break;
             }
 
-            // return a non valid Major version if #requires -Version is not supplied in the Script
-            return -1;
+            // Finds all CommandAsts.
+            IEnumerable<Ast> commandAsts = ast.FindAll(testAst => testAst is CommandAst, true);
+
+            // Iterate all CommandAsts and check the command name
+            foreach (CommandAst cmdAst in commandAsts)
+            {
+                string commandName = cmdAst.GetCommandName();
+                if (commandName == null || !s_wmiCmdlets.Contains(commandName))
+                {
+                    continue;
+                }
+
+                if (String.IsNullOrWhiteSpace(fileName))
+                {
+                    yield return CreateDiagnostic(
+                        String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletErrorScriptDefinition),
+                        cmdAst.Extent);
+                }
+                else
+                {
+                    yield return CreateDiagnostic(
+                        String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletError, fileName),
+                        cmdAst.Extent);
+                }
+            }
         }
     }
 }

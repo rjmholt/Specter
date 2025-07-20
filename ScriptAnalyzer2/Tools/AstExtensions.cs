@@ -56,5 +56,27 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
 
             return SpecialVariables.IsSpecialVariable(variableName);
         }
+
+        /// <summary>
+        /// GetPSMajorVersion: Retrieves Major PowerShell Version when supplied using #requires keyword in the script
+        /// </summary>
+        /// <returns>The name of this rule</returns>
+        public static int GetPSRequiredVersionMajor(this Ast ast)
+        {
+            if (ast == null) throw new ArgumentNullException("TODO");
+
+            IEnumerable<Ast> scriptBlockAsts = ast.FindAll(testAst => testAst is ScriptBlockAst, true);
+
+            foreach (ScriptBlockAst scriptBlockAst in scriptBlockAsts)
+            {
+                if (null != scriptBlockAst.ScriptRequirements && null != scriptBlockAst.ScriptRequirements.RequiredPSVersion)
+                {
+                    return scriptBlockAst.ScriptRequirements.RequiredPSVersion.Major;
+                }
+            }
+
+            // return a non valid Major version if #requires -Version is not supplied in the Script
+            return -1;
+        }
     }
 }
