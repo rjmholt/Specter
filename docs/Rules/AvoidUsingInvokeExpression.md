@@ -1,3 +1,9 @@
+---
+description: Avoid Using Invoke-Expression
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingInvokeExpression
+---
 # AvoidUsingInvokeExpression
 
 **Severity Level: Warning**
@@ -19,7 +25,7 @@ Remove the use of `Invoke-Expression`.
 ### Wrong
 
 ```powershell
-Invoke-Expression "Get-Process"
+Invoke-Expression 'Get-Process'
 ```
 
 ### Correct

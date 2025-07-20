@@ -1,3 +1,9 @@
+---
+description: Use process block for command that accepts input from pipeline.
+ms.date: 06/28/2023
+ms.topic: reference
+title: UseProcessBlockForPipelineCommand
+---
 # UseProcessBlockForPipelineCommand
 
 **Severity Level: Warning**

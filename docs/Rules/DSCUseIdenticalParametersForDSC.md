@@ -1,3 +1,9 @@
+---
+description: Use Identical Parameters For DSC Test and Set Functions
+ms.date: 06/28/2023
+ms.topic: reference
+title: DSCUseIdenticalParametersForDSC
+---
 # UseIdenticalParametersForDSC
 
 **Severity Level: Error**

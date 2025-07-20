@@ -1,8 +1,8 @@
-﻿---
+---
 external help file: Microsoft.Windows.PowerShell.ScriptAnalyzer.dll-Help.xml
 Module Name: PSScriptAnalyzer
-ms.date: 10/07/2021
-online version: https://docs.microsoft.com/powershell/module/psscriptanalyzer/get-scriptanalyzerrule?view=ps-modules&wt.mc_id=ps-gethelp
+ms.date: 12/12/2024
+online version: https://learn.microsoft.com/powershell/module/psscriptanalyzer/get-scriptanalyzerrule?view=ps-modules&wt.mc_id=ps-gethelp
 schema: 2.0.0
 ---
 
@@ -91,8 +91,8 @@ Enter the path to a .NET assembly or module that contains Script Analyzer rules.
 one value, but wildcards are supported. To get rules in subdirectories of the path, use the
 **RecurseCustomRulePath** parameter.
 
-You can create custom rules by using a custom .NET assembly or a PowerShell module, such as the
-[Community Analyzer Rules](https://github.com/PowerShell/PSScriptAnalyzer/blob/development/Tests/Engine/CommunityAnalyzerRules/CommunityAnalyzerRules.psm1)
+You can create custom rules using a .NET assembly or a PowerShell module, such as the
+[Community Analyzer Rules](https://github.com/PowerShell/PSScriptAnalyzer/tree/main/Tests/Engine/CommunityAnalyzerRules)
 in the GitHub repository.
 
 ```yaml
@@ -172,7 +172,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### None
 
-You cannot pipe input to this cmdlet.
+You can't pipe input to this cmdlet.
 
 ## OUTPUTS
 

@@ -1,3 +1,9 @@
+---
+description: Use consistent indentation
+ms.date: 06/28/2023
+ms.topic: reference
+title: UseConsistentIndentation
+---
 # UseConsistentIndentation
 
 **Severity Level: Warning**

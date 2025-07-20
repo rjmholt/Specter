@@ -1,6 +1,12 @@
+---
+description: List of PSScriptAnalyzer rules
+ms.date: 03/27/2024
+ms.topic: reference
+title: List of PSScriptAnalyzer rules
+---
 # PSScriptAnalyzer Rules
 
-## Table of Contents
+The PSScriptAnalyzer contains the following rule definitions.
 
 |                                               Rule                                                |  Severity   | Enabled by default |  Configurable   |
 | ------------------------------------------------------------------------------------------------- | ----------- | :----------------: | :-------------: |
@@ -8,6 +14,7 @@
 | [AvoidAssignmentToAutomaticVariable](./AvoidAssignmentToAutomaticVariable.md)                     | Warning     |        Yes         |                 |
 | [AvoidDefaultValueForMandatoryParameter](./AvoidDefaultValueForMandatoryParameter.md)             | Warning     |        Yes         |                 |
 | [AvoidDefaultValueSwitchParameter](./AvoidDefaultValueSwitchParameter.md)                         | Warning     |        Yes         |                 |
+| [AvoidExclaimOperator](./AvoidExclaimOperator.md)                                                 | Warning     |         No         |                 |
 | [AvoidGlobalAliases<sup>1</sup>](./AvoidGlobalAliases.md)                                         | Warning     |        Yes         |                 |
 | [AvoidGlobalFunctions](./AvoidGlobalFunctions.md)                                                 | Warning     |        Yes         |                 |
 | [AvoidGlobalVars](./AvoidGlobalVars.md)                                                           | Warning     |        Yes         |                 |
@@ -16,13 +23,16 @@
 | [AvoidMultipleTypeAttributes<sup>1</sup>](./AvoidMultipleTypeAttributes.md)                       | Warning     |        Yes         |                 |
 | [AvoidNullOrEmptyHelpMessageAttribute](./AvoidNullOrEmptyHelpMessageAttribute.md)                 | Warning     |        Yes         |                 |
 | [AvoidOverwritingBuiltInCmdlets](./AvoidOverwritingBuiltInCmdlets.md)                             | Warning     |        Yes         |       Yes       |
+| [AvoidSemicolonsAsLineTerminators](./AvoidSemicolonsAsLineTerminators.md)                         | Warning     |         No         |                 |
 | [AvoidShouldContinueWithoutForce](./AvoidShouldContinueWithoutForce.md)                           | Warning     |        Yes         |                 |
 | [AvoidTrailingWhitespace](./AvoidTrailingWhitespace.md)                                           | Warning     |        Yes         |                 |
+| [AvoidUsingAllowUnencryptedAuthentication](./AvoidUsingAllowUnencryptedAuthentication.md)         | Warning     |        Yes         |                 |
+| [AvoidUsingBrokenHashAlgorithms](./AvoidUsingBrokenHashAlgorithms.md)                             | Warning     |        Yes         |                 |
 | [AvoidUsingCmdletAliases](./AvoidUsingCmdletAliases.md)                                           | Warning     |        Yes         | Yes<sup>2</sup> |
 | [AvoidUsingComputerNameHardcoded](./AvoidUsingComputerNameHardcoded.md)                           | Error       |        Yes         |                 |
 | [AvoidUsingConvertToSecureStringWithPlainText](./AvoidUsingConvertToSecureStringWithPlainText.md) | Error       |        Yes         |                 |
 | [AvoidUsingDeprecatedManifestFields](./AvoidUsingDeprecatedManifestFields.md)                     | Warning     |        Yes         |                 |
-| [AvoidUsingDoubleQuotesForConstantString](./AvoidUsingDoubleQuotesForConstantString.md)           | Warning     |         No         |       Yes       |
+| [AvoidUsingDoubleQuotesForConstantString](./AvoidUsingDoubleQuotesForConstantString.md)           | Information |         No         |                 |
 | [AvoidUsingEmptyCatchBlock](./AvoidUsingEmptyCatchBlock.md)                                       | Warning     |        Yes         |                 |
 | [AvoidUsingInvokeExpression](./AvoidUsingInvokeExpression.md)                                     | Warning     |        Yes         |                 |
 | [AvoidUsingPlainTextForPassword](./AvoidUsingPlainTextForPassword.md)                             | Warning     |        Yes         |                 |
@@ -47,8 +57,8 @@
 | [ProvideCommentHelp](./ProvideCommentHelp.md)                                                     | Information |        Yes         |       Yes       |
 | [ReservedCmdletChar](./ReservedCmdletChar.md)                                                     | Error       |        Yes         |                 |
 | [ReservedParams](./ReservedParams.md)                                                             | Error       |        Yes         |                 |
-| [ReviewUnusedParameter](./ReviewUnusedParameter.md)                                               | Warning     |        Yes         |                 |
-| [ShouldProcess](./ShouldProcess.md)                                                               | Error       |        Yes         |                 |
+| [ReviewUnusedParameter](./ReviewUnusedParameter.md)                                               | Warning     |        Yes         | Yes<sup>2</sup> |
+| [ShouldProcess](./ShouldProcess.md)                                                               | Warning     |        Yes         |                 |
 | [UseApprovedVerbs](./UseApprovedVerbs.md)                                                         | Warning     |        Yes         |                 |
 | [UseBOMForUnicodeEncodedFile](./UseBOMForUnicodeEncodedFile.md)                                   | Warning     |        Yes         |                 |
 | [UseCmdletCorrectly](./UseCmdletCorrectly.md)                                                     | Warning     |        Yes         |                 |
@@ -65,7 +75,7 @@
 | [UseProcessBlockForPipelineCommand](./UseProcessBlockForPipelineCommand.md)                       | Warning     |        Yes         |                 |
 | [UsePSCredentialType](./UsePSCredentialType.md)                                                   | Warning     |        Yes         |                 |
 | [UseShouldProcessForStateChangingFunctions](./UseShouldProcessForStateChangingFunctions.md)       | Warning     |        Yes         |                 |
-| [UseSingularNouns<sup>1</sup>](./UseSingularNouns.md)                                             | Warning     |        Yes         |                 |
+| [UseSingularNouns](./UseSingularNouns.md)                                                         | Warning     |        Yes         |       Yes       |
 | [UseSupportsShouldProcess](./UseSupportsShouldProcess.md)                                         | Warning     |        Yes         |                 |
 | [UseToExportFieldsInManifest](./UseToExportFieldsInManifest.md)                                   | Warning     |        Yes         |                 |
 | [UseUsingScopeModifierInNewRunspaces](./UseUsingScopeModifierInNewRunspaces.md)                   | Warning     |        Yes         |                 |
@@ -73,5 +83,5 @@
 
 - <sup>1</sup> Rule is not available on all PowerShell versions, editions, or OS platforms. See the
   rule's documentation for details.
-- <sup>2</sup> The rule a configurable property, but the rule can't be disabled like other
+- <sup>2</sup> The rule has a configurable property, but the rule can't be disabled like other
   configurable rules.

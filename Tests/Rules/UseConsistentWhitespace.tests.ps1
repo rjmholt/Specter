@@ -72,6 +72,11 @@ if ($true)
             Invoke-ScriptAnalyzer -ScriptDefinition '$ast.Find({ $oneAst -is [TypeExpressionAst] })' -Settings $settings |
                 Should -BeNullOrEmpty
         }
+
+        It 'Should not find a violation if an open paren is preceded by a Dot token' {
+            Invoke-ScriptAnalyzer -ScriptDefinition '$foo.{bar}' -Settings $settings |
+                Should -BeNullOrEmpty
+        }
     }
 
     Context "When a parenthesis follows a keyword" {
@@ -207,6 +212,19 @@ $ht = @{
             $ruleConfiguration.CheckSeparator = $false
             $ruleConfiguration.IgnoreAssignmentOperatorInsideHashTable = $true
         }
+
+        It "Should not find violation if assignment operator is in multi-line hash table and a using statement is present" {
+            $def = @'
+using namespace System.IO
+
+$ht = @{
+    variable = 3
+    other    = 4
+}
+'@
+            Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -BeNullOrEmpty
+        }
+
         It "Should not find violation if assignment operator is in multi-line hash table" {
             $def = @'
 $ht = @{
@@ -503,6 +521,52 @@ if ($true) { Get-Item `
 '@
             Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -Be $null
         }
+
+        It 'Should not throw when analysing a line starting with a scriptblock' {
+            { Invoke-ScriptAnalyzer -ScriptDefinition '{ }' -Settings $settings -ErrorAction Stop } | Should -Not -Throw
+        }
+    }
+
+    Context "CheckSeparator" {
+        BeforeAll {
+            $ruleConfiguration.CheckInnerBrace = $false
+            $ruleConfiguration.CheckOpenBrace = $false
+            $ruleConfiguration.CheckOpenParen = $false
+            $ruleConfiguration.CheckOperator = $false
+            $ruleConfiguration.CheckPipe = $false
+            $ruleConfiguration.CheckSeparator = $true
+        }
+
+        It "Should find a violation if there is no space after a comma" {
+            $def = '$Array = @(1,2)'
+            Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -HaveCount 1
+        }
+
+        It "Should not find a violation if there is a space after a comma" {
+            $def = '$Array = @(1, 2)'
+            Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -Be $null
+        }
+
+        It "Should not find a violation if there is a new-line after a comma" {
+            $def = @'
+$Array = @(
+    1,
+    2
+)
+'@
+            Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -Be $null
+        }
+
+        It "Should not find a violation if there is a comment after the separator" {
+            $def = @'
+$Array = @(
+    'foo',     # Comment Line 1
+    'FizzBuzz' # Comment Line 2
+)
+'@
+            Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -BeNullOrEmpty
+        }
+
     }
 
 
@@ -526,8 +590,14 @@ bar -h i `
             Invoke-ScriptAnalyzer -ScriptDefinition "$def" -Settings $settings | Should -Be $null
         }
 
-        It "Should not find no violation if there is always 1 space between parameters except when using colon syntax" {
+        It "Should not find a violation if there is always 1 space between parameters except when using colon syntax" {
             $def = 'foo -bar $baz @splattedVariable -bat -parameterName:$parameterValue'
+            Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -Be $null
+        }
+
+        It "Should not find a violation when redirect operators, spearated by 1 space, are used and not in stream order" {
+            # Related to Issue #2000
+            $def = 'foo 3>&1 1>$null 2>&1'
             Invoke-ScriptAnalyzer -ScriptDefinition $def -Settings $settings | Should -Be $null
         }
 
@@ -568,6 +638,50 @@ bar -h i `
 -switch}
             Invoke-Formatter -ScriptDefinition "$def" -Settings $settings |
                 Should -Be "$expected"
+        }
+
+        It "Should fix script when a parameter value is a script block spanning multiple lines" {
+            $def = {foo {
+    bar
+}     -baz}
+
+            $expected = {foo {
+    bar
+} -baz}
+            Invoke-Formatter -ScriptDefinition "$def" -Settings $settings |
+                Should -Be "$expected"
+        }
+
+        It "Should fix script when a parameter value is a hashtable spanning multiple lines" {
+            $def = {foo @{
+    a = 1
+}     -baz}
+
+            $expected = {foo @{
+    a = 1
+} -baz}
+            Invoke-Formatter -ScriptDefinition "$def" -Settings $settings |
+                Should -Be "$expected"
+        }
+
+        It "Should fix script when a parameter value is an array spanning multiple lines" {
+            $def = {foo @(
+    1
+)     -baz}
+
+            $expected = {foo @(
+    1
+) -baz}
+            Invoke-Formatter -ScriptDefinition "$def" -Settings $settings |
+                Should -Be "$expected"
+        }
+
+        It "Should fix script when redirects are involved and whitespace is not consistent" {
+            # Related to Issue #2000
+            $def = 'foo   3>&1  1>$null   2>&1'
+            $expected = 'foo 3>&1 1>$null 2>&1'
+            Invoke-Formatter -ScriptDefinition $def -Settings $settings |
+                Should -Be $expected
         }
     }
 }

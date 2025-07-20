@@ -1,10 +1,18 @@
+---
+description: Reserved Parameters
+ms.date: 03/06/2024
+ms.topic: reference
+title: ReservedParams
+---
 # ReservedParams
 
 **Severity Level: Error**
 
 ## Description
 
-You cannot use reserved common parameters in an advanced function.
+You can't redefine [common parameters][01] in an advanced function. Using the `CmdletBinding` or
+`Parameter` attributes creates an advanced function. The common parameters are are automatically
+available in advanced functions, so you can't redefine them.
 
 ## How
 
@@ -17,7 +25,7 @@ Change the name of the parameter.
 ```powershell
 function Test
 {
-    [CmdletBinding]
+    [CmdletBinding()]
     Param
     (
         $ErrorVariable,
@@ -31,7 +39,7 @@ function Test
 ```powershell
 function Test
 {
-    [CmdletBinding]
+    [CmdletBinding()]
     Param
     (
         $Err,
@@ -39,3 +47,5 @@ function Test
     )
 }
 ```
+
+[01]: https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_commonparameters

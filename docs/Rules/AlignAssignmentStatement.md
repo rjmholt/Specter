@@ -1,4 +1,10 @@
-﻿# AlignAssignmentStatement
+---
+description: Align assignment statement
+ms.date: 06/28/2023
+ms.topic: reference
+title: AlignAssignmentStatement
+---
+# AlignAssignmentStatement
 
 **Severity Level: Warning**
 
@@ -12,8 +18,8 @@ are aligned or not. Consider the following example in which the key value pairs 
 
 ```powershell
 $hashtable = @{
-    property1 = "value"
-    anotherProperty = "another value"
+    property1 = 'value'
+    anotherProperty = 'another value'
 }
 ```
 
@@ -21,8 +27,8 @@ Alignment in this case would look like the following.
 
 ```powershell
 $hashtable = @{
-    property1       = "value"
-    anotherProperty = "another value"
+    property1       = 'value'
+    anotherProperty = 'another value'
 }
 ```
 

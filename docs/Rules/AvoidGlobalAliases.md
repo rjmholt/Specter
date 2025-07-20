@@ -1,3 +1,9 @@
+---
+description: Avoid global aliases.
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidGlobalAliases
+---
 # AvoidGlobalAliases
 
 **Severity Level: Warning**
@@ -21,7 +27,7 @@ Use other scope modifiers for new aliases.
 ### Wrong
 
 ```powershell
-New-Alias -Name Name -Value Value -Scope "Global"
+New-Alias -Name Name -Value Value -Scope Global
 ```
 
 ### Correct

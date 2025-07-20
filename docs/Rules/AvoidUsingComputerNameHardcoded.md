@@ -1,3 +1,9 @@
+---
+description: Avoid Using ComputerName Hardcoded
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingComputerNameHardcoded
+---
 # AvoidUsingComputerNameHardcoded
 
 **Severity Level: Error**
@@ -11,14 +17,14 @@ The names of computers should never be hard coded as this will expose sensitive 
 
 Remove hard coded computer names.
 
-## Example
+## Example 1
 
 ### Wrong
 
 ```powershell
 Function Invoke-MyRemoteCommand ()
 {
-    Invoke-Command -Port 343 -ComputerName "hardcoderemotehostname"
+    Invoke-Command -Port 343 -ComputerName hardcoderemotehostname
 }
 ```
 
@@ -31,14 +37,14 @@ Function Invoke-MyCommand ($ComputerName)
 }
 ```
 
-## Example
+## Example 2
 
 ### Wrong
 
 ```powershell
 Function Invoke-MyLocalCommand ()
 {
-    Invoke-Command -Port 343 -ComputerName "hardcodelocalhostname"
+    Invoke-Command -Port 343 -ComputerName hardcodelocalhostname
 }
 ```
 

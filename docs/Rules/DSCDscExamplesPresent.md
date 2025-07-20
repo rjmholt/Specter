@@ -1,3 +1,9 @@
+---
+description: DSC examples are present
+ms.date: 06/28/2023
+ms.topic: reference
+title: DSCDscExamplesPresent
+---
 # DscExamplesPresent
 
 **Severity Level: Information**

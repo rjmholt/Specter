@@ -7,7 +7,7 @@ param(
     [switch]$All,
 
     [Parameter(ParameterSetName="BuildOne")]
-    [ValidateSet(3, 4, 5, 7)]
+    [ValidateSet(5, 7)]
     [int]$PSVersion = $PSVersionTable.PSVersion.Major,
 
     [Parameter(ParameterSetName="BuildOne")]
@@ -32,18 +32,13 @@ param(
 
     [Parameter(ParameterSetName='Test')]
     [switch] $InProcess,
-
-    [Parameter(ParameterSetName='Bootstrap')]
-    [switch] $Bootstrap,
+    [string] $WithPowerShell,
 
     [Parameter(ParameterSetName='BuildAll')]
     [switch] $Catalog,
 
     [Parameter(ParameterSetName='Package')]
-    [switch] $BuildNupkg,
-
-    [Parameter(ParameterSetName='Package')]
-    [switch] $Signed
+    [switch] $BuildNupkg
 
 )
 
@@ -87,15 +82,16 @@ END {
             }
             Start-ScriptAnalyzerBuild @buildArgs
         }
-        "Bootstrap" {
-            Install-DotNet
-            return
-        }
         "Package" {
-            Start-CreatePackage -signed:$Signed
+            Start-CreatePackage
         }
         "Test" {
-            Test-ScriptAnalyzer -InProcess:$InProcess
+            $testArgs = @{
+                InProcess = $InProcess
+                WithPowerShell = $WithPowerShell
+                Verbose = $verboseWanted
+            }
+            Test-ScriptAnalyzer @testArgs
             return
         }
         default {

@@ -1,3 +1,9 @@
+---
+description: Avoid using double quotes if the string is constant.
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingDoubleQuotesForConstantString
+---
 # AvoidUsingDoubleQuotesForConstantString
 
 **Severity Level: Information**

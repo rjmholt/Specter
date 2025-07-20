@@ -1,3 +1,9 @@
+---
+description: Dsc tests are present
+ms.date: 06/28/2023
+ms.topic: reference
+title: DSCDscTestsPresent
+---
 # DscTestsPresent
 
 **Severity Level: Information**

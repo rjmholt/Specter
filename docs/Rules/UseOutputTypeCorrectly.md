@@ -1,3 +1,9 @@
+---
+description: Use OutputType Correctly
+ms.date: 06/28/2023
+ms.topic: reference
+title: UseOutputTypeCorrectly
+---
 # UseOutputTypeCorrectly
 
 **Severity Level: Information**
@@ -38,6 +44,6 @@ function Get-Foo
         Param(
         )
 
-        return "four"
+        return 'four'
 }
 ```

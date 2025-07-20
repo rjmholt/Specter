@@ -1,3 +1,9 @@
+---
+description: Avoid Using Plain Text For Password Parameter
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingPlainTextForPassword
+---
 # AvoidUsingPlainTextForPassword
 
 **Severity Level: Warning**

@@ -1,3 +1,9 @@
+---
+description: Avoid Using Empty Catch Block
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingEmptyCatchBlock
+---
 # AvoidUsingEmptyCatchBlock
 
 **Severity Level: Warning**
@@ -34,7 +40,7 @@ try
 }
 catch [DivideByZeroException]
 {
-    Write-Error "DivideByZeroException"
+    Write-Error 'DivideByZeroException'
 }
 
 try
@@ -43,6 +49,6 @@ try
 }
 catch [DivideByZeroException]
 {
-    throw "DivideByZeroException"
+    throw 'DivideByZeroException'
 }
 ```

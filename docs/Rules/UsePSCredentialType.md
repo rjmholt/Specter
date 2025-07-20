@@ -1,3 +1,9 @@
+---
+description: Use PSCredential type.
+ms.date: 06/28/2023
+ms.topic: reference
+title: UsePSCredentialType
+---
 # UsePSCredentialType
 
 **Severity Level: Warning**

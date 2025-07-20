@@ -1,3 +1,9 @@
+---
+description: Avoid Using Deprecated Manifest Fields
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingDeprecatedManifestFields
+---
 # AvoidUsingDeprecatedManifestFields
 
 **Severity Level: Warning**

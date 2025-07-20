@@ -1,3 +1,9 @@
+---
+description: Avoid Using Cmdlet Aliases or omitting the 'Get-' prefix.
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingCmdletAliases
+---
 # AvoidUsingCmdletAliases
 
 **Severity Level: Warning**
@@ -14,7 +20,7 @@ There are also implicit aliases. When PowerShell cannot find the cmdlet name, it
 Every PowerShell author learns the actual command names, but different authors learn and use
 different aliases. Aliases can make code difficult to read, understand and impact availability.
 
-Using the full command name makes it eaiser to maintain your scripts in the the future.
+Using the full command name makes it easier to maintain your scripts in the the future.
 
 Using the full command names also allows for syntax highlighting in sites and applications like
 GitHub and Visual Studio Code.

@@ -333,11 +333,11 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
 
          public override AstVisitAction VisitUsingStatement(UsingStatementAst usingStatementAst)
          {
-             return Visit(usingStatementAst);
+             return AstVisitAction.Continue;
          }
 #endif
 
-#if !(NET452 || PSV6) // NET452 includes V3,4,5
+#if !(NET462 || PSV7) // net462 includes V3,4,5
          public override AstVisitAction VisitPipelineChain(PipelineChainAst pipelineChainAst)
          {
              return Visit(pipelineChainAst);

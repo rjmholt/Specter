@@ -1,3 +1,9 @@
+---
+description: Avoid Using Username and Password Parameters
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidUsingUsernameAndPasswordParams
+---
 # AvoidUsingUsernameAndPasswordParams
 
 **Severity Level: Error**

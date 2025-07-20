@@ -1,3 +1,9 @@
+---
+description: Module Manifest Fields
+ms.date: 06/28/2023
+ms.topic: reference
+title: MissingModuleManifestField
+---
 # MissingModuleManifestField
 
 **Severity Level: Warning**

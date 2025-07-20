@@ -1,3 +1,9 @@
+---
+description: Avoid multiple type specifiers on parameters.
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidMultipleTypeAttributes
+---
 # AvoidMultipleTypeAttributes
 
 **Severity Level: Warning**
@@ -5,7 +11,7 @@
 ## Description
 
 Parameters should not have more than one type specifier. Multiple type specifiers on parameters
-cause runtime errors.
+can cause runtime errors.
 
 ## How
 
@@ -21,14 +27,10 @@ function Test-Script
     [CmdletBinding()]
     Param
     (
-        [String]
-        $Param1,
-
         [switch]
-        [bool]
+        [int]
         $Switch
     )
-    ...
 }
 ```
 
@@ -40,12 +42,8 @@ function Test-Script
     [CmdletBinding()]
     Param
     (
-        [String]
-        $Param1,
-
         [switch]
         $Switch
     )
-    ...
 }
 ```

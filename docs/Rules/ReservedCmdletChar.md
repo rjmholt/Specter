@@ -1,3 +1,9 @@
+---
+description: Reserved Cmdlet Chars
+ms.date: 06/28/2023
+ms.topic: reference
+title: ReservedCmdletChar
+---
 # ReservedCmdletChar
 
 **Severity Level: Error**

@@ -1,3 +1,9 @@
+---
+description: Create hashtables with literal initializers
+ms.date: 06/28/2023
+ms.topic: reference
+title: UseLiteralInitializerForHashtable
+---
 # UseLiteralInitializerForHashtable
 
 **Severity Level: Warning**

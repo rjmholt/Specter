@@ -1,3 +1,9 @@
+---
+description: Avoid Using SecureString With Plain Text
+ms.date: 01/28/2025
+ms.topic: reference
+title: AvoidUsingConvertToSecureStringWithPlainText
+---
 # AvoidUsingConvertToSecureStringWithPlainText
 
 **Severity Level: Error**
@@ -23,14 +29,12 @@ module from the PowerShell Gallery.
 ### Wrong
 
 ```powershell
-$UserInput = Read-Host "Please enter your secure code"
+$UserInput = Read-Host 'Please enter your secure code'
 $EncryptedInput = ConvertTo-SecureString -String $UserInput -AsPlainText -Force
 ```
 
 ### Correct
 
 ```powershell
-$SecureUserInput = Read-Host "Please enter your secure code" -AsSecureString
-$EncryptedInput = ConvertFrom-SecureString -String $SecureUserInput
-$SecureString = ConvertTo-SecureString -String $EncryptedInput
+$SecureUserInput = Read-Host 'Please enter your secure code' -AsSecureString
 ```

@@ -1,3 +1,9 @@
+---
+description: Avoid long lines
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidLongLines
+---
 # AvoidLongLines
 
 **Severity Level: Warning**

@@ -1,3 +1,9 @@
+---
+description: \'>\' is not a comparison operator. Use \'-gt\' (greater than) or \'-ge\' (greater or equal).
+ms.date: 06/28/2023
+ms.topic: reference
+title: PossibleIncorrectUsageOfRedirectionOperator
+---
 # PossibleIncorrectUsageOfRedirectionOperator
 
 **Severity Level: Information**

@@ -1,3 +1,9 @@
+---
+description: Use verbose message in DSC resource
+ms.date: 06/28/2023
+ms.topic: reference
+title: DSCUseVerboseMessageInDSCResource
+---
 # UseVerboseMessageInDSCResource
 
 **Severity Level: Information**
@@ -31,7 +37,7 @@ Function Test-Function
 {
     [CmdletBinding()]
     Param()
-    Write-Verbose "Verbose output"
+    Write-Verbose 'Verbose output'
     ...
 }
 ```

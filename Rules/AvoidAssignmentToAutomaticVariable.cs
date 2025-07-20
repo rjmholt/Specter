@@ -62,20 +62,45 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 if (_readOnlyAutomaticVariables.Contains(variableName, StringComparer.OrdinalIgnoreCase))
                 {
                     yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToReadOnlyAutomaticVariableError, variableName),
-                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Error, fileName);
+                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Error, fileName, variableName);
                 }
 
                 if (_readOnlyAutomaticVariablesIntroducedInVersion6_0.Contains(variableName, StringComparer.OrdinalIgnoreCase))
                 {
                     var severity = IsPowerShellVersion6OrGreater() ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
                     yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToReadOnlyAutomaticVariableIntroducedInPowerShell6_0Error, variableName),
-                                                      variableExpressionAst.Extent, GetName(), severity, fileName);
+                                                      variableExpressionAst.Extent, GetName(), severity, fileName, variableName);
                 }
 
                 if (_writableAutomaticVariables.Contains(variableName, StringComparer.OrdinalIgnoreCase))
                 {
                     yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToWritableAutomaticVariableError, variableName),
-                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Warning, fileName);
+                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Warning, fileName, variableName);
+                }
+            }
+
+            IEnumerable<Ast> forEachStatementAsts = ast.FindAll(testAst => testAst is ForEachStatementAst, searchNestedScriptBlocks: true);
+            foreach (ForEachStatementAst forEachStatementAst in forEachStatementAsts)
+            {
+                var variableExpressionAst = forEachStatementAst.Variable;
+                var variableName = variableExpressionAst.VariablePath.UserPath;
+                if (_readOnlyAutomaticVariables.Contains(variableName, StringComparer.OrdinalIgnoreCase))
+                {
+                    yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToReadOnlyAutomaticVariableError, variableName),
+                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Error, fileName, variableName);
+                }
+
+                if (_readOnlyAutomaticVariablesIntroducedInVersion6_0.Contains(variableName, StringComparer.OrdinalIgnoreCase))
+                {
+                    var severity = IsPowerShellVersion6OrGreater() ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
+                    yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToReadOnlyAutomaticVariableIntroducedInPowerShell6_0Error, variableName),
+                                                      variableExpressionAst.Extent, GetName(), severity, fileName, variableName);
+                }
+
+                if (_writableAutomaticVariables.Contains(variableName, StringComparer.OrdinalIgnoreCase))
+                {
+                    yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToWritableAutomaticVariableError, variableName),
+                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Warning, fileName, variableName);
                 }
             }
 
@@ -89,24 +114,29 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 {
                     continue;
                 }
-
+                // also check the parent to exclude variableExpressions that appear within attributes,
+                // such as '[ValidateSet($True,$False)]' where the read-only variables $true,$false appear.
+                if (variableExpressionAst.Parent is AttributeAst)
+                {
+                    continue;
+                }
                 if (_readOnlyAutomaticVariables.Contains(variableName, StringComparer.OrdinalIgnoreCase))
                 {
                     yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToReadOnlyAutomaticVariableError, variableName),
-                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Error, fileName);
+                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Error, fileName, variableName);
                 }
 
                 if (_readOnlyAutomaticVariablesIntroducedInVersion6_0.Contains(variableName, StringComparer.OrdinalIgnoreCase))
                 {
                     var severity = IsPowerShellVersion6OrGreater() ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
                     yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToReadOnlyAutomaticVariableIntroducedInPowerShell6_0Error, variableName),
-                                                      variableExpressionAst.Extent, GetName(), severity, fileName);
+                                                      variableExpressionAst.Extent, GetName(), severity, fileName, variableName);
                 }
 
                 if (_writableAutomaticVariables.Contains(variableName, StringComparer.OrdinalIgnoreCase))
                 {
                     yield return new DiagnosticRecord(DiagnosticRecordHelper.FormatError(Strings.AvoidAssignmentToWritableAutomaticVariableError, variableName),
-                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Warning, fileName);
+                                                      variableExpressionAst.Extent, GetName(), DiagnosticSeverity.Warning, fileName, variableName);
                 }
             }
         }

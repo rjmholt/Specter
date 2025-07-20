@@ -233,6 +233,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 if (lcurly.Previous == null
                     || !IsPreviousTokenOnSameLine(lcurly)
                     || lcurly.Previous.Value.Kind == TokenKind.LCurly
+                    || lcurly.Previous.Value.Kind == TokenKind.Dot
                     || ((lcurly.Previous.Value.TokenFlags & TokenFlags.MemberName) == TokenFlags.MemberName))
                 {
                     continue;
@@ -259,7 +260,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             foreach (var lCurly in tokenOperations.GetTokenNodes(TokenKind.LCurly))
             {
                 if (lCurly.Next == null
-                    || !IsPreviousTokenOnSameLine(lCurly)
+                    || !(lCurly.Previous == null || IsPreviousTokenOnSameLine(lCurly))
                     || lCurly.Next.Value.Kind == TokenKind.NewLine
                     || lCurly.Next.Value.Kind == TokenKind.LineContinuation
                     || lCurly.Next.Value.Kind == TokenKind.RCurly
@@ -395,8 +396,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     testAst => testAst is CommandAst, true);
             foreach (CommandAst commandAst in commandAsts)
             {
+                /// When finding all the command parameter elements, there is no guarantee that
+                /// we will read them from the AST in the order they appear in the script (in token
+                /// order). So we first sort the tokens by their starting line number, followed by
+                /// their starting column number.
                 List<Ast> commandParameterAstElements = commandAst.FindAll(
-                    testAst => testAst.Parent == commandAst, searchNestedScriptBlocks: false).ToList();
+                        testAst => testAst.Parent == commandAst, searchNestedScriptBlocks: false
+                    ).OrderBy(
+                        e => e.Extent.StartLineNumber
+                    ).ThenBy(
+                        e => e.Extent.StartColumnNumber
+                    ).ToList();
                 for (int i = 0; i < commandParameterAstElements.Count - 1; i++)
                 {
                     IScriptExtent leftExtent = commandParameterAstElements[i].Extent;
@@ -411,8 +421,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     {
                         int numberOfRedundantWhiteSpaces = rightExtent.StartColumnNumber - expectedStartColumnNumberOfRightExtent;
                         var correction = new CorrectionExtent(
-                            startLineNumber: leftExtent.StartLineNumber,
-                            endLineNumber: leftExtent.EndLineNumber,
+                            startLineNumber: leftExtent.EndLineNumber,
+                            endLineNumber: rightExtent.StartLineNumber,
                             startColumnNumber: leftExtent.EndColumnNumber + 1,
                             endColumnNumber: leftExtent.EndColumnNumber + 1 + numberOfRedundantWhiteSpaces,
                             text: string.Empty,
@@ -441,6 +451,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             {
                 return node.Next != null
                     && node.Next.Value.Kind != TokenKind.NewLine
+                    && node.Next.Value.Kind != TokenKind.Comment
                     && node.Next.Value.Kind != TokenKind.EndOfInput // semicolon can be followed by end of input
                     && !IsPreviousTokenApartByWhitespace(node.Next);
             };
@@ -615,7 +626,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         }
 
 
-        private bool IsPreviousTokenOnSameLine(LinkedListNode<Token> lparen)
+        private static bool IsPreviousTokenOnSameLine(LinkedListNode<Token> lparen)
         {
             return lparen.Previous.Value.Extent.EndLineNumber == lparen.Value.Extent.StartLineNumber;
         }

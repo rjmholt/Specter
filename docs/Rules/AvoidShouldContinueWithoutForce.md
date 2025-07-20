@@ -1,3 +1,9 @@
+---
+description: Avoid Using ShouldContinue Without Boolean Force Parameter
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidShouldContinueWithoutForce
+---
 # AvoidShouldContinueWithoutForce
 
 **Severity Level: Warning**
@@ -26,7 +32,7 @@ Function Test-ShouldContinue
         $MyString = 'blah'
     )
 
-    if ($PsCmdlet.ShouldContinue("ShouldContinue Query", "ShouldContinue Caption"))
+    if ($PsCmdlet.ShouldContinue('ShouldContinue Query', 'ShouldContinue Caption'))
     {
         ...
     }
@@ -45,7 +51,7 @@ Function Test-ShouldContinue
         [Switch]$Force
     )
 
-    if ($Force -or $PsCmdlet.ShouldContinue("ShouldContinue Query", "ShouldContinue Caption"))
+    if ($Force -or $PsCmdlet.ShouldContinue('ShouldContinue Query', 'ShouldContinue Caption'))
     {
         ...
     }

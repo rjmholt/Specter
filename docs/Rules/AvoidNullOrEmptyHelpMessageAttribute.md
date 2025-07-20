@@ -1,3 +1,9 @@
+---
+description: Avoid using null or empty HelpMessage parameter attribute.
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidNullOrEmptyHelpMessageAttribute
+---
 # AvoidNullOrEmptyHelpMessageAttribute
 
 **Severity Level: Warning**

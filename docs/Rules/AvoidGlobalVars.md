@@ -1,3 +1,9 @@
+---
+description: No Global Variables
+ms.date: 06/28/2023
+ms.topic: reference
+title: AvoidGlobalVars
+---
 # AvoidGlobalVars
 
 **Severity Level: Warning**

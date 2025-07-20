@@ -32,7 +32,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             ValidateNotNull(settings, "settings");
             ValidateNotNull(cmdlet, "cmdlet");
 
-            Helper.Instance = new Helper(cmdlet.SessionState.InvokeCommand, cmdlet);
+            Helper.Instance = new Helper(cmdlet.SessionState.InvokeCommand);
             Helper.Instance.Initialize();
 
             var ruleOrder = new string[]
@@ -45,6 +45,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                 "PSUseCorrectCasing",
                 "PSAvoidUsingCmdletAliases",
                 "PSAvoidUsingDoubleQuotesForConstantString",
+                "PSAvoidSemicolonsAsLineTerminators",
+                "PSAvoidExclaimOperator",
+                "PSAvoidTrailingWhitespace",
             };
 
             var text = new EditableText(scriptDefinition);

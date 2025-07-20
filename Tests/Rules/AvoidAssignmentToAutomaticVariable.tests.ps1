@@ -7,70 +7,80 @@ BeforeAll {
 
 Describe "AvoidAssignmentToAutomaticVariables" {
     Context "ReadOnly Variables" {
+        BeforeDiscovery {
+            $excpectedSeverityForAutomaticVariablesInPowerShell6 = 'Warning'
+            if ($PSVersionTable.PSVersion.Major -ge 6)
+            {
+                $excpectedSeverityForAutomaticVariablesInPowerShell6 = 'Error'
+            }
 
-        $excpectedSeverityForAutomaticVariablesInPowerShell6 = 'Warning'
-        if ($PSVersionTable.PSVersion.Major -ge 6)
-        {
-            $excpectedSeverityForAutomaticVariablesInPowerShell6 = 'Error'
+            $testCases_AutomaticVariables = @(
+                @{ VariableName = '?'; ExpectedSeverity = 'Error'; IsReadOnly = $true }
+                @{ VariableName = 'Error' ; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'ExecutionContext'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'false'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'Home'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'Host'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'PID'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'PSCulture'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'PSEdition'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'PSHome'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'PSUICulture'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'PSVersionTable'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'ShellId'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                @{ VariableName = 'true'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
+                # Variables introduced only in PowerShell 6+ have a Severity of Warning only
+                @{ VariableName = 'IsCoreCLR'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
+                @{ VariableName = 'IsLinux'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
+                @{ VariableName = 'IsMacOS'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
+                @{ VariableName = 'IsWindows'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
+                @{ VariableName = '_'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'AllNodes'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'Args'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'ConsoleFilename'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'Event'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'EventArgs'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'EventSubscriber'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'ForEach'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'Input'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'Matches'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'MyInvocation'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'NestedPromptLevel'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'Profile'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'PSBoundParameters'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'PsCmdlet'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'PSCommandPath'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'ReportErrorShowExceptionClass'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'ReportErrorShowInnerException'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'ReportErrorShowSource'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'ReportErrorShowStackTrace'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'Sender'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'StackTrace'; ExpectedSeverity = 'Warning' }
+                @{ VariableName = 'This'; ExpectedSeverity = 'Warning' }
+            )
+
+            $testCases_ReadOnlyAutomaticVariables = $testCases_AutomaticVariables | Where-Object { $_.IsReadonly }
         }
-
-        $testCases_AutomaticVariables = @(
-            @{ VariableName = '?'; ExpectedSeverity = 'Error'; IsReadOnly = $true }
-            @{ VariableName = 'Error' ; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'ExecutionContext'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'false'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'Home'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'Host'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'PID'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'PSCulture'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'PSEdition'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'PSHome'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'PSUICulture'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'PSVersionTable'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'ShellId'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            @{ VariableName = 'true'; ExpectedSeverity = 'Error';  IsReadOnly = $true }
-            # Variables introduced only in PowerShell 6+ have a Severity of Warning only
-            @{ VariableName = 'IsCoreCLR'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
-            @{ VariableName = 'IsLinux'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
-            @{ VariableName = 'IsMacOS'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
-            @{ VariableName = 'IsWindows'; ExpectedSeverity = $excpectedSeverityForAutomaticVariablesInPowerShell6; OnlyPresentInCoreClr = $true }
-            @{ VariableName = '_'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'AllNodes'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'Args'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'ConsoleFilename'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'Event'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'EventArgs'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'EventSubscriber'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'ForEach'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'Input'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'Matches'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'MyInvocation'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'NestedPromptLevel'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'Profile'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'PSBoundParameters'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'PsCmdlet'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'PSCommandPath'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'ReportErrorShowExceptionClass'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'ReportErrorShowInnerException'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'ReportErrorShowSource'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'ReportErrorShowStackTrace'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'Sender'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'StackTrace'; ExpectedSeverity = 'Warning' }
-            @{ VariableName = 'This'; ExpectedSeverity = 'Warning' }
-        )
-
-        $testCases_ReadOnlyAutomaticVariables = $testCases_AutomaticVariables | Where-Object { $_.IsReadonly }
 
         It "Variable <VariableName> produces warning of Severity <ExpectedSeverity>" -TestCases $testCases_AutomaticVariables {
             param ($VariableName, $ExpectedSeverity)
 
-            $warnings = Invoke-ScriptAnalyzer -ScriptDefinition "`$${VariableName} = 'foo'" -ExcludeRule PSUseDeclaredVarsMoreThanAssignments
+            [System.Array] $warnings = Invoke-ScriptAnalyzer -ScriptDefinition "`$${VariableName} = 'foo'" -ExcludeRule PSUseDeclaredVarsMoreThanAssignments
             $warnings.Count | Should -Be 1
             $warnings.Severity | Should -Be $ExpectedSeverity
             $warnings.RuleName | Should -Be $ruleName
         }
 
-        It "Using Variable <VariableName> as parameter name produces warning of Severity error" -TestCases $testCases_AutomaticVariables {
+        It "Using Variable <VariableName> as foreach assignment produces warning of Severity <ExpectedSeverity>" -TestCases $testCases_AutomaticVariables {
+            param ($VariableName, $ExpectedSeverity)
+
+            [System.Array] $warnings = Invoke-ScriptAnalyzer -ScriptDefinition "foreach (`$$VariableName in `$foo) {}"
+            $warnings.Count | Should -Be 1
+            $warnings.Severity | Should -Be $ExpectedSeverity
+            $warnings.RuleName | Should -Be $ruleName
+        }
+
+        It "Using Variable <VariableName> as parameter name produces warning of Severity <ExpectedSeverity>" -TestCases $testCases_AutomaticVariables {
             param ($VariableName, $ExpectedSeverity)
 
             [System.Array] $warnings = Invoke-ScriptAnalyzer -ScriptDefinition "function foo{Param(`$$VariableName)}" -ExcludeRule PSReviewUnusedParameter
@@ -79,7 +89,7 @@ Describe "AvoidAssignmentToAutomaticVariables" {
             $warnings.RuleName | Should -Be $ruleName
         }
 
-        It "Using Variable <VariableName> as parameter name in param block produces warning of Severity error" -TestCases $testCases_AutomaticVariables {
+        It "Using Variable <VariableName> as parameter name in param block produces warning of Severity <ExpectedSeverity>" -TestCases $testCases_AutomaticVariables {
             param ($VariableName, $ExpectedSeverity)
 
             [System.Array] $warnings = Invoke-ScriptAnalyzer -ScriptDefinition "function foo(`$$VariableName){}"
@@ -90,6 +100,13 @@ Describe "AvoidAssignmentToAutomaticVariables" {
 
         It "Does not flag parameter attributes" {
             [System.Array] $warnings = Invoke-ScriptAnalyzer -ScriptDefinition 'function foo{Param([Parameter(Mandatory=$true)]$param1)}' -ExcludeRule PSReviewUnusedParameter
+            $warnings.Count | Should -Be 0
+        }
+
+        It "Does not flag true or false being used in ValidateSet" {
+            # All other read-only automatic variables cannot be used in ValidateSet
+            # they result in a ParseError. $true and $false are permitted however.
+            [System.Array] $warnings = Invoke-ScriptAnalyzer -ScriptDefinition 'param([ValidateSet($true,$false)]$MyVar)$MyVar' -ExcludeRule PSReviewUnusedParameter
             $warnings.Count | Should -Be 0
         }
 
@@ -133,6 +150,29 @@ Describe "AvoidAssignmentToAutomaticVariables" {
                 }
             }
         }
+    }
 
+    Context 'Suppression' {
+        BeforeDiscovery {
+            $testCases_RuleSuppression = @(
+                @{ VariableName = 'true'; Type = 'ReadOnlyAutomaticVariableError' }
+                @{ VariableName = 'IsWindows'; Type = 'ReadOnlyAutomaticVariableIntroducedInPowerShell6_0Error' }
+                @{ VariableName = 'ForEach'; Type = 'WritableAutomaticVariableError' }
+            )
+        }
+
+        It 'Variable <VariableName> of type <Type> can be suppressed by RuleSuppressionId' -TestCases $testCases_RuleSuppression {
+            $scriptDef = @"
+function suppressionTest {
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('$ruleName', '$VariableName')]
+    param(
+        `$$VariableName
+    )
+}
+"@
+
+            $warnings = @(Invoke-ScriptAnalyzer -ScriptDefinition $scriptDef -ExcludeRule PSReviewUnusedParameter)
+            $warnings.Count | Should -Be 0
+        }
     }
 }

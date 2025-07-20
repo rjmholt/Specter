@@ -1,5 +1,241 @@
 ﻿# CHANGELOG
 
+## [1.24.0](https://github.com/PowerShell/PSScriptAnalyzer/releases/tag/1.24.0)
+
+### What's Changed
+#### Breaking Changes
+
+Minimum required PowerShell version raised from 3 to 5.1
+* Drop v3 and v4 support from build by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2081
+
+#### New Features
+
+* Add new options (enabled by default) to formatting rule `UseCorrectCasing` to also correct operators, keywords and commands - Add UseConsistentCasing by @Jaykul in https://github.com/PowerShell/PSScriptAnalyzer/pull/1704
+
+#### Enhancements
+
+* PSAlignAssignmentStatement: Ignore hashtables with a single key-value pair by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/1986
+* Use `RequiredResource` hashtable to specify PowerShell module versions by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2053
+* Set exit code of `Invoke-ScriptAnalyzer -EnableExit` to total number of diagnostics (#2054) by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2055
+* PSAvoidAssignmentToAutomaticVariable: Ignore when a Parameter has an Attribute that contains a Variable expression by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/1988
+* Trim unnecessary trailing spaces from string resources in Strings.resx by @XPlantefeve in https://github.com/PowerShell/PSScriptAnalyzer/pull/1972
+* Do not print summary repeatedly for each logger by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2058
+* Make Settings type detection more robust by @Tadas in https://github.com/PowerShell/PSScriptAnalyzer/pull/1967
+* Add foreach Assignment to AvoidAssignmentToAutomaticVariable by @PoshAJ in https://github.com/PowerShell/PSScriptAnalyzer/pull/2021
+* Invoke-ScriptAnalyzer: Stream diagnostics instead of batching by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2062
+* Invoke-ScriptAnalyzer: Print summary only once per invocation by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2063
+* Invoke-ScriptAnalyzer: Include parse errors in reported error count by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2069
+* Add exception message for missing rules by @Tadas in https://github.com/PowerShell/PSScriptAnalyzer/pull/1968
+
+#### Bug Fixes
+
+* Update links in module manifest by @martincostello in https://github.com/PowerShell/PSScriptAnalyzer/pull/2034
+* Fix incorrect `-ReportSummary` Pester test grouping by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2057
+* Fixed erroneous PSUseDeclaredVarsMoreThanAssignments for some globals variables by @John-Leitch in https://github.com/PowerShell/PSScriptAnalyzer/pull/2013
+* PSReservedParams: Make severity Error instead of Warning by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/1989
+* PSUseConsistentIndentation: Check indentation of lines where first token is a LParen not followed by comment or new line by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/1995
+* PSUseConsistentWhitespace: Correctly fix whitespace between command parameters when parameter value spans multiple lines  by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/2064
+* PSAvoidTrailingWhitespace: Rule not applied when using formatter + single character lines with trailing whitespace are truncated by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/1993
+* PSUseConsistentWhitespace: Ignore whitespace between separator and comment by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/2065
+* PSReviewUnusedParameter false positive for ValueFromPipeline by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/2072
+* Change severity of UseCorrectCasing to be Information by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2082
+
+#### Process Changes
+
+* Copy more files to module root by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2037
+* Upgrade to .NET 8 since .NET 6 is past EOL by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2073
+* Use -NoProfile when invoking pwsh in Pester tests by @MatejKafka in https://github.com/PowerShell/PSScriptAnalyzer/pull/2061
+* Add GitHub Actions Ubuntu's dotnet path by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2080
+* Update README.md with recent upgrade to .NET 8 by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2076
+* Update CHANGELOG.MD with 1.23.0 release notes by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2078
+* Bring back Codespaces by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2077
+* Update SMA version to 7.4.7 by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2075
+* Test PowerShell Preview in CI by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2070
+* Backport MSDocs changes by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2085
+* Document new optional parameters added to UseCorrectCasing by @bergmeister in https://github.com/PowerShell/PSScriptAnalyzer/pull/2086
+
+### New Contributors
+* @martincostello made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/2034
+* @MatejKafka made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/2055
+* @XPlantefeve made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/1972
+* @John-Leitch made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/2013
+* @Tadas made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/1967
+* @PoshAJ made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/2021
+* @Jaykul made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/1704
+
+**Full Changelog**: https://github.com/PowerShell/PSScriptAnalyzer/compare/1.23.0...1.24.0
+
+## [1.23.0](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.23.0) - 2024-10-09
+
+### What's Changed
+* Adding OneBranch pipeline YAML config file for OSS_Microsoft_PSSA-Official by @adityapatwardhan in https://github.com/PowerShell/PSScriptAnalyzer/pull/1981
+* Update format and grammar of AvoidUsingAllowUnencryptedAuthentication by @sdwheeler in https://github.com/PowerShell/PSScriptAnalyzer/pull/1974
+* Move to OneBranch Signing and SBOM generation by @TravisEz13 in https://github.com/PowerShell/PSScriptAnalyzer/pull/1982
+* Sync rule docs changes by @sdwheeler in https://github.com/PowerShell/PSScriptAnalyzer/pull/1985
+* Sync docs changes from MicrosoftDocs/PowerShell-Docs-Modules#213 by @sdwheeler in https://github.com/PowerShell/PSScriptAnalyzer/pull/1987
+* Update CHANGELOG for 1.22.0 release by @sdwheeler in https://github.com/PowerShell/PSScriptAnalyzer/pull/1990
+* Update Code of Conduct by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2002
+* Update default type definition of `RuleInfo` by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/2011
+* PSUseConsistentWhitespace: Handle redirect operators which are not in stream order by @liamjpeters in https://github.com/PowerShell/PSScriptAnalyzer/pull/2001
+* Setup GitHub Actions CI by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2018
+* Setup new OneBranch pipeline by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2027
+* Bump SMA version by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2028
+* Package updates by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2030
+* v1.23.0: Update version for new release by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2032
+* Migrate release pipeline to DeployBox by @andyleejordan in https://github.com/PowerShell/PSScriptAnalyzer/pull/2033
+
+### New Contributors
+* @adityapatwardhan made their first contribution in https://github.com/PowerShell/PSScriptAnalyzer/pull/1981
+
+**Full Changelog**: https://github.com/PowerShell/PSScriptAnalyzer/compare/1.22.0...1.23.0
+
+## [1.22.0](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.22.0) - 2024-03-05
+
+Minimum required version when using PowerShell 7 is now `7.2.11`.
+
+### New Rule
+
+- Add AvoidUsingAllowUnencryptedAuthentication by @MJVL in (#1857)
+- Add the AvoidExclaimOperator rule to warn about the use of the ! negation operator. Fixes (#1826) by
+  @liamjpeters in (#1922)
+
+### Enhancements
+
+- Enable suppression of PSAvoidAssignmentToAutomaticVariable for specific variable or parameter by
+  @fflaten in (#1896)
+- Upgrade to use .NET 6 since PowerShell 7.0 is now out out of support by @bergmeister in (#1873)
+- Convert UseSingularNouns to configurable rule and add Windows to allowlist by @MJVL in (#1858)
+- Add ErrorView to SpecialVars.cs by @ewisniew0 in (#1865)
+- Allow suppression of  PSUseSingularNouns for specific function by @fflaten in (#1903)
+- Adding ToString() methods to [CorrectionExtent] and [DiagnosticRecord] by @StartAutomating in (#1946)
+- Add PSNativeCommandUseErrorActionPreference preference variable by @aelij in (#1954)
+- AvoidUsingPositionalParameter: Check if command has parameters to avoid having az in default
+  CommandAllowList by @bergmeister in (#1850)
+- PSReviewUnusedParameter: Add CommandsToTraverse option by @FriedrichWeinmann in (#1921)
+
+### Fixes
+
+- Prevent NullReferenceException for null analysis type. by @hubuk in (#1949)
+
+### Build & Test, Documentation and Maintenance
+
+- UseApprovedVerbs.md: Backport minor change of PR 104 in PowerShell-Docs-Modules by @bergmeister in
+  (#1849)
+- Improve Pester bootstrap logic for CI by @bergmeister in (#1853)
+- Bump .NET SDK from 3.1.419 to 3.1.424 by @bergmeister in (#1852)
+- AvoidLongLines: Make internal function DiagnosticSeverity private by @bergmeister in (#1851)
+- SupportsShouldProcess.md: Fix Typo - MicrosoftDocs backport of PR 121 there by @sdwheeler in (#1869)
+- Minor test fix for UseCorrectCasing rule by @kilasuit in (#1885)
+- Make Invoke-Formatter test case assertion fail in case of incorrect casing by @alexandear in (#1888)
+- Fix `AvoidUsingDoubleQuotesForConstantString` information in overview README by @michaeltlombardi
+  in (#1883)
+- Update dependabot reviewers to remove Rob by @fflaten in (#1897)
+- Fix typo in AvoidUsingPlainTextForPassword error message: 'to' being repeated two times by
+  @ALiwoto in (#1902)
+- CI: Use new Ubuntu 22.04  image and remove deprecated Ubuntu 18.04 by @bergmeister in (#1847)
+- Change double quotes to single where possible by @sdwheeler in (#1911)
+- Backport MicrosoftDocs PR 143 by @sdwheeler in (#1910)
+- Fix typos in rules documentation by @sdwheeler in (#1913)
+- add demand for compliance job by @TravisEz13 in (#1920)
+- FabricBot: Onboarding to GitOps.ResourceManagement because of FabricBot decommissioning by
+  @microsoft-github-policy-service in (#1925)
+- Sync changes from Docs repository by @sdwheeler in (#1929)
+- Developer documentation fix and message fix of
+  PossibleIncorrectUsageOfRedirectionOperatorDescription by @JoelTipke in (#1928)
+- Documentation corrections for AvoidUsingPositionalParameters by @ImportTaste in (#1917)
+- Update minimum PowerShell Core version to 7.2.11 as 7.0 is now EOL by @bergmeister in (#1872)
+- Remove dead code and simplify by @bergmeister in (#1856)
+- PSReservedParams - link about_CommonParameters by @petervandivier in (#1908)
+- Generate strongly typed resources as part of build by @bergmeister in (#1855)
+- Bump Newtonsoft.Json to 13.0.3 by @dependabot in (#1866)
+- Use latest .NET 6.0 SDK patch version and update devcontainer to use .NET 6 as well by
+  @bergmeister in (#1955)
+- Bump Microsoft.Management.Infrastructure from 1.0.0 to 3.0.0 for PowerShell 7 only by @dependabot
+  in (#1947)
+- Bump version from 1.21.0 to 1.22.0 by @bergmeister in (#1965)
+- Remove Appveyor badge from main README by @bergmeister in (#1962)
+- Do not hard code common parameters in module help test any more by @bergmeister in (#1963)
+
+### New Contributors
+
+- @fflaten made their first contribution in (#1897)
+- @ALiwoto made their first contribution in (#1902)
+- @microsoft-github-policy-service made their first contribution in (#1925)
+- @JoelTipke made their first contribution in (#1928)
+- @ImportTaste made their first contribution in (#1917)
+- @liamjpeters made their first contribution in (#1922)
+- @petervandivier made their first contribution in (#1908)
+- @ewisniew0 made their first contribution in (#1865)
+- @StartAutomating made their first contribution in (#1946)
+- @aelij made their first contribution in (#1954)
+- @FriedrichWeinmann made their first contribution in (#1921)
+
+**Full Changelog**: <https://github.com/PowerShell/PSScriptAnalyzer/compare/1.21.0...1.22.0>
+
+## [1.21.0](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.21.0) - 2022-09-27
+
+### New Rule
+
+- Add AvoidMultipleTypeAttributes rule (#1705) (thanks @hankyi95)
+- Add the AvoidSemicolonsAsLineTerminators rule to warn about lines ending with a semicolon. Fix
+  (#824) (#1806) (thanks @tempora-mutantur)
+- Add AvoidUsingBrokenHashAlgorithms (#1787) (thanks @MJVL)
+
+### Enhancements
+
+- Also return suggestion to use PSCredential for AvoidUsingPlainTextForPassword rule (#1782) (by @bergmeister)
+- Invoke-Formatter: Accept input from pipeline (#1763) (by @bergmeister)
+- Make messages of UseCorrectCasing more detailed (#1843)
+- Exclude automatic variable FormatEnumerationLimit from analysis by PSAvoidGlobalVars and
+  PSUseDeclaredVarsMoreThanAssignments (#1836) (by @bergmeister)
+- PSAvoidUsingPositionalParameters: Do not warn on AZ CLI (#1846) (by @bergmeister)
+
+### Fixes
+
+- Fix PSUseConsistentIndentation.PipelineIndentation.None to not remove code when the previous line ended with a pipe (#1746) (by @bergmeister)
+- Fix edge case of UseConsistentIndentation where child pipeline is on the same line as hashtable (#1838) (by @bergmeister)
+- Skip OpenBrace check when preceded by Dot token (#1750) (by @bergmeister)
+- Fix NRE (NullReferenceException) when custom rules omit optional properties in diagnostics (#1715) (by @rjmholt)
+
+### Build, Documenation and Maintenance
+
+- Tweak documentation for AvoidUsingBrokenHashAlgorithms (#1829) (thanks @michaeltlombardi)
+- Set MaxDepth in JsonSerializerSettings for more secure handling of exceptional conditions in Newtonsoft.Json (#1824) (by @bergmeister)
+- Use latest Newtonsoft.Json version for Windows PowerShell builds and not exclude it any more in Dependabot (#1825) (by @bergmeister)
+- Correct pipeline acceptance docs for Invoke-Formatter.md (#1833) (by @bergmeister)
+- Sync remaining docs changes from Microsoft docs (#1835) (by @bergmeister)
+- (MAINT) Update URLs for site rebrand from docs.microsoft.com to learn.microsoft.com (#1844) (by @sdwheeler)
+- Reformat note block (#1837) (by @sdwheeler)
+- Update AvoidMultipleTypeAttributes.md with example that has runtime error (#1831) (by @bergmeister)
+- Fix minimum PowerShell version to be 7.0.11 instead of 7.1.7 (#1830) (by @bergmeister)
+- Add `.github/fabricbot.json` (#1812)
+- Sync changes from docs repo (#1814) (by @sdwheeler)
+- Fix name of PowerShell 5.1 test stage in CI (#1820) (by @bergmeister)
+- CI: Retry test tasks in cas1e of failure to reduce sporadic failures (#1770)
+- Upgrade from net452 to net462 for Windows PowerShell (#1789)
+- Move issue template config into folder (#1804) (thanks @michaeltlombardi)
+- Bump version from 1.20.0 to 1.21.0 (#1796) (by @bergmeister)
+- Bump .NET SDK and SMA patch version (#1795) (by @bergmeister)
+- Be sure not to clobber existing files when installing dotnet. (#1788) (by @JamesWTruher)
+- Add link to issues chooser for reporting docs issues (#1794) (by @sdwheeler)
+- Update README and delete docs that were migrated (#1790) (by @sdwheeler)
+- Fix errors in ShouldProcess rule document (#1766) (thanks @masaru-iritani)
+- Replicate changes from docs repo (#1781) (by @sdwheeler)
+- Update Windows CI images as windows-2016 has been deprecated (#1784) (by @bergmeister)
+- Use latest mac image rather than a specific version. (#1777) (by @JamesWTruher)
+- Add docs migration notice & fix formatting (#1779) (by @sdwheeler)
+- use compliant build environment for release build. (#1776) (by @JamesWTruher)
+- Enable SBOM creation for script analyzer (#1762) (by @JamesWTruher)
+- Fix links to work on GitHub (#1738) (by @andschwa)
+- Update AvoidUsingWMICmdlet.md (#1737) (thanks @C0smin)
+- Fix broken doc link in README (#1735) (thanks @AndrewRathbun)
+- Add metadata to docs (#1731) (by @sdwheeler)
+- Remove Ubuntu 16.04 from test matrix (#1733) (by @rjmholt)
+- Use PowerShell1ES pool for official build (#1719) (by @JamesWTruher)
+- Update cmdlet docs for 1.20.0 (#1726) (by @sdwheeler)
+- Fixes (#1720) - move rule docs and update tests (#1724) (by @sdwheeler)
+- Update rule docs (#1711)  (by @sdwheeler)
+
 ## [1.20.0](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.20.0) - 2021-08-20
 
 ### Fixes
@@ -76,7 +312,7 @@
 
 ### Miscellaneous
 
-- Set Assembly version attribute (#1549) (by @JamesWTruher) 
+- Set Assembly version attribute (#1549) (by @JamesWTruher)
 
 ### Documentation
 
@@ -108,7 +344,7 @@
 
 ### Compatibility Rules
 
-- Make CompatibilityCollector able to parse a single version String #1446 (by @bergmeister)
+- Make CompatibilityCollector able to parse a single version String (#1446) (by @bergmeister)
 - Update compatibility profiles for PowerShell 7 (#1429) (by @rjmholt)
 - Ps7 syntax (#1426) (by @rjmholt)
 - Fix ps3 syntax check (#1395) (by @rjmholt)
@@ -209,7 +445,7 @@ The PRs for those improvements are:
 
 ## [1.18.3](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.18.3) - 2019-09-13
 
-This release adds one more important fix, which prevents a leak of runspaces when repeatedly invoking the PSScriptAnalyzer cmdlets. Furthermore it ups the minimum version of PowerShell Core to `6.2.0` due to `6.1` reaching its [end of life](https://docs.microsoft.com/en-us/powershell/scripting/powershell-support-lifecycle?view=powershell-6#powershell-releases-end-of-life) this month.
+This release adds one more important fix, which prevents a leak of runspaces when repeatedly invoking the PSScriptAnalyzer cmdlets. Furthermore it ups the minimum version of PowerShell Core to `6.2.0` due to `6.1` reaching its [end of life](https://learn.microsoft.com/powershell/scripting/install/PowerShell-Support-Lifecycle#powershell-end-of-support-dates) this month.
 
 - Change CommandInfoCache to implement IDisposable and clean up the runspace pool (#1335) (by @JamesWTruher)
 - Update Newtonsoft json to 12.0.1 due to PowerShell 6.1 going out of support (#1336) (by @bergmeister)
@@ -275,11 +511,11 @@ The benefit to the user will be some enhancements and fixes in the formatter, es
   - Convert compatibility module to binary module, fix compatibility with Azure environments (#1212) (by @rjmholt)
   - Prevent .NET members with names differing only by case from crashing the compatibility profiler (#1195) (by @rjmholt)
   - Fix compatibility profile query API so that aliases referring to other modules appear (#1194) (by @rjmholt)
-  
+
 - DSC
   - Instead of using the first cimClass and then having no superClass, use the first cimClass that has a non-null superClass (#1200) (by @bergmeister, thanks to @ykuijs! for the great collaboration)
   - Make `-SaveDscDependency` work on Linux (#1246) (by @bergmeister)
-  
+
 - Enable suppression of custom rules when used together with `-IncludeDefaultRules` to allow all possible scenarios from 1.17.1 and 1.18.0. This removes also the check if the rule name in the suppression attribute can be found because this check is technically not possible in all scenarios (#1245) (by @bergmeister)
 - Fix NullReferenceException for class type (#1182) (by @bergmeister)
 
@@ -492,7 +728,7 @@ Multi-threading efficiency was highly improved leading to a speedup whilst keepi
 - Add simple GitHub Pull Request template based off the one for PowerShell Core (#866) (by @bergmeister)
 - Add a simple GitHub issue template based on the one of PowerShell Core. (#865, #884) (by @bergmeister)
 - Fix Example 7 in Invoke-ScriptAnalyzer.md (#862) (Thanks @sethvs!)
-- Use the typewriter apostrophe instead the typographic apostrophe (#855) (Thanks @alexandear!) 
+- Use the typewriter apostrophe instead the typographic apostrophe (#855) (Thanks @alexandear!)
 - Add justification to ReadMe (#848) (Thanks @KevinMarquette!)
 - Fix typo in README (#845) (Thanks @misterGF!)
 
@@ -666,10 +902,10 @@ Here are some improvements since the last release.
 - Add build script to automate building and testing the solution
 
 A big **Thank You!** to the following folks for making PSScriptAnalyzer even better:
-- [Kieran Jacobsen (@kjacobsen)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=kjacobsen): Fix rule documentation of `PSDSCExamplesPresent` [PR #591](https://github.com/PowerShell/PSScriptAnalyzer/pull/591)
-- [Charlie Schmidt (@charlieschmidt)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=charlieschmidt): Suppress External Rules [PR #585](https://github.com/PowerShell/PSScriptAnalyzer/pull/585)
+- [Kieran Jacobsen (@kjacobsen)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=kjacobsen): Fix rule documentation of `PSDSCExamplesPresent` [PR #591](#591)
+- [Charlie Schmidt (@charlieschmidt)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=charlieschmidt): Suppress External Rules [PR #585](#585)
 - [June Blender (@juneb)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=juneb): Add tests for module help [058f65e1](https://github.com/PowerShell/PSScriptAnalyzer/commit/058f65e1f6278222378fedf444eecb2e32865b1e)
-- [Shayde Nofziger (@Blackbaud-ShaydeNofziger)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=Blackbaud-ShaydeNofziger): Fix rule name typo and comment [PR #560](https://github.com/PowerShell/PSScriptAnalyzer/pull/560)
+- [Shayde Nofziger (@Blackbaud-ShaydeNofziger)](https://github.com/PowerShell/PSScriptAnalyzer/commits/development?author=Blackbaud-ShaydeNofziger): Fix rule name typo and comment [PR #560](#560)
 
 ## [1.6.0](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.6.0) - 2016-06-07
 
@@ -768,7 +1004,8 @@ A big **Thank You!** to the following folks for making PSScriptAnalyzer even bet
 ### Fixes:
 #### Engine:
 - Engine update to prevent script based injection attacks
-- CustomizedRulePath is now called CustomRulePath â€“ Fixes to handle folder paths
+- CustomizedRulePath is now called CustomRulePath
+- Fixes to handle folder paths
 - Fixes for RecurseCustomRulePath functionality
 - Fix to binplace cmdlet help file as part of build process
 - ScriptAnalyzer Profile is now called Settings
@@ -786,7 +1023,8 @@ A big **Thank You!** to the following folks for making PSScriptAnalyzer even bet
 - Update to Credential based rules to validate the presence of CredentialAttribute and PSCredential type
 
 ### Documentation:
-- Rule & Cmdlet documentation updates â€“ Cmdlet help file addition
+- Rule & Cmdlet documentation updates
+- Cmdlet help file addition
 
 ## [1.1.1](https://github.com/PowerShell/PSScriptAnalyzer/tree/1.1.1) - 2015-11-03
 ### Features:
@@ -827,7 +1065,7 @@ A big **Thank You!** to the following folks for making PSScriptAnalyzer even bet
 
 ### Rules:
 - New rule to validate the presence of deprecated module manifest fields.
-- Removed PSAvoidTrapStatement rule from the builtin set â€“ since this is not deprecated and using trap is a better choice in certain scenarios.
+- Removed PSAvoidTrapStatement rule from the builtin set since this is not deprecated and using trap is a better choice in certain scenarios.
 
 ### Fixes:
 - Verbose Message rule applies to only DSC cmdlet based resources.

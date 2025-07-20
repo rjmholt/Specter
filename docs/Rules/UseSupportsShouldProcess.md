@@ -1,4 +1,10 @@
-﻿# UseSupportsShouldProcess
+---
+description: Use SupportsShouldProcess
+ms.date: 06/28/2023
+ms.topic: reference
+title: UseSupportsShouldProcess
+---
+# UseSupportsShouldProcess
 
 **Severity Level: Warning**
 
@@ -6,13 +12,13 @@
 
 This rule discourages manual declaration of `WhatIf` and `Confirm` parameters in a function/cmdlet.
 These parameters are, however, provided automatically when a function declares a `CmdletBinding`
-attribute with `SupportsShouldProcess` as its named argument. Using `SupportsShouldProcess` no only
+attribute with `SupportsShouldProcess` as its named argument. Using `SupportsShouldProcess` not only
 provides these parameters but also some generic functionality that allows the function/cmdlet
 authors to provide the desired interactive experience while using the cmdlet.
 
 ## Example
 
-### Wrong:
+### Wrong
 
 ```powershell
 function foo {
@@ -24,7 +30,7 @@ function foo {
 }
 ```
 
-### Correct:
+### Correct
 
 ```powershell
 function foo {

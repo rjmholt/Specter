@@ -28,6 +28,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         internal const string Matches = "Matches";
         internal const string PSVersionTable = "PSVersionTable";
         internal const string OFS = "OFS";
+        internal const string FormatEnumerationLimit = "FormatEnumerationLimit";
 
         internal static readonly string[] InitializedVariables;
 
@@ -59,8 +60,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                                                                    PSCommandPath,
                                                                    ExecutionContext,
                                                                    Matches,
-                                                                   PSVersionTable,
-                                                                   OFS
+                                                                   PSVersionTable,                                                                   
+                                                                   OFS,
+                                                                   FormatEnumerationLimit,
                                                                };
         internal static readonly Type[] AutomaticVariableTypes = new Type[]  
                                                                  {  
@@ -76,7 +78,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                                                                    /* ExecutionContext */  typeof(EngineIntrinsics),
                                                                    /* Matches */           typeof(System.Collections.Hashtable),
                                                                    /* PSVersionTable */    typeof(System.Collections.Hashtable),
-                                                                   /* OFS */               typeof(object)
+                                                                   /* OFS */               typeof(object),
+                                                                   /* FormatEnumerationLimit */ typeof(int)
                                                                  };
 
 
@@ -88,6 +91,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         internal const string ConfirmPreference = "ConfirmPreference";
         internal const string ProgressPreference = "ProgressPreference";
         internal const string InformationPreference = "InformationPreference";
+        internal const string ErrorView = "ErrorView";
+        internal const string PSNativeCommandUseErrorActionPreference = "PSNativeCommandUseErrorActionPreference";
 
         internal static readonly string[] PreferenceVariables = new string[]
                                                                 {
@@ -98,7 +103,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                                                                     WarningPreference,
                                                                     ConfirmPreference,
                                                                     ProgressPreference,
-                                                                    InformationPreference
+                                                                    InformationPreference,
+                                                                    ErrorView,
+                                                                    PSNativeCommandUseErrorActionPreference,
                                                                 };
 
         internal static readonly Type[] PreferenceVariableTypes = new Type[]
@@ -111,6 +118,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                                                                     /* ConfirmPreference */ typeof(ConfirmImpact),
                                                                     /* ProgressPreference */ typeof(Enum),
                                                                     /* InformationPreference */ typeof(ActionPreference),
+                                                                    /* ErrorView */         typeof(Enum), //ErrorView type not available on PS3
+                                                                    /* PSNativeCommandUseErrorActionPreference */ typeof(bool),
                                                                 };
 
         internal enum AutomaticVariable
@@ -151,6 +160,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         internal const string PSEmailServer = "PSEmailServer";
         internal const string PSDefaultParameterValues = "PSDefaultParameterValues";
         internal const string PSModuleAutoLoadingPreference = "PSModuleAutoLoadingPreference";
+        internal const string PSNativeCommandArgumentPassing = "PSNativeCommandArgumentPassing";
         internal const string pwd = "PWD";
         internal const string Null = "null";
         internal const string True = "true";
@@ -173,6 +183,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                                                                     PSEmailServer,
                                                                     PSDefaultParameterValues,
                                                                     PSModuleAutoLoadingPreference,
+                                                                    PSNativeCommandArgumentPassing,
                                                                     pwd,
                                                                     Null,
                                                                     True,

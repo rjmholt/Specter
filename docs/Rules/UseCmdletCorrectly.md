@@ -1,3 +1,9 @@
+---
+description: Use Cmdlet Correctly
+ms.date: 06/28/2023
+ms.topic: reference
+title: UseCmdletCorrectly
+---
 # UseCmdletCorrectly
 
 **Severity Level: Warning**
