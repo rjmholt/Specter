@@ -88,9 +88,9 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
                 throw new InvalidPowerShellExpressionException($"Statement '{scriptBlockAst.EndBlock.Statements[0].Extent.Text}' is not a valid expression");
             }
 
-            if (pipelineAst.PipelineElements.Count != 0)
+            if (pipelineAst.PipelineElements.Count != 1)
             {
-                throw new InvalidPowerShellExpressionException("Cannot use pipelines in expressions");
+                throw new InvalidPowerShellExpressionException("Expected a single command expression in pipeline");
             }
 
             if (!(pipelineAst.PipelineElements[0] is CommandExpressionAst commandExpressionAst))

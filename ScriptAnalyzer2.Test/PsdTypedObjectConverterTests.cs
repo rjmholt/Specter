@@ -82,7 +82,7 @@ namespace ScriptAnalyzer2.Test
         public void DateTimeTest()
         {
             var expected = new DateTime(ticks: 637191090850000000);
-            var obj = _converter.Convert<DateTimeObject>("@{ DateTime = '6/03/2020 4:31:25 PM' }");
+            var obj = _converter.Convert<DateTimeObject>("@{ DateTime = '2020-03-06 16:31:25' }");
             Assert.Equal(expected, obj.DateTime);
         }
 
@@ -298,7 +298,7 @@ namespace ScriptAnalyzer2.Test
             var obj = _converter.Convert<object>("1, $true, 'x'");
             Assert.Equal(new object[] { 1, true, "x" }, (object[])obj);
         }
-        
+
         [Fact]
         public void TestConversionToObject_Hashtable()
         {
