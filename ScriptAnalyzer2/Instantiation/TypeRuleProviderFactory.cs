@@ -7,6 +7,31 @@ using System.Reflection;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
 {
+    public class TypeRuleProviderFactoryBuilder
+    {
+        private readonly IReadOnlyDictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
+
+        private readonly List<Type> _types;
+
+        public TypeRuleProviderFactoryBuilder(
+            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+        {
+            _types = new List<Type>();
+            _ruleConfigurationCollection = ruleConfigurationCollection;
+        }
+
+        public TypeRuleProviderFactoryBuilder AddRule<TRule>() where TRule : ScriptRule
+        {
+            _types.Add(typeof(TRule));
+            return this;
+        }
+
+        public TypeRuleProviderFactory Build()
+        {
+            return new TypeRuleProviderFactory(_ruleConfigurationCollection, _types);
+        }
+    }
+
     public class TypeRuleProviderFactory : IRuleProviderFactory
     {
         public static TypeRuleProviderFactory FromAssemblyFile(
@@ -39,7 +64,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
         {
             return new TypeRuleProvider(GetRuleFactoriesFromTypes(_ruleConfigurationCollection, ruleComponentProvider, _types));
         }
-        
+
         private static IReadOnlyDictionary<RuleInfo, TypeRuleFactory<ScriptRule>> GetRuleFactoriesFromTypes(
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
             RuleComponentProvider ruleComponentProvider,

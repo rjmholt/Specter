@@ -1,8 +1,10 @@
 ﻿using Microsoft.PowerShell.ScriptAnalyzer.Builtin;
+using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Execution;
 using Microsoft.PowerShell.ScriptAnalyzer.Instantiation;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builder
 {
@@ -46,9 +48,32 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builder
         }
 
         public ScriptAnalyzerBuilder AddBuiltinRules()
+            => AddBuiltinRules(Default.RuleConfiguration);
+
+        public ScriptAnalyzerBuilder AddBuiltinRules(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
         {
             _ruleProviderFactories.Add(
-                new BuiltinRuleProviderFactory(Default.RuleConfiguration));
+                new BuiltinRuleProviderFactory(ruleConfigurationCollection));
+            return this;
+        }
+
+        public ScriptAnalyzerBuilder AddRules(Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
+            => AddRules(Default.RuleConfiguration, configureRuleProviderFactory);
+
+        public ScriptAnalyzerBuilder AddRules(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection, Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
+        {
+            var ruleProviderFactoryBuilder = new TypeRuleProviderFactoryBuilder(ruleConfigurationCollection);
+            configureRuleProviderFactory(ruleProviderFactoryBuilder);
+            AddRuleProviderFactory(ruleProviderFactoryBuilder.Build());
+            return this;
+        }
+
+        public ScriptAnalyzerBuilder AddRulesFromAssembly(Assembly ruleAssembly)
+            => AddRulesFromAssembly(Default.RuleConfiguration, ruleAssembly);
+
+        public ScriptAnalyzerBuilder AddRulesFromAssembly(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection, Assembly ruleAssembly)
+        {
+            AddRuleProviderFactory(TypeRuleProviderFactory.FromAssembly(ruleConfigurationCollection, ruleAssembly));
             return this;
         }
 
