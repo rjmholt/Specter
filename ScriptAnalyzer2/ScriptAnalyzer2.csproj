@@ -5,6 +5,7 @@
     <AssemblyName>Microsoft.PowerShell.ScriptAnalyzer</AssemblyName>
     <RootNamespace>Microsoft.PowerShell.ScriptAnalyzer</RootNamespace>
     <Configurations>Debug;Release</Configurations>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8'">

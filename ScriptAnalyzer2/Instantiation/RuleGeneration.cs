@@ -13,12 +13,17 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
             RuleComponentProvider ruleComponentProvider,
             Type type,
-            out RuleInfo ruleInfo,
+            ref RuleInfo ruleInfo,
             out TypeRuleFactory<ScriptRule> ruleFactory)
         {
             ruleFactory = null;
-            return RuleInfo.TryGetFromRuleType(type, out ruleInfo)
-                && typeof(ScriptRule).IsAssignableFrom(type)
+            if (ruleInfo == null
+                && !RuleInfo.TryGetFromRuleType(type, out ruleInfo))
+            {
+                return false;
+            }
+
+            return typeof(ScriptRule).IsAssignableFrom(type)
                 && TryGetRuleFactory(ruleInfo, type, ruleConfigurationCollection, ruleComponentProvider, out ruleFactory);
         }
 
@@ -37,25 +42,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             }
             ConstructorInfo ruleConstructor = ruleConstructors[0];
 
-            Type baseType = ruleType.BaseType;
-            Type configurationType = null;
-            while (baseType != null)
-            {
-                if (baseType.IsGenericType
-                    && baseType.GetGenericTypeDefinition() == typeof(Rule<>))
-                {
-                    configurationType = baseType.GetGenericArguments()[0];
-                    break;
-                }
-
-                baseType = baseType.BaseType;
-            }
-
-            if (ruleConfigurationCollection.TryGetValue(ruleInfo.FullName, out IRuleConfiguration ruleConfiguration)
-                && configurationType != null)
-            {
-                ruleConfiguration = ruleConfiguration.AsTypedConfiguration(configurationType);
-            }
+            ruleConfigurationCollection.TryGetValue(ruleInfo.FullName, out IRuleConfiguration ruleConfiguration);
 
             if (ruleInfo.IsIdempotent)
             {

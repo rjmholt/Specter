@@ -37,7 +37,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Configuration
 
         public ScriptAnalyzerConfigurationBuilder AddNonConfiguredRule(string ruleName)
         {
-            _ruleConfigurations[ruleName] = RuleConfiguration.Default;
+            _ruleConfigurations[ruleName] = CommonConfiguration.Default;
             return this;
         }
 

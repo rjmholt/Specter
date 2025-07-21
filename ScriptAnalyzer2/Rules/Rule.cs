@@ -33,14 +33,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Rules
         }
     }
 
-    public abstract class Rule<TConfiguration> : Rule where TConfiguration : IRuleConfiguration
+    public interface IConfigurableRule<TConfiguration> where TConfiguration : IRuleConfiguration
     {
-        protected Rule(RuleInfo ruleInfo, TConfiguration ruleConfiguration)
-            : base(ruleInfo)
-        {
-            Configuration = ruleConfiguration;
-        }
-
         public TConfiguration Configuration { get; }
     }
 
@@ -81,12 +75,13 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Rules
         }
     }
 
-    public abstract class ScriptRule<TConfiguration> : Rule<TConfiguration> where TConfiguration : IRuleConfiguration
+    public abstract class ConfigurableScriptRule<TConfiguration> : ScriptRule, IConfigurableRule<TConfiguration> where TConfiguration : IRuleConfiguration
     {
-        protected ScriptRule(RuleInfo ruleInfo, TConfiguration ruleConfiguration) : base(ruleInfo, ruleConfiguration)
+        protected ConfigurableScriptRule(RuleInfo ruleInfo, TConfiguration ruleConfiguration) : base(ruleInfo)
         {
+            Configuration = ruleConfiguration;
         }
 
-        public abstract IReadOnlyList<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string scriptPath);
+        public TConfiguration Configuration { get; }
     }
 }

@@ -3,32 +3,43 @@ using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
 {
     public class TypeRuleProviderFactoryBuilder
     {
-        private readonly IReadOnlyDictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
+        private readonly Dictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
 
-        private readonly List<Type> _types;
+        private readonly Dictionary<Type, RuleInfo> _ruleTypes;
 
         public TypeRuleProviderFactoryBuilder(
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
         {
-            _types = new List<Type>();
-            _ruleConfigurationCollection = ruleConfigurationCollection;
+            _ruleTypes = new Dictionary<Type, RuleInfo>();
+            _ruleConfigurationCollection = new Dictionary<string, IRuleConfiguration>(ruleConfigurationCollection);
         }
 
         public TypeRuleProviderFactoryBuilder AddRule<TRule>() where TRule : ScriptRule
         {
-            _types.Add(typeof(TRule));
+            _ruleTypes.Add(typeof(TRule), null);
+            return this;
+        }
+
+        public TypeRuleProviderFactoryBuilder AddRule<TRule, TConfiguration>(TConfiguration configuration) where TRule : IConfigurableRule<TConfiguration> where TConfiguration : IRuleConfiguration
+        {
+            RuleInfo ruleInfo = RuleInfo.TryGetFromRuleType(typeof(TRule), out ruleInfo)
+                ? ruleInfo
+                : throw new ArgumentException($"Type '{typeof(TRule)}' is not a valid rule type");
+            _ruleTypes.Add(typeof(TRule), ruleInfo);
+            _ruleConfigurationCollection[ruleInfo.FullName] = configuration;
             return this;
         }
 
         public TypeRuleProviderFactory Build()
         {
-            return new TypeRuleProviderFactory(_ruleConfigurationCollection, _types);
+            return new TypeRuleProviderFactory(_ruleConfigurationCollection, _ruleTypes);
         }
     }
 
@@ -45,40 +56,39 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
             Assembly ruleAssembly)
         {
-            return new TypeRuleProviderFactory(ruleConfigurationCollection, ruleAssembly.GetExportedTypes());
+            return new TypeRuleProviderFactory(ruleConfigurationCollection, ruleAssembly.GetExportedTypes().ToDictionary(t => t, _ => (RuleInfo)null));
         }
 
         private readonly IReadOnlyDictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
 
-        private readonly IReadOnlyList<Type> _types;
+        private readonly IReadOnlyDictionary<Type, RuleInfo> _ruleTypes;
 
         public TypeRuleProviderFactory(
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
-            IReadOnlyList<Type> types)
+            IReadOnlyDictionary<Type, RuleInfo> ruleTypes)
         {
             _ruleConfigurationCollection = ruleConfigurationCollection;
-            _types = types;
+            _ruleTypes = ruleTypes;
         }
 
         public IRuleProvider CreateRuleProvider(RuleComponentProvider ruleComponentProvider)
         {
-            return new TypeRuleProvider(GetRuleFactoriesFromTypes(_ruleConfigurationCollection, ruleComponentProvider, _types));
+            return new TypeRuleProvider(GetRuleFactoriesFromTypes(ruleComponentProvider));
         }
 
-        private static IReadOnlyDictionary<RuleInfo, TypeRuleFactory<ScriptRule>> GetRuleFactoriesFromTypes(
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
-            RuleComponentProvider ruleComponentProvider,
-            IReadOnlyList<Type> types)
+        private IReadOnlyDictionary<RuleInfo, TypeRuleFactory<ScriptRule>> GetRuleFactoriesFromTypes(
+            RuleComponentProvider ruleComponentProvider)
         {
             var ruleFactories = new Dictionary<RuleInfo, TypeRuleFactory<ScriptRule>>();
 
-            foreach (Type type in types)
+            foreach (KeyValuePair<Type, RuleInfo> rule in _ruleTypes)
             {
+                RuleInfo ruleInfo = rule.Value;
                 if (RuleGeneration.TryGetRuleFromType(
-                    ruleConfigurationCollection,
+                    _ruleConfigurationCollection,
                     ruleComponentProvider,
-                    type,
-                    out RuleInfo ruleInfo,
+                    rule.Key,
+                    ref ruleInfo,
                     out TypeRuleFactory<ScriptRule> factory))
                 {
                     ruleFactories[ruleInfo] = factory;

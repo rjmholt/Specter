@@ -9,6 +9,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer
         {
             Extent = extent;
             CorrectionText = correctionText;
+            Description = description;
         }
 
         public IScriptExtent Extent { get; }

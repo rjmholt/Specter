@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Configuration
 {
-    public class CommonConfiguration
+    public class CommonConfiguration : IRuleConfiguration
     {
         public static CommonConfiguration Default = new CommonConfiguration(enabled: true);
 
@@ -17,35 +17,13 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Configuration
         }
 
         public bool Enabled { get; } = true;
+
+        public CommonConfiguration Common => this;
     }
 
     public interface IRuleConfiguration
     {
         CommonConfiguration Common { get; }
-
-        IRuleConfiguration AsTypedConfiguration(Type configurationType);
-    }
-
-    public class RuleConfiguration : IRuleConfiguration
-    {
-        public static RuleConfiguration Default { get; } = new RuleConfiguration(CommonConfiguration.Default);
-
-        public RuleConfiguration(CommonConfiguration common)
-        {
-            Common = common;
-        }
-
-        public CommonConfiguration Common { get; }
-
-        public virtual IRuleConfiguration AsTypedConfiguration(Type configurationType)
-        {
-            if (configurationType == typeof(RuleConfiguration))
-            {
-                return this;
-            }
-
-            return null;
-        }
     }
 
     public abstract class LazyConvertedRuleConfiguration<TConfiguration> : IRuleConfiguration
