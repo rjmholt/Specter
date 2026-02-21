@@ -15,13 +15,17 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
         public static IReadOnlyList<Type> DefaultRules { get; } = new[]
         {
             typeof(AvoidDefaultTrueValueSwitchParameter),
+            typeof(AvoidDefaultValueForMandatoryParameter),
             typeof(AvoidEmptyCatchBlock),
             typeof(AvoidGlobalVars),
+            typeof(AvoidNullOrEmptyHelpMessageAttribute),
             typeof(AvoidPositionalParameters),
             typeof(AvoidTrailingWhitespace),
             typeof(AvoidUsingCmdletAliases),
+            typeof(AvoidUsingConvertToSecureStringWithPlainText),
             typeof(AvoidUsingInvokeExpression),
             typeof(AvoidUsingWMICmdlet),
+            typeof(AvoidUsingWriteHost),
             typeof(MisleadingBacktick),
             typeof(PossibleIncorrectComparisonWithNull),
             typeof(UseDeclaredVarsMoreThanAssignments),
@@ -35,11 +39,15 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
 
         public static IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase)
         {
+            { "PS/AvoidDefaultValueForMandatoryParameter", null },
             { "PS/AvoidDefaultValueSwitchParameter", null },
+            { "PS/AvoidNullOrEmptyHelpMessageAttribute", null },
             { "PS/AvoidTrailingWhitespace", null },
             { "PS/AvoidUsingCmdletAliases", null },
+            { "PS/AvoidUsingConvertToSecureStringWithPlainText", null },
             { "PS/AvoidUsingEmptyCatchBlock", null },
             { "PS/AvoidUsingInvokeExpression", null },
+            { "PS/AvoidUsingWriteHost", null },
             { "PS/AvoidGlobalVars", null },
             { "PS/AvoidUsingPositionalParameters", null },
             { "PS/AvoidUsingWMICmdlet", null },
