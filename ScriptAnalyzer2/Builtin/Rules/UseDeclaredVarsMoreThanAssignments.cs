@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -176,7 +176,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             ScriptBlockAst scriptBlockAst,
             Dictionary<string, AssignmentStatementAst> assignmentsDictionary_OrdinalIgnoreCase)
         {
-            throw new NotImplementedException();
+            // TODO: Requires command database to resolve Get-Variable aliases
+            return;
 
             /*
             IReadOnlyList<string> getVariableCmdletNamesAndAliases = null; //Helper.Instance.CmdletNameAndAliases("Get-Variable");

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -49,31 +49,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
                 // MSDN: CommandAst.GetCommandName Method
                 if (cmdAst.GetCommandName() == null) continue;
 
-                throw new NotImplementedException();
-                
-                /*
-                if ((Helper.Instance.IsKnownCmdletFunctionOrExternalScript(cmdAst) || declaredFunctionNames.Contains(cmdAst.GetCommandName())) &&
-                    (Helper.Instance.PositionalParameterUsed(cmdAst, true)))
-                {
-                    PipelineAst parent = cmdAst.Parent as PipelineAst;
-
-                    if (parent != null && parent.PipelineElements.Count > 1)
-                    {
-                        // raise if it's the first element in pipeline. otherwise no.
-                        if (parent.PipelineElements[0] == cmdAst)
-                        {
-                            yield return new DiagnosticRecord(string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingPositionalParametersError, cmdAst.GetCommandName()),
-                                cmdAst.Extent, GetName(), DiagnosticSeverity.Information, fileName, cmdAst.GetCommandName());
-                        }
-                    }
-                    // not in pipeline so just raise it normally
-                    else
-                    {
-                        yield return new DiagnosticRecord(string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingPositionalParametersError, cmdAst.GetCommandName()),
-                            cmdAst.Extent, GetName(), DiagnosticSeverity.Information, fileName, cmdAst.GetCommandName());
-                    }
-                }
-                */
+                // TODO: Requires command database / Helper infrastructure to detect positional parameter usage
             }
 
             yield break;

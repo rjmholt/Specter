@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builder;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using System;
@@ -93,6 +93,13 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
                     && ctorParameter.ParameterType == _ruleConfiguration.GetType())
                 {
                     ctorArgs.Add(_ruleConfiguration);
+                    continue;
+                }
+
+                if (typeof(IRuleConfiguration).IsAssignableFrom(ctorParameter.ParameterType)
+                    && _ruleConfiguration is null)
+                {
+                    ctorArgs.Add(Activator.CreateInstance(ctorParameter.ParameterType));
                     continue;
                 }
 
