@@ -1,3 +1,5 @@
+using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
+
 namespace Microsoft.PowerShell.ScriptAnalyzer.Formatting
 {
     /// <summary>
@@ -13,10 +15,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Formatting
     /// <summary>
     /// Base interface for editor-specific configuration types.
     /// Each editor defines its own configuration record implementing this interface.
+    /// Also implements <see cref="IRuleConfiguration"/> so formatting editors can
+    /// double as configurable analysis rules without a separate config type.
     /// </summary>
-    public interface IEditorConfiguration
+    public interface IEditorConfiguration : IRuleConfiguration
     {
-        CommonEditorConfiguration Common { get; }
+        new CommonEditorConfiguration Common { get; }
     }
 
     /// <summary>

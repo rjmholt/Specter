@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Language;
+using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Editors
@@ -17,6 +18,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Editors
     public sealed class UseConsistentIndentationEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
         public int IndentationSize { get; set; } = 4;
         public bool UseTabs { get; set; } = false;
         public PipelineIndentationStyle PipelineIndentation { get; set; } = PipelineIndentationStyle.IncreaseIndentationForFirstPipeline;

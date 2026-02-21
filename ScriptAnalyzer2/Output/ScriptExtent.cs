@@ -1,4 +1,5 @@
-﻿
+
+using System;
 using System.Management.Automation.Language;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer
@@ -8,16 +9,27 @@ namespace Microsoft.PowerShell.ScriptAnalyzer
         public static ScriptPosition FromOffset(string scriptText, string scriptPath, int offset)
         {
             int currLine = 1;
+            int lineStart = 0;
             int i = 0;
-            int lastLineOffset = -1;
             while (i < offset)
             {
-                lastLineOffset = i;
-                i = scriptText.IndexOf('\n', i);
+                int newlineIndex = scriptText.IndexOf('\n', i);
+                if (newlineIndex < 0 || newlineIndex >= offset)
+                {
+                    break;
+                }
+
+                lineStart = newlineIndex + 1;
                 currLine++;
+                i = lineStart;
             }
 
-            return new ScriptPosition(scriptText, scriptPath, scriptText.Substring(lastLineOffset, offset), offset, currLine, offset - lastLineOffset);
+            int column = offset - lineStart + 1;
+            string lineText = lineStart < scriptText.Length
+                ? scriptText.Substring(lineStart, Math.Min(offset - lineStart, scriptText.Length - lineStart))
+                : string.Empty;
+
+            return new ScriptPosition(scriptText, scriptPath, lineText, offset, currLine, column);
         }
 
         public static ScriptPosition FromPosition(string scriptText, string scriptPath, int line, int column)
@@ -26,14 +38,22 @@ namespace Microsoft.PowerShell.ScriptAnalyzer
             int currLine = 1;
             while (currLine < line)
             {
-                offset = scriptText.IndexOf('\n', offset);
+                int newlineIndex = scriptText.IndexOf('\n', offset);
+                if (newlineIndex < 0)
+                {
+                    break;
+                }
+
+                offset = newlineIndex + 1;
                 currLine++;
             }
 
-            string lineText = scriptText.Substring(offset, offset + column - 1);
-            offset += column - 1;
+            int charOffset = offset + column - 1;
+            int lineEnd = scriptText.IndexOf('\n', offset);
+            int lineLength = lineEnd >= 0 ? lineEnd - offset : scriptText.Length - offset;
+            string lineText = scriptText.Substring(offset, lineLength);
 
-            return new ScriptPosition(scriptText, scriptPath, lineText, offset, line, column);
+            return new ScriptPosition(scriptText, scriptPath, lineText, charOffset, line, column);
         }
 
         private readonly string _scriptText;

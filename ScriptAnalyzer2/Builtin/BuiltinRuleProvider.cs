@@ -1,7 +1,9 @@
 using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Editors;
 using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Execution;
+using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules;
 using System;
@@ -13,6 +15,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
     {
         public static IReadOnlyList<Type> DefaultRules { get; } = new[]
         {
+            typeof(AlignAssignmentStatement),
             typeof(AvoidDefaultTrueValueSwitchParameter),
             typeof(AvoidDefaultValueForMandatoryParameter),
             typeof(AvoidEmptyCatchBlock),
@@ -26,7 +29,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
             typeof(AvoidUsingWMICmdlet),
             typeof(AvoidUsingWriteHost),
             typeof(MisleadingBacktick),
+            typeof(PlaceCloseBrace),
+            typeof(PlaceOpenBrace),
             typeof(PossibleIncorrectComparisonWithNull),
+            typeof(UseConsistentIndentation),
+            typeof(UseConsistentWhitespace),
+            typeof(UseCorrectCasing),
             typeof(UseDeclaredVarsMoreThanAssignments),
             typeof(UseShouldProcessForStateChangingFunctions),
         };
@@ -36,8 +44,16 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
     {
         private static readonly Lazy<RuleComponentProvider> s_ruleComponentProviderLazy = new Lazy<RuleComponentProvider>(BuildRuleComponentProvider);
 
+        private static IEditorConfiguration DisabledEditorConfig<T>() where T : IEditorConfiguration, new()
+        {
+            var config = new T();
+            config.Common.Enabled = false;
+            return config;
+        }
+
         public static IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase)
         {
+            { "PS/AlignAssignmentStatement", DisabledEditorConfig<AlignAssignmentStatementEditorConfiguration>() },
             { "PS/AvoidDefaultValueForMandatoryParameter", null },
             { "PS/AvoidDefaultValueSwitchParameter", null },
             { "PS/AvoidNullOrEmptyHelpMessageAttribute", null },
@@ -51,7 +67,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
             { "PS/AvoidUsingPositionalParameters", null },
             { "PS/AvoidUsingWMICmdlet", null },
             { "PS/MisleadingBacktick", null },
+            { "PS/PlaceCloseBrace", DisabledEditorConfig<PlaceCloseBraceEditorConfiguration>() },
+            { "PS/PlaceOpenBrace", DisabledEditorConfig<PlaceOpenBraceEditorConfiguration>() },
             { "PS/PossibleIncorrectComparisonWithNull", null },
+            { "PS/UseConsistentIndentation", DisabledEditorConfig<UseConsistentIndentationEditorConfiguration>() },
+            { "PS/UseConsistentWhitespace", DisabledEditorConfig<UseConsistentWhitespaceEditorConfiguration>() },
+            { "PS/UseCorrectCasing", DisabledEditorConfig<UseCorrectCasingEditorConfiguration>() },
             { "PS/UseDeclaredVarsMoreThanAssignments", null },
             { "PS/UseShouldProcessForStateChangingFunctions", null },
         };

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
+using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Editors
@@ -8,6 +9,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Editors
     public sealed class PlaceCloseBraceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
         public bool NoEmptyLineBefore { get; set; } = false;
         public bool IgnoreOneLineBlock { get; set; } = true;
         public bool NewLineAfter { get; set; } = true;

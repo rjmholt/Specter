@@ -9,6 +9,7 @@ using Microsoft.PowerShell.ScriptAnalyzer.Builder;
 using Microsoft.PowerShell.ScriptAnalyzer.Builtin;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Execution;
+using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
@@ -355,6 +356,14 @@ namespace PSLint.PssaCompatibility.Commands
 
                 foreach (var arg in args)
                 {
+                    // PSSA uses "Enable" to toggle rules; map it to Common.Enabled for editor configs
+                    if (string.Equals(arg.Key, "Enable", StringComparison.OrdinalIgnoreCase)
+                        && config is IEditorConfiguration editorConfig)
+                    {
+                        editorConfig.Common.Enabled = Convert.ToBoolean(arg.Value);
+                        continue;
+                    }
+
                     var prop = configType.GetProperty(
                         arg.Key,
                         System.Reflection.BindingFlags.Public
