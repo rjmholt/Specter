@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builder;
 using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Execution;
@@ -17,6 +17,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
             typeof(AvoidEmptyCatchBlock),
             typeof(AvoidGlobalVars),
             typeof(AvoidPositionalParameters),
+            typeof(AvoidUsingCmdletAliases),
             typeof(AvoidUsingWMICmdlet),
             typeof(UseDeclaredVarsMoreThanAssignments),
             typeof(UseShouldProcessForStateChangingFunctions),
@@ -29,6 +30,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
 
         public static IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase)
         {
+            { "PS/AvoidUsingCmdletAliases", null },
             { "PS/AvoidUsingEmptyCatchBlock", null },
             { "PS/AvoidGlobalVars", null },
             { "PS/AvoidUsingPositionalParameters", null },

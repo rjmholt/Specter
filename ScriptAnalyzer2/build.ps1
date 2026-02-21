@@ -5,9 +5,9 @@ param(
     $Configuration = 'Debug',
 
     [Parameter()]
-    [ValidateSet('netcoreapp3.1', 'net452')]
+    [ValidateSet('net8', 'net462')]
     [string[]]
-    $TargetFramework = $(if ($IsWindows -eq $false) { 'netcoreapp3.1' } else { 'netcoreapp3.1', 'net452' })
+    $TargetFramework = $(if ($IsWindows -eq $false) { 'net8' } else { 'net8', 'net462' })
 )
 
 $ErrorActionPreference = 'Stop'

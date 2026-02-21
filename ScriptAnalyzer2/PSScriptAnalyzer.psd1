@@ -10,11 +10,11 @@ Author = 'Microsoft Corporation'
 # Script module or binary module file associated with this manifest.
 RootModule = if ($PSEdition -eq 'Core')
     {
-        'netcoreapp3.1/Microsoft.PowerShell.ScriptAnalyzer.dll'
+        'net8/Microsoft.PowerShell.ScriptAnalyzer.dll'
     }
     else
     {
-        'net452/Microsoft.PowerShell.ScriptAnalyzer.dll'
+        'net462/Microsoft.PowerShell.ScriptAnalyzer.dll'
     }
 
 # Version number of this module.
@@ -48,7 +48,7 @@ FormatsToProcess = @()
 FunctionsToExport = @()
 
 # Cmdlets to export from this module
-CmdletsToExport = @('Get-ScriptAnalyzerRule', 'Invoke-ScriptAnalyzer', 'Write-Diagnostic')
+CmdletsToExport = @('Invoke-ScriptAnalyzer2', 'Write-Diagnostic')
 
 # Variables to export from this module
 VariablesToExport = @()
