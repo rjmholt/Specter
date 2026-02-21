@@ -18,9 +18,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
             typeof(AvoidEmptyCatchBlock),
             typeof(AvoidGlobalVars),
             typeof(AvoidPositionalParameters),
+            typeof(AvoidTrailingWhitespace),
             typeof(AvoidUsingCmdletAliases),
             typeof(AvoidUsingInvokeExpression),
             typeof(AvoidUsingWMICmdlet),
+            typeof(MisleadingBacktick),
+            typeof(PossibleIncorrectComparisonWithNull),
             typeof(UseDeclaredVarsMoreThanAssignments),
             typeof(UseShouldProcessForStateChangingFunctions),
         };
@@ -33,12 +36,15 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
         public static IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase)
         {
             { "PS/AvoidDefaultValueSwitchParameter", null },
+            { "PS/AvoidTrailingWhitespace", null },
             { "PS/AvoidUsingCmdletAliases", null },
             { "PS/AvoidUsingEmptyCatchBlock", null },
             { "PS/AvoidUsingInvokeExpression", null },
             { "PS/AvoidGlobalVars", null },
             { "PS/AvoidUsingPositionalParameters", null },
             { "PS/AvoidUsingWMICmdlet", null },
+            { "PS/MisleadingBacktick", null },
+            { "PS/PossibleIncorrectComparisonWithNull", null },
             { "PS/UseDeclaredVarsMoreThanAssignments", null },
             { "PS/UseShouldProcessForStateChangingFunctions", null },
         };
