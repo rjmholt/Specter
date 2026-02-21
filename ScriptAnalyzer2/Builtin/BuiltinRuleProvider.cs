@@ -14,6 +14,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
     {
         public static IReadOnlyList<Type> DefaultRules { get; } = new[]
         {
+            typeof(AvoidDefaultTrueValueSwitchParameter),
             typeof(AvoidEmptyCatchBlock),
             typeof(AvoidGlobalVars),
             typeof(AvoidPositionalParameters),
@@ -30,6 +31,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
 
         public static IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase)
         {
+            { "PS/AvoidDefaultValueSwitchParameter", null },
             { "PS/AvoidUsingCmdletAliases", null },
             { "PS/AvoidUsingEmptyCatchBlock", null },
             { "PS/AvoidGlobalVars", null },
