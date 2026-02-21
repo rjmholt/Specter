@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net8;net462</TargetFrameworks>
     <AssemblyName>Microsoft.PowerShell.ScriptAnalyzer</AssemblyName>
     <RootNamespace>Microsoft.PowerShell.ScriptAnalyzer</RootNamespace>
     <Configurations>Debug;Release</Configurations>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8'">

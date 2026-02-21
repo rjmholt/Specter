@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builder;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using System;
@@ -18,7 +18,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
         {
             _ruleTypes = new Dictionary<Type, RuleInfo>();
-            _ruleConfigurationCollection = new Dictionary<string, IRuleConfiguration>(ruleConfigurationCollection);
+            _ruleConfigurationCollection = ruleConfigurationCollection.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         public TypeRuleProviderFactoryBuilder AddRule<TRule>() where TRule : ScriptRule

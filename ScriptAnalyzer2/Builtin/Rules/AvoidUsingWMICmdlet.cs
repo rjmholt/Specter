@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -18,7 +18,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
     [Rule("AvoidUsingWMICmdlet", typeof(Strings), nameof(Strings.AvoidUsingWMICmdletDescription))]
     public class AvoidUsingWMICmdlet : ScriptRule
     {
-        private static readonly IReadOnlySet<string> s_wmiCmdlets = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> s_wmiCmdlets = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Get-WmiObject",
             "Remove-WmiObject",
