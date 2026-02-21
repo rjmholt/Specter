@@ -57,6 +57,25 @@ namespace PSLint.PssaCompatibility
         }
 
         /// <summary>
+        /// Converts an engine short name to PSSA-style rule name.
+        /// "AvoidFoo" -> "PSAvoidFoo"
+        /// </summary>
+        public static string ToPssaName(string engineShortName)
+        {
+            if (string.IsNullOrEmpty(engineShortName))
+            {
+                return engineShortName;
+            }
+
+            if (engineShortName.StartsWith("PS", StringComparison.OrdinalIgnoreCase))
+            {
+                return engineShortName;
+            }
+
+            return "PS" + engineShortName;
+        }
+
+        /// <summary>
         /// Checks whether a PSSA-style rule name (potentially with wildcards) matches a given rule name.
         /// Supports '*' wildcards like the original PSSA.
         /// </summary>

@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Utils;
+using Microsoft.PowerShell.ScriptAnalyzer.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Management.Automation.Language;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Configuration.Psd
 {
-    internal class PsdDataParser
+    public class PsdDataParser
     {
         /// <summary>
         /// Evaluates all statically evaluable, side-effect-free expressions under an

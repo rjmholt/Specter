@@ -1,13 +1,17 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Automation;
-using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.ScriptAnalyzer;
 using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builtin;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Execution;
+using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
+using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic;
 
 #if !CORECLR
@@ -21,6 +25,9 @@ namespace PSLint.PssaCompatibility.Commands
     public class InvokeScriptAnalyzerCommand : PSCmdlet
     {
         private ScriptAnalyzer _scriptAnalyzer;
+        private string[] _effectiveIncludeRules;
+        private string[] _effectiveExcludeRules;
+        private string[] _effectiveSeverity;
 
         [Parameter(
             Position = 0,
@@ -160,12 +167,12 @@ namespace PSLint.PssaCompatibility.Commands
 
         private bool PassesIncludeFilter(string ruleName)
         {
-            if (IncludeRule is null || IncludeRule.Length == 0)
+            if (_effectiveIncludeRules is null || _effectiveIncludeRules.Length == 0)
             {
                 return true;
             }
 
-            foreach (string pattern in IncludeRule)
+            foreach (string pattern in _effectiveIncludeRules)
             {
                 if (RuleNameMapper.IsMatch(pattern, ruleName))
                 {
@@ -178,12 +185,12 @@ namespace PSLint.PssaCompatibility.Commands
 
         private bool IsExcluded(string ruleName)
         {
-            if (ExcludeRule is null || ExcludeRule.Length == 0)
+            if (_effectiveExcludeRules is null || _effectiveExcludeRules.Length == 0)
             {
                 return false;
             }
 
-            foreach (string pattern in ExcludeRule)
+            foreach (string pattern in _effectiveExcludeRules)
             {
                 if (RuleNameMapper.IsMatch(pattern, ruleName))
                 {
@@ -196,12 +203,82 @@ namespace PSLint.PssaCompatibility.Commands
 
         private HashSet<string> BuildSeverityFilter()
         {
-            if (Severity is null || Severity.Length == 0)
+            if (_effectiveSeverity is null || _effectiveSeverity.Length == 0)
             {
                 return null;
             }
 
-            return new HashSet<string>(Severity, StringComparer.OrdinalIgnoreCase);
+            return new HashSet<string>(_effectiveSeverity, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private Settings ResolveSettings()
+        {
+            object settingsInput = Settings;
+
+            if (settingsInput is PSObject psObj)
+            {
+                settingsInput = psObj.BaseObject;
+            }
+
+            if (settingsInput == null)
+            {
+                // Auto-discover PSScriptAnalyzerSettings.psd1 from target path or CWD
+                string searchPath = ParameterSetName == "File" ? Path : SessionState.Path.CurrentFileSystemLocation.Path;
+                if (searchPath != null)
+                {
+                    var directory = searchPath.TrimEnd(System.IO.Path.DirectorySeparatorChar);
+                    if (File.Exists(directory))
+                    {
+                        directory = System.IO.Path.GetDirectoryName(directory);
+                    }
+
+                    if (Directory.Exists(directory))
+                    {
+                        var autoSettingsPath = System.IO.Path.Combine(directory, "PSScriptAnalyzerSettings.psd1");
+                        if (File.Exists(autoSettingsPath))
+                        {
+                            WriteVerbose($"Auto-discovered settings file: {autoSettingsPath}");
+                            settingsInput = autoSettingsPath;
+                        }
+                    }
+                }
+            }
+
+            if (settingsInput == null)
+            {
+                return null;
+            }
+
+            // Resolve relative file paths
+            if (settingsInput is string settingsPath)
+            {
+                try
+                {
+                    var resolved = SessionState.Path.GetResolvedPSPathFromPSPath(settingsPath);
+                    if (resolved.Count > 0)
+                    {
+                        settingsInput = resolved[0].Path;
+                    }
+                }
+                catch
+                {
+                    // If resolution fails, keep the original path and let Settings handle the error
+                }
+            }
+
+            try
+            {
+                return new Settings(settingsInput);
+            }
+            catch (Exception ex)
+            {
+                WriteError(new ErrorRecord(
+                    ex,
+                    "InvalidSettings",
+                    ErrorCategory.InvalidArgument,
+                    settingsInput));
+                return null;
+            }
         }
 
         private ScriptAnalyzer BuildAnalyzer()
@@ -209,11 +286,195 @@ namespace PSLint.PssaCompatibility.Commands
             IPowerShellCommandDatabase commandDb = SessionStateCommandDatabase.Create(
                 SessionState.InvokeCommand);
 
+            // Start with default rule configurations
+            var configDict = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in Default.RuleConfiguration)
+            {
+                configDict[kvp.Key] = kvp.Value;
+            }
+
+            // Parse settings and merge
+            Settings parsedSettings = ResolveSettings();
+            if (parsedSettings != null)
+            {
+                // Settings values serve as defaults; explicit cmdlet parameters override
+                _effectiveIncludeRules = IncludeRule ?? parsedSettings.IncludeRules?.ToArray();
+                _effectiveExcludeRules = ExcludeRule ?? parsedSettings.ExcludeRules?.ToArray();
+                _effectiveSeverity = Severity ?? parsedSettings.Severities?.ToArray();
+
+                // Apply rule arguments from settings to configuration objects
+                if (parsedSettings.RuleArguments != null && parsedSettings.RuleArguments.Count > 0)
+                {
+                    ApplyRuleArguments(configDict, parsedSettings.RuleArguments);
+                }
+            }
+            else
+            {
+                _effectiveIncludeRules = IncludeRule;
+                _effectiveExcludeRules = ExcludeRule;
+                _effectiveSeverity = Severity;
+            }
+
             return new ScriptAnalyzerBuilder()
                 .WithRuleComponentProvider(rcpb => rcpb.AddSingleton(commandDb))
                 .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
-                .AddBuiltinRules()
+                .AddBuiltinRules(configDict)
                 .Build();
+        }
+
+        private static void ApplyRuleArguments(
+            Dictionary<string, IRuleConfiguration> configDict,
+            Dictionary<string, Dictionary<string, object>> ruleArguments)
+        {
+            // Build a mapping from PSSA rule name -> (engine config key, config type)
+            var ruleConfigMap = BuildRuleConfigMap();
+
+            foreach (var ruleEntry in ruleArguments)
+            {
+                string pssaRuleName = ruleEntry.Key;
+                Dictionary<string, object> args = ruleEntry.Value;
+
+                if (!ruleConfigMap.TryGetValue(pssaRuleName, out var ruleMapping))
+                {
+                    continue;
+                }
+
+                IRuleConfiguration config = CreateConfigFromArguments(ruleMapping.ConfigType, args);
+                if (config != null)
+                {
+                    configDict[ruleMapping.EngineConfigKey] = config;
+                }
+            }
+        }
+
+        private static IRuleConfiguration CreateConfigFromArguments(Type configType, Dictionary<string, object> args)
+        {
+            try
+            {
+                object config = Activator.CreateInstance(configType);
+
+                foreach (var arg in args)
+                {
+                    var prop = configType.GetProperty(
+                        arg.Key,
+                        System.Reflection.BindingFlags.Public
+                        | System.Reflection.BindingFlags.Instance
+                        | System.Reflection.BindingFlags.IgnoreCase);
+
+                    if (prop == null || !prop.CanWrite)
+                    {
+                        continue;
+                    }
+
+                    object convertedValue = ConvertSettingsValue(arg.Value, prop.PropertyType);
+                    if (convertedValue != null || !prop.PropertyType.IsValueType)
+                    {
+                        prop.SetValue(config, convertedValue);
+                    }
+                }
+
+                return (IRuleConfiguration)config;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static object ConvertSettingsValue(object value, Type targetType)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (targetType.IsAssignableFrom(value.GetType()))
+            {
+                return value;
+            }
+
+            // object[] -> IReadOnlyCollection<string>, string[], List<string>, etc.
+            if (value is object[] objArray)
+            {
+                if (targetType == typeof(IReadOnlyCollection<string>)
+                    || targetType == typeof(IEnumerable<string>)
+                    || targetType == typeof(IReadOnlyList<string>)
+                    || targetType == typeof(string[]))
+                {
+                    return objArray.Select(o => o?.ToString()).ToArray();
+                }
+
+                if (targetType == typeof(List<string>))
+                {
+                    return objArray.Select(o => o?.ToString()).ToList();
+                }
+            }
+
+            // string[] -> IReadOnlyCollection<string>
+            if (value is string[] strArray)
+            {
+                if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
+                {
+                    return strArray;
+                }
+            }
+
+            // Scalar conversions
+            try
+            {
+                return Convert.ChangeType(value, targetType);
+            }
+            catch
+            {
+                return value;
+            }
+        }
+
+        private struct RuleConfigMapping
+        {
+            public string EngineConfigKey;
+            public Type ConfigType;
+        }
+
+        private static Dictionary<string, RuleConfigMapping> BuildRuleConfigMap()
+        {
+            var map = new Dictionary<string, RuleConfigMapping>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Type ruleType in BuiltinRules.DefaultRules)
+            {
+                if (!RuleInfo.TryGetFromRuleType(ruleType, out RuleInfo ruleInfo))
+                {
+                    continue;
+                }
+
+                Type configType = FindConfigurationType(ruleType);
+                if (configType == null)
+                {
+                    continue;
+                }
+
+                string pssaName = RuleNameMapper.ToPssaName(ruleInfo.Name);
+                map[pssaName] = new RuleConfigMapping
+                {
+                    EngineConfigKey = ruleInfo.FullName,
+                    ConfigType = configType,
+                };
+            }
+
+            return map;
+        }
+
+        private static Type FindConfigurationType(Type ruleType)
+        {
+            foreach (Type iface in ruleType.GetInterfaces())
+            {
+                if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(IConfigurableRule<>))
+                {
+                    return iface.GetGenericArguments()[0];
+                }
+            }
+
+            return null;
         }
     }
 }
