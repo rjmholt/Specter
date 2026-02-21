@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
+using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Editors;
+using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
@@ -11,12 +13,14 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidTrailingWhitespace", typeof(Strings), nameof(Strings.AvoidTrailingWhitespaceDescription), Severity = DiagnosticSeverity.Information)]
-    public class AvoidTrailingWhitespace : ScriptRule
+    public class AvoidTrailingWhitespace : ScriptRule, IFormattingRule
     {
         public AvoidTrailingWhitespace(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
+
+        public IScriptEditor CreateEditor() => new AvoidTrailingWhitespaceEditor(new AvoidTrailingWhitespaceEditorConfiguration());
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {

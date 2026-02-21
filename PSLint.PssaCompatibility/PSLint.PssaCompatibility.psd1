@@ -39,7 +39,7 @@ FormatsToProcess = @()
 
 FunctionsToExport = @()
 
-CmdletsToExport = @('Invoke-ScriptAnalyzer', 'Get-ScriptAnalyzerRule')
+CmdletsToExport = @('Invoke-ScriptAnalyzer', 'Get-ScriptAnalyzerRule', 'Invoke-Formatter')
 
 VariablesToExport = @()
 

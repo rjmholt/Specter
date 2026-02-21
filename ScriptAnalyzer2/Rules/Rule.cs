@@ -1,4 +1,5 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
+using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
+using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 
@@ -7,6 +8,15 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Rules
     public interface IResettable
     {
         void Reset();
+    }
+
+    /// <summary>
+    /// Implemented by rules that provide a formatting editor.
+    /// The formatter can discover editors from rules via this interface.
+    /// </summary>
+    public interface IFormattingRule
+    {
+        IScriptEditor CreateEditor();
     }
 
     public abstract class Rule
