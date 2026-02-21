@@ -62,5 +62,15 @@ namespace ScriptAnalyzer2.Test.Rules
 
             Assert.Single(violations);
         }
+
+        [Fact]
+        public void CtssAlias_WithAsPlainText_ShouldReturnViolation()
+        {
+            var script = @"ctss 'sneaky convert' -AsPlainText -Force";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Single(violations);
+        }
     }
 }

@@ -8,9 +8,6 @@ using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
 {
-    /// <summary>
-    /// Checks that lines don't have trailing whitespace.
-    /// </summary>
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidTrailingWhitespace", typeof(Strings), nameof(Strings.AvoidTrailingWhitespaceDescription), Severity = DiagnosticSeverity.Information)]
@@ -42,7 +39,25 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
                     continue;
                 }
 
-                yield return CreateDiagnostic(Strings.AvoidTrailingWhitespaceError, ast.Extent);
+                int trailingStart = line.Length - 1;
+                while (trailingStart > 0 && (line[trailingStart - 1] == ' ' || line[trailingStart - 1] == '\t'))
+                {
+                    trailingStart--;
+                }
+
+                int lineNumber = ast.Extent.StartLineNumber + i;
+                int startColumn = trailingStart + 1;
+                int endColumn = line.Length + 1;
+                string whitespaceText = line.Substring(trailingStart);
+
+                var extent = new ScriptExtent(
+                    whitespaceText,
+                    new ScriptPosition(null, fileName, line, 0, lineNumber, startColumn),
+                    new ScriptPosition(null, fileName, line, 0, lineNumber, endColumn));
+
+                var correction = new Correction(extent, string.Empty, Strings.AvoidTrailingWhitespaceError);
+
+                yield return CreateDiagnostic(Strings.AvoidTrailingWhitespaceError, extent, new[] { correction });
             }
         }
     }

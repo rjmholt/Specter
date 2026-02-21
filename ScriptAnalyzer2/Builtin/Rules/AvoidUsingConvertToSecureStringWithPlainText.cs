@@ -18,7 +18,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
         private static readonly HashSet<string> s_commandNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "ConvertTo-SecureString",
-            "css",
+            "ctss",
         };
 
         public AvoidUsingConvertToSecureStringWithPlainText(RuleInfo ruleInfo)

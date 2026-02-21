@@ -7,6 +7,7 @@ with the following goals:
 - Hostability: it should be possible to embed PSScriptAnalyzer in other projects with a minimum of difficulty or overhead
 - Code reuse: problems should be solved once and shared, solutions that are applicable to other projects should ideally go upstream
 - Static reproducibility: analysis should work the same everywhere when possible and not depend on the analysis host's state
+- No PowerShell runtime dependency: the core engine must never execute PowerShell code or require a PowerShell runspace. All analysis is performed purely over the AST and token data. External knowledge (such as known command names, aliases, and module metadata) is supplied through static data sources like a bundled database, not through live session queries
 - Configurability: configuration should be preferred over opinion, and configuration mechanisms should be discoverable and self-validating
 
 ## Building

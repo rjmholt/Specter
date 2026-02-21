@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -81,7 +81,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
         private bool HasShouldProcessTrue(IEnumerable<AttributeAst> attributeAsts)
         {
             return AstTools.TryGetShouldProcessAttributeArgumentAst(attributeAsts, out NamedAttributeArgumentAst shouldProcessArgument)
-                && object.Equals(shouldProcessArgument.GetValue(), true);
+                && AstTools.IsTrue(shouldProcessArgument.GetValue());
         }
 
         private static bool IsStateChangingFunctionName(string functionName)

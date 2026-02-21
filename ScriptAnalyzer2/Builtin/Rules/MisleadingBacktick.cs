@@ -9,16 +9,12 @@ using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
 {
-    /// <summary>
-    /// Checks that lines don't end with a backtick followed by whitespace,
-    /// which is misleading because the backtick appears to be a line continuation.
-    /// </summary>
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("MisleadingBacktick", typeof(Strings), nameof(Strings.MisleadingBacktickDescription))]
     public class MisleadingBacktick : ScriptRule
     {
-        private static readonly Regex s_trailingEscapedWhitespace = new Regex(@"`\s+$", RegexOptions.Compiled);
+        private static readonly Regex s_trailingEscapedWhitespace = new Regex(@"`(\s+)$", RegexOptions.Compiled);
 
         public MisleadingBacktick(RuleInfo ruleInfo)
             : base(ruleInfo)
@@ -40,7 +36,22 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
                 }
 
                 int lineNumber = ast.Extent.StartLineNumber + i;
-                yield return CreateDiagnostic(Strings.MisleadingBacktickError, ast.Extent);
+                string line = lines[i];
+
+                // The correction covers only the whitespace after the backtick
+                Group whitespaceGroup = match.Groups[1];
+                int startColumn = whitespaceGroup.Index + 1;
+                int endColumn = line.Length + 1;
+                string whitespaceText = whitespaceGroup.Value;
+
+                var extent = new ScriptExtent(
+                    whitespaceText,
+                    new ScriptPosition(null, fileName, line, 0, lineNumber, startColumn),
+                    new ScriptPosition(null, fileName, line, 0, lineNumber, endColumn));
+
+                var correction = new Correction(extent, string.Empty, Strings.MisleadingBacktickError);
+
+                yield return CreateDiagnostic(Strings.MisleadingBacktickError, extent, new[] { correction });
             }
         }
     }

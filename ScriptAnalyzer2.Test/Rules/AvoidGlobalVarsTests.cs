@@ -126,17 +126,13 @@ if ($global:lastexitcode -ne 0) {
         }
 
         [Fact]
-        public void GlobalDebugPreference_ShouldReturnViolation()
+        public void GlobalDebugPreference_ShouldNotReturnViolation()
         {
             var script = @"$Global:DebugPreference = 'Continue'";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
-            ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
-            Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);
-            Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);
-            Assert.Equal(24, oneViolation.ScriptExtent.EndColumnNumber);
+            Assert.Empty(violations);
         }
 
         [Fact]

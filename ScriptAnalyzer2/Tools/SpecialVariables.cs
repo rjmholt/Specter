@@ -100,6 +100,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
         internal const string ConfirmPreference = "ConfirmPreference";
         internal const string ProgressPreference = "ProgressPreference";
         internal const string InformationPreference = "InformationPreference";
+        internal const string ErrorView = "ErrorView";
+        internal const string PSNativeCommandUseErrorActionPreference = "PSNativeCommandUseErrorActionPreference";
 
         internal static readonly string[] PreferenceVariables = new string[]
                                                                 {
@@ -110,7 +112,9 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
                                                                     WarningPreference,
                                                                     ConfirmPreference,
                                                                     ProgressPreference,
-                                                                    InformationPreference
+                                                                    InformationPreference,
+                                                                    ErrorView,
+                                                                    PSNativeCommandUseErrorActionPreference,
                                                                 };
 
         internal static readonly Type[] PreferenceVariableTypes = new Type[]
@@ -163,6 +167,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
         internal const string PSEmailServer = "PSEmailServer";
         internal const string PSDefaultParameterValues = "PSDefaultParameterValues";
         internal const string PSModuleAutoLoadingPreference = "PSModuleAutoLoadingPreference";
+        internal const string PSNativeCommandArgumentPassing = "PSNativeCommandArgumentPassing";
         internal const string pwd = "PWD";
         internal const string Null = "null";
         internal const string True = "true";
@@ -185,6 +190,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
                                                                     PSEmailServer,
                                                                     PSDefaultParameterValues,
                                                                     PSModuleAutoLoadingPreference,
+                                                                    PSNativeCommandArgumentPassing,
                                                                     pwd,
                                                                     Null,
                                                                     True,

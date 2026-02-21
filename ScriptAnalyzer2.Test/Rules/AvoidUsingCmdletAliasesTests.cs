@@ -251,7 +251,7 @@ DIR";
             Correction correction = Assert.Single(oneViolation.Corrections);
 
             Assert.Equal("Clear-Host", correction.CorrectionText);
-            Assert.Contains("cls is an alias for Clear-Host", correction.Description);
+            Assert.Contains("Replace cls with Clear-Host", correction.Description);
         }
 
         [Fact]

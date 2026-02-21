@@ -67,7 +67,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
                 else
                 {
                     yield return CreateDiagnostic(
-                        String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletError, fileName),
+                        String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletError, System.IO.Path.GetFileName(fileName)),
                         cmdAst.Extent);
                 }
             }

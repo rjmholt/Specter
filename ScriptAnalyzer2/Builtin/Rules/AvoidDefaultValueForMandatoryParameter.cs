@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation.Language;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
 {
@@ -67,17 +68,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
 
                 foreach (NamedAttributeArgumentAst namedArg in attr.NamedArguments)
                 {
-                    if (!string.Equals(namedArg.ArgumentName, "Mandatory", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    if (namedArg.ExpressionOmitted)
-                    {
-                        return true;
-                    }
-
-                    if (namedArg.Argument.Extent.Text.Equals("$true", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(namedArg.ArgumentName, "Mandatory", StringComparison.OrdinalIgnoreCase)
+                        && AstTools.IsTrue(namedArg.GetValue()))
                     {
                         return true;
                     }

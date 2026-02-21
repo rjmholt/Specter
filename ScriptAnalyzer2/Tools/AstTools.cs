@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Configuration.Psd;
+using Microsoft.PowerShell.ScriptAnalyzer.Configuration.Psd;
 using System;
 using System.Collections.Generic;
 using System.Management.Automation;
@@ -15,6 +15,25 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Tools
         {
             return s_psdDataParser.ConvertAstValue(ast);
         }
+
+        /// <summary>
+        /// Evaluates an object's truthiness using PowerShell semantics, without
+        /// executing any PowerShell code. Mirrors the behavior of
+        /// <c>LanguagePrimitives.IsTrue()</c> for the value types we can
+        /// statically extract from AST nodes.
+        /// </summary>
+        public static bool IsTrue(object value) => value switch
+        {
+            null => false,
+            bool b => b,
+            int i => i != 0,
+            long l => l != 0,
+            double d => d != 0,
+            decimal m => m != 0,
+            string s => s.Length > 0,
+            System.Collections.ICollection c => c.Count > 0,
+            _ => true,
+        };
 
         public static bool TryGetCmdletBindingAttributeAst(
             IEnumerable<AttributeAst> attributes,

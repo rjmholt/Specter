@@ -12,39 +12,15 @@ using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 {
-    /// <summary>
-    /// AvoidGlobalVars: Analyzes the ast to check that global variables are not used.
-    /// </summary>
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidGlobalVars", typeof(Strings), nameof(Strings.AvoidGlobalVarsDescription))]
     public class AvoidGlobalVars : ScriptRule
     {
-        private static readonly HashSet<string> s_allowedGlobalVariables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Error",
-            "Debug",
-            "Verbose",
-            "Warning",
-            "Confirm",
-            "WhatIf",
-            "Progress",
-            "Information",
-            "ErrorView",
-            "LastExitCode",
-        };
-
-
         public AvoidGlobalVars(RuleInfo ruleInfo) : base(ruleInfo)
         {
         }
 
-        /// <summary>
-        /// AnalyzeScript: Analyzes the ast to check that global variables are not used. From the ILintScriptRule interface.
-        /// </summary>
-        /// <param name="ast">The script's ast</param>
-        /// <param name="fileName">The script's file name</param>
-        /// <returns>A List of diagnostic results of this rule</returns>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
             IEnumerable<Ast> varAsts = ast.FindAll(testAst => testAst is VariableExpressionAst, true);
@@ -59,7 +35,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 if (varAst.VariablePath.IsGlobal)
                 {
                     string variableName = varAst.GetNameWithoutScope();
-                    if (s_allowedGlobalVariables.Contains(variableName))
+                    if (SpecialVariables.IsSpecialVariable(variableName))
                     {
                         continue;
                     }

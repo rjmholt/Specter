@@ -239,7 +239,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     var correction = new AstCorrection(
                         cmdAst.CommandElements[0],
                         cmdletNameIfCommandNameWasAlias,
-                        string.Format(CultureInfo.CurrentCulture, "{0} is an alias for {1}", commandName, cmdletNameIfCommandNameWasAlias));
+                        string.Format(CultureInfo.CurrentCulture, "Replace {0} with {1}", commandName, cmdletNameIfCommandNameWasAlias));
 
                     yield return CreateDiagnostic(
                         string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingCmdletAliasesError, commandName, cmdletNameIfCommandNameWasAlias),

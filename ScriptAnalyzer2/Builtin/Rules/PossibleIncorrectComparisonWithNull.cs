@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
 {
@@ -46,6 +47,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
                 }
 
                 if (!binExpr.Right.Extent.Text.Equals("$null", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (binExpr.Left is VariableExpressionAst leftVar
+                    && leftVar.IsSpecialVariable())
                 {
                     continue;
                 }

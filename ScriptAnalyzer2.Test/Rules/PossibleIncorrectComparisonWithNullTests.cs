@@ -95,5 +95,25 @@ namespace ScriptAnalyzer2.Test.Rules
 
             Assert.Empty(violations);
         }
+
+        [Fact]
+        public void SpecialVariable_DebugPreference_ShouldNotReturnViolation()
+        {
+            var script = @"if ($DebugPreference -eq $null) { }";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void SpecialVariable_PSVersionTable_ShouldNotReturnViolation()
+        {
+            var script = @"if ($PSVersionTable -eq $null) { }";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
+        }
     }
 }
