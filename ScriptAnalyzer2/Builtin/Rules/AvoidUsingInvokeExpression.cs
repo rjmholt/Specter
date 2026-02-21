@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation.Language;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
@@ -15,15 +16,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
     [Rule("AvoidUsingInvokeExpression", typeof(Strings), nameof(Strings.AvoidUsingInvokeExpressionRuleDescription))]
     public class AvoidUsingInvokeExpression : ScriptRule
     {
-        private static readonly HashSet<string> s_invokeExpressionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Invoke-Expression",
-            "iex",
-        };
+        private readonly IPowerShellCommandDatabase _commandDb;
 
-        public AvoidUsingInvokeExpression(RuleInfo ruleInfo)
+        public AvoidUsingInvokeExpression(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
             : base(ruleInfo)
         {
+            _commandDb = commandDb;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
@@ -35,7 +33,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules
                 var cmdAst = (CommandAst)foundAst;
                 string commandName = cmdAst.GetCommandName();
 
-                if (commandName is null || !s_invokeExpressionNames.Contains(commandName))
+                if (commandName is null || !_commandDb.IsCommandOrAlias(commandName, "Invoke-Expression"))
                 {
                     continue;
                 }

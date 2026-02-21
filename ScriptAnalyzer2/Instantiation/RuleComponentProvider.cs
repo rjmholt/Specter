@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builder
 {
@@ -125,6 +126,12 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builder
 
         public RuleComponentProvider Build()
         {
+            if (!_singletonComponents.ContainsKey(typeof(IPowerShellCommandDatabase))
+                && !_componentRegistrations.ContainsKey(typeof(IPowerShellCommandDatabase)))
+            {
+                _singletonComponents[typeof(IPowerShellCommandDatabase)] = BuiltinCommandDatabase.Instance;
+            }
+
             return new SimpleRuleComponentProvider(_componentRegistrations, _singletonComponents);
         }
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Management.Automation;
@@ -14,6 +14,24 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Runtime
         string GetAliasTarget(string alias);
 
         IReadOnlyList<string> GetAllNamesForCommand(string command);
+    }
+
+    public static class CommandDatabaseExtensions
+    {
+        /// <summary>
+        /// Returns true if <paramref name="name"/> is either the canonical command
+        /// name or one of its known aliases.
+        /// </summary>
+        public static bool IsCommandOrAlias(this IPowerShellCommandDatabase db, string name, string canonicalCommand)
+        {
+            if (string.Equals(name, canonicalCommand, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            string target = db.GetAliasTarget(name);
+            return string.Equals(target, canonicalCommand, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     public class SessionStateCommandDatabase : IPowerShellCommandDatabase

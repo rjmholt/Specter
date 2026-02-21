@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer;
 using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
@@ -21,8 +22,11 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [Rule("UseDeclaredVarsMoreThanAssignments", typeof(Strings), nameof(Strings.UseDeclaredVarsMoreThanAssignmentsDescription))]
     public class UseDeclaredVarsMoreThanAssignments : ScriptRule
     {
-        public UseDeclaredVarsMoreThanAssignments(RuleInfo ruleInfo) : base(ruleInfo)
+        private readonly IPowerShellCommandDatabase _commandDb;
+
+        public UseDeclaredVarsMoreThanAssignments(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb) : base(ruleInfo)
         {
+            _commandDb = commandDb;
         }
 
         /// <summary>
@@ -176,27 +180,31 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             ScriptBlockAst scriptBlockAst,
             Dictionary<string, AssignmentStatementAst> assignmentsDictionary_OrdinalIgnoreCase)
         {
-            // TODO: Requires command database to resolve Get-Variable aliases
-            return;
-
-            /*
-            IReadOnlyList<string> getVariableCmdletNamesAndAliases = null; //Helper.Instance.CmdletNameAndAliases("Get-Variable");
-            IEnumerable<Ast> getVariableCommandAsts = scriptBlockAst.FindAll(testAst => testAst is CommandAst commandAst &&
-                getVariableCmdletNamesAndAliases.Contains(commandAst.GetCommandName(), StringComparer.OrdinalIgnoreCase), true);
+            IEnumerable<Ast> getVariableCommandAsts = scriptBlockAst.FindAll(
+                testAst => testAst is CommandAst commandAst
+                    && _commandDb.IsCommandOrAlias(commandAst.GetCommandName(), "Get-Variable"),
+                searchNestedScriptBlocks: true);
 
             foreach (CommandAst getVariableCommandAst in getVariableCommandAsts)
             {
                 var commandElements = getVariableCommandAst.CommandElements.ToList();
-                // The following extracts the variable name(s) only in the simplest possible usage of Get-Variable.
-                // Usage of a named parameter and an array of variables is accounted for though.
-                if (commandElements.Count < 2 || commandElements.Count > 3) { continue; }
+
+                // Only handle the simplest forms: `Get-Variable name` or `Get-Variable -Name name`
+                if (commandElements.Count < 2 || commandElements.Count > 3)
+                {
+                    continue;
+                }
 
                 var commandElementAstOfVariableName = commandElements[commandElements.Count - 1];
+
                 if (commandElements.Count == 3)
                 {
-                    if (!(commandElements[1] is CommandParameterAst commandParameterAst)) { continue; }
-                    // Check if the named parameter -Name is used (PowerShell does not need the full
-                    // parameter name and there is no other parameter of Get-Variable starting with n).
+                    if (commandElements[1] is not CommandParameterAst commandParameterAst)
+                    {
+                        continue;
+                    }
+
+                    // -Name is the only Get-Variable parameter starting with 'n'
                     if (!commandParameterAst.ParameterName.StartsWith("n", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
@@ -209,8 +217,12 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     continue;
                 }
 
-                if (!(commandElementAstOfVariableName is ArrayLiteralAst arrayLiteralAst)) { continue; }
-                foreach (var expressionAst in arrayLiteralAst.Elements)
+                if (commandElementAstOfVariableName is not ArrayLiteralAst arrayLiteralAst)
+                {
+                    continue;
+                }
+
+                foreach (ExpressionAst expressionAst in arrayLiteralAst.Elements)
                 {
                     if (expressionAst is StringConstantExpressionAst constantExpressionAstOfArray)
                     {
@@ -218,7 +230,6 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     }
                 }
             }
-            */
         }
     }
 }

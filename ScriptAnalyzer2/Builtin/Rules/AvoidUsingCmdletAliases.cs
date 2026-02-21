@@ -8,6 +8,7 @@ using System.Globalization;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using Microsoft.PowerShell.ScriptAnalyzer;
 using Microsoft.PowerShell.ScriptAnalyzer.Builtin.Rules;
+using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 using Microsoft.PowerShell.ScriptAnalyzer.Tools;
 using System.Linq;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
@@ -22,121 +23,10 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [Rule("AvoidUsingCmdletAliases", typeof(Strings), nameof(Strings.AvoidUsingCmdletAliasesDescription))]
     public class AvoidUsingCmdletAliases : ScriptRule, IConfigurableRule<AvoidUsingCmdletAliasesConfiguration>
     {
-        private static readonly IReadOnlyDictionary<string, string> s_knownAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "?", "Where-Object" },
-            { "%", "ForEach-Object" },
-            { "cd", "Set-Location" },
-            { "chdir", "Set-Location" },
-            { "clc", "Clear-Content" },
-            { "clhy", "Clear-History" },
-            { "cli", "Clear-Item" },
-            { "clp", "Clear-ItemProperty" },
-            { "cls", "Clear-Host" },
-            { "clv", "Clear-Variable" },
-            { "copy", "Copy-Item" },
-            { "cpi", "Copy-Item" },
-            { "cvpa", "Convert-Path" },
-            { "dbp", "Disable-PSBreakpoint" },
-            { "del", "Remove-Item" },
-            { "dir", "Get-ChildItem" },
-            { "ebp", "Enable-PSBreakpoint" },
-            { "echo", "Write-Output" },
-            { "epal", "Export-Alias" },
-            { "epcsv", "Export-Csv" },
-            { "erase", "Remove-Item" },
-            { "etsn", "Enter-PSSession" },
-            { "exsn", "Exit-PSSession" },
-            { "fc", "Format-Custom" },
-            { "fhx", "Format-Hex" },
-            { "fl", "Format-List" },
-            { "foreach", "ForEach-Object" },
-            { "ft", "Format-Table" },
-            { "fw", "Format-Wide" },
-            { "gal", "Get-Alias" },
-            { "gbp", "Get-PSBreakpoint" },
-            { "gc", "Get-Content" },
-            { "gcb", "Get-Clipboard" },
-            { "gci", "Get-ChildItem" },
-            { "gcm", "Get-Command" },
-            { "gcs", "Get-PSCallStack" },
-            { "gdr", "Get-PSDrive" },
-            { "gerr", "Get-Error" },
-            { "ghy", "Get-History" },
-            { "gi", "Get-Item" },
-            { "gjb", "Get-Job" },
-            { "gl", "Get-Location" },
-            { "gm", "Get-Member" },
-            { "gmo", "Get-Module" },
-            { "gp", "Get-ItemProperty" },
-            { "gps", "Get-Process" },
-            { "gpv", "Get-ItemPropertyValue" },
-            { "group", "Group-Object" },
-            { "gsn", "Get-PSSession" },
-            { "gtz", "Get-TimeZone" },
-            { "gu", "Get-Unique" },
-            { "gv", "Get-Variable" },
-            { "h", "Get-History" },
-            { "history", "Get-History" },
-            { "icm", "Invoke-Command" },
-            { "iex", "Invoke-Expression" },
-            { "ihy", "Invoke-History" },
-            { "ii", "Invoke-Item" },
-            { "ipal", "Import-Alias" },
-            { "ipcsv", "Import-Csv" },
-            { "ipmo", "Import-Module" },
-            { "irm", "Invoke-RestMethod" },
-            { "iwr", "Invoke-WebRequest" },
-            { "md", "mkdir" },
-            { "measure", "Measure-Object" },
-            { "mi", "Move-Item" },
-            { "move", "Move-Item" },
-            { "mp", "Move-ItemProperty" },
-            { "nal", "New-Alias" },
-            { "ndr", "New-PSDrive" },
-            { "ni", "New-Item" },
-            { "nmo", "New-Module" },
-            { "nsn", "New-PSSession" },
-            { "nv", "New-Variable" },
-            { "oh", "Out-Host" },
-            { "popd", "Pop-Location" },
-            { "pushd", "Push-Location" },
-            { "pwd", "Get-Location" },
-            { "r", "Invoke-History" },
-            { "rbp", "Remove-PSBreakpoint" },
-            { "rcjb", "Receive-Job" },
-            { "rcsn", "" },
-            { "rd", "Remove-Item" },
-            { "rdr", "Remove-PSDrive" },
-            { "ren", "Rename-Item" },
-            { "ri", "Remove-Item" },
-            { "rjb", "Remove-Job" },
-            { "rmo", "Remove-Module" },
-            { "rni", "Rename-Item" },
-            { "rnp", "Rename-ItemProperty" },
-            { "rp", "Remove-ItemProperty" },
-            { "rsn", "Remove-PSSession" },
-            { "rv", "Remove-Variable" },
-            { "rvpa", "Resolve-Path" },
-            { "sajb", "Start-Job" },
-            { "sal", "Set-Alias" },
-            { "saps", "Start-Process" },
-            { "sbp", "Set-PSBreakpoint" },
-            { "scb", "Set-Clipboard" },
-            { "select", "Select-Object" },
-            { "set", "Set-Variable" },
-            { "si", "Set-Item" },
-            { "sl", "Set-Location" },
-            { "sls", "Select-String" },
-            { "sp", "Set-ItemProperty" },
-            { "spjb", "Stop-Job" },
-            { "spps", "Stop-Process" },
-            { "sv", "Set-Variable" },
-            { "type", "Get-Content" },
-            { "where", "Where-Object" },
-            { "wjb", "Wait-Job" },
-        };
+        private readonly IPowerShellCommandDatabase _commandDb;
 
+        // Implicit Get- prefix completions are a separate concept from standard aliases.
+        // PowerShell resolves bare nouns (e.g. "Variable") to their Get- prefixed form (e.g. "Get-Variable").
         private static readonly IReadOnlyDictionary<string, string> s_knownGetAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "Alias", "Get-Alias" },
@@ -196,9 +86,11 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             { "Verb", "Get-Verb" },
         };
 
-        public AvoidUsingCmdletAliases(RuleInfo ruleInfo, AvoidUsingCmdletAliasesConfiguration configuration) : base(ruleInfo)
+        public AvoidUsingCmdletAliases(RuleInfo ruleInfo, AvoidUsingCmdletAliasesConfiguration configuration, IPowerShellCommandDatabase commandDb)
+            : base(ruleInfo)
         {
             Configuration = configuration;
+            _commandDb = commandDb;
         }
 
         public AvoidUsingCmdletAliasesConfiguration Configuration { get; }
@@ -233,8 +125,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     continue;
                 }
 
-                // Check if command is an alias
-                if (s_knownAliases.TryGetValue(commandName, out string cmdletNameIfCommandNameWasAlias))
+                // Check if command is a known alias
+                string cmdletNameIfCommandNameWasAlias = _commandDb.GetAliasTarget(commandName);
+                if (cmdletNameIfCommandNameWasAlias is not null)
                 {
                     var correction = new AstCorrection(
                         cmdAst.CommandElements[0],

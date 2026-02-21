@@ -6,7 +6,6 @@ using Microsoft.PowerShell.ScriptAnalyzer.Runtime;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules;
 using System;
 using System.Collections.Generic;
-using System.Management.Automation.Runspaces;
 
 namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
 {
@@ -64,17 +63,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Builtin
         private static RuleComponentProvider BuildRuleComponentProvider()
         {
             return new RuleComponentProviderBuilder()
-                .AddSingleton(InstantiatePowerShellCommandDatabase())
+                .AddSingleton<IPowerShellCommandDatabase>(BuiltinCommandDatabase.Instance)
                 .Build();
-        }
-
-        private static IPowerShellCommandDatabase InstantiatePowerShellCommandDatabase()
-        {
-            using (Runspace runspace = RunspaceFactory.CreateRunspace())
-            {
-                runspace.Open();
-                return SessionStateCommandDatabase.Create(runspace.SessionStateProxy.InvokeCommand);
-            }
         }
     }
 
