@@ -24,6 +24,8 @@ namespace PSpecter.Builtin
             typeof(AlignAssignmentStatementEditor),
             typeof(UseCorrectCasingEditor),
             typeof(AvoidTrailingWhitespaceEditor),
+            typeof(AvoidSemicolonsAsLineTerminatorsEditor),
+            typeof(AvoidUsingDoubleQuotesForConstantStringEditor),
         };
 
         /// <summary>
@@ -39,6 +41,8 @@ namespace PSpecter.Builtin
                 ["AlignAssignmentStatement"] = new AlignAssignmentStatementEditorConfiguration(),
                 ["UseCorrectCasing"] = new UseCorrectCasingEditorConfiguration(),
                 ["AvoidTrailingWhitespace"] = new AvoidTrailingWhitespaceEditorConfiguration(),
+                ["AvoidSemicolonsAsLineTerminators"] = new AvoidSemicolonsAsLineTerminatorsEditorConfiguration(),
+                ["AvoidUsingDoubleQuotesForConstantString"] = new AvoidUsingDoubleQuotesForConstantStringEditorConfiguration(),
             };
     }
 

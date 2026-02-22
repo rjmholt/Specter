@@ -22,6 +22,8 @@ namespace PSpecter.PssaCompatibility
                 ["PSAlignAssignmentStatement"] = "AlignAssignmentStatement",
                 ["PSUseCorrectCasing"] = "UseCorrectCasing",
                 ["PSAvoidTrailingWhitespace"] = "AvoidTrailingWhitespace",
+                ["PSAvoidSemicolonsAsLineTerminators"] = "AvoidSemicolonsAsLineTerminators",
+                ["PSAvoidUsingDoubleQuotesForConstantString"] = "AvoidUsingDoubleQuotesForConstantString",
             };
 
         /// <summary>

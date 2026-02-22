@@ -24,11 +24,13 @@ namespace PSpecter.Formatting
         /// in their canonical execution order. Editors whose config has
         /// <see cref="CommonEditorConfiguration.Enabled"/> = false are skipped.
         /// </summary>
-        public static ScriptFormatter FromEditorConfigs(IReadOnlyDictionary<string, IEditorConfiguration> configs)
+        public static ScriptFormatter FromEditorConfigs(
+            IReadOnlyDictionary<string, IEditorConfiguration> configs,
+            IReadOnlyDictionary<Type, object> services = null)
         {
             if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
 
-            return FromEditorConfigs(BuiltinEditors.DefaultEditors, configs);
+            return FromEditorConfigs(BuiltinEditors.DefaultEditors, configs, services);
         }
 
         /// <summary>
@@ -39,12 +41,20 @@ namespace PSpecter.Formatting
         /// </summary>
         public static ScriptFormatter FromEditorConfigs(
             IReadOnlyList<Type> editorTypes,
-            IReadOnlyDictionary<string, IEditorConfiguration> configs)
+            IReadOnlyDictionary<string, IEditorConfiguration> configs,
+            IReadOnlyDictionary<Type, object> services = null)
         {
             if (editorTypes is null) { throw new ArgumentNullException(nameof(editorTypes)); }
             if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
 
             var builder = new Builder();
+            if (services is not null)
+            {
+                foreach (var kvp in services)
+                {
+                    builder.AddService(kvp.Key, kvp.Value);
+                }
+            }
             builder.AddConfiguredEditors(editorTypes, configs);
             return builder.Build();
         }
@@ -70,11 +80,30 @@ namespace PSpecter.Formatting
         public sealed class Builder
         {
             private readonly List<IScriptEditor> _editors = new List<IScriptEditor>();
+            private readonly Dictionary<Type, object> _services = new Dictionary<Type, object>();
 
             public Builder AddEditor(IScriptEditor editor)
             {
                 if (editor is null) { throw new ArgumentNullException(nameof(editor)); }
                 _editors.Add(editor);
+                return this;
+            }
+
+            /// <summary>
+            /// Registers a service instance that can be injected into editor constructors.
+            /// </summary>
+            public Builder AddService(Type serviceType, object instance)
+            {
+                _services[serviceType] = instance;
+                return this;
+            }
+
+            /// <summary>
+            /// Registers a service instance that can be injected into editor constructors.
+            /// </summary>
+            public Builder AddService<T>(T instance)
+            {
+                _services[typeof(T)] = instance;
                 return this;
             }
 
@@ -141,16 +170,26 @@ namespace PSpecter.Formatting
                 return new ScriptFormatter(new List<IScriptEditor>(_editors));
             }
 
-            private static IScriptEditor CreateEditorInstance(Type editorType, IEditorConfiguration config)
+            private IScriptEditor CreateEditorInstance(Type editorType, IEditorConfiguration config)
             {
-                // Look for a constructor that takes the config type
                 Type configType = EditorInfo.GetConfigurationType(editorType);
+
+                // Try constructor with config + services
                 if (configType != null)
                 {
-                    ConstructorInfo ctor = editorType.GetConstructor(new[] { configType });
-                    if (ctor != null)
+                    foreach (ConstructorInfo ctor in editorType.GetConstructors())
                     {
-                        return (IScriptEditor)ctor.Invoke(new object[] { config });
+                        ParameterInfo[] parameters = ctor.GetParameters();
+                        if (parameters.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        object[] args = TryResolveConstructorArgs(parameters, configType, config);
+                        if (args is not null)
+                        {
+                            return (IScriptEditor)ctor.Invoke(args);
+                        }
                     }
                 }
 
@@ -162,6 +201,31 @@ namespace PSpecter.Formatting
                 }
 
                 return null;
+            }
+
+            private object[] TryResolveConstructorArgs(
+                ParameterInfo[] parameters,
+                Type configType,
+                IEditorConfiguration config)
+            {
+                var args = new object[parameters.Length];
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    Type paramType = parameters[i].ParameterType;
+                    if (paramType.IsAssignableFrom(configType))
+                    {
+                        args[i] = config;
+                    }
+                    else if (_services.TryGetValue(paramType, out object service))
+                    {
+                        args[i] = service;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                return args;
             }
         }
     }
