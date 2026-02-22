@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PSpecter.Server</RootNamespace>
     <AssemblyName>PSpecter.Server</AssemblyName>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

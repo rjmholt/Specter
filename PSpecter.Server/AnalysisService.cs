@@ -1,6 +1,7 @@
 using PSpecter.Builder;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
+using PSpecter.Logging;
 using PSpecter.Rules;
 using System.Collections.Concurrent;
 
@@ -20,11 +21,14 @@ public sealed class AnalysisService : IDisposable
         _analyzer = analyzer;
     }
 
-    public static AnalysisService CreateDefault()
+    public static AnalysisService CreateDefault(IAnalysisLogger? logger = null)
     {
+        var resolvedLogger = logger ?? ConsoleAnalysisLogger.Instance;
+
         ScriptAnalyzer analyzer = new ScriptAnalyzerBuilder()
+            .WithLogger(resolvedLogger)
             .WithRuleComponentProvider(b => b.UseBuiltinDatabase())
-            .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
+            .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory(resolvedLogger))
             .AddBuiltinRules()
             .Build();
 

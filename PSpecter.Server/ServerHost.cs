@@ -54,6 +54,7 @@ public static class ServerHost
 
         WebApplication app = builder.Build();
         app.MapGrpcService<GrpcAnalysisService>();
+        app.MapGet("/health", () => Results.Ok(new { status = "healthy", rules = service.GetRules().Count }));
 
         await app.RunAsync(cancellationToken);
     }
