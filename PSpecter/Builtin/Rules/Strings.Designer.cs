@@ -3227,5 +3227,83 @@ namespace PSpecter.Builtin.Rules {
                 return ResourceManager.GetString("AvoidUsingBrokenHashAlgorithmsName", resourceCulture);
             }
         }
+        
+        internal static string AvoidSemicolonsAsLineTerminatorsCommonName {
+            get {
+                return ResourceManager.GetString("AvoidSemicolonsAsLineTerminatorsCommonName", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidSemicolonsAsLineTerminatorsDescription {
+            get {
+                return ResourceManager.GetString("AvoidSemicolonsAsLineTerminatorsDescription", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidSemicolonsAsLineTerminatorsError {
+            get {
+                return ResourceManager.GetString("AvoidSemicolonsAsLineTerminatorsError", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidSemicolonsAsLineTerminatorsName {
+            get {
+                return ResourceManager.GetString("AvoidSemicolonsAsLineTerminatorsName", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidUsingDoubleQuotesForConstantStringCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUsingDoubleQuotesForConstantStringCommonName", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidUsingDoubleQuotesForConstantStringDescription {
+            get {
+                return ResourceManager.GetString("AvoidUsingDoubleQuotesForConstantStringDescription", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidUsingDoubleQuotesForConstantStringError {
+            get {
+                return ResourceManager.GetString("AvoidUsingDoubleQuotesForConstantStringError", resourceCulture);
+            }
+        }
+        
+        internal static string AvoidUsingDoubleQuotesForConstantStringName {
+            get {
+                return ResourceManager.GetString("AvoidUsingDoubleQuotesForConstantStringName", resourceCulture);
+            }
+        }
+
+        internal static string UseUsingScopeModifierInNewRunspacesCommonName {
+            get {
+                return ResourceManager.GetString("UseUsingScopeModifierInNewRunspacesCommonName", resourceCulture);
+            }
+        }
+
+        internal static string UseUsingScopeModifierInNewRunspacesDescription {
+            get {
+                return ResourceManager.GetString("UseUsingScopeModifierInNewRunspacesDescription", resourceCulture);
+            }
+        }
+
+        internal static string UseUsingScopeModifierInNewRunspacesName {
+            get {
+                return ResourceManager.GetString("UseUsingScopeModifierInNewRunspacesName", resourceCulture);
+            }
+        }
+
+        internal static string UseUsingScopeModifierInNewRunspacesError {
+            get {
+                return ResourceManager.GetString("UseUsingScopeModifierInNewRunspacesError", resourceCulture);
+            }
+        }
+
+        internal static string UseUsingScopeModifierInNewRunspacesCorrectionDescription {
+            get {
+                return ResourceManager.GetString("UseUsingScopeModifierInNewRunspacesCorrectionDescription", resourceCulture);
+            }
+        }
     }
 }

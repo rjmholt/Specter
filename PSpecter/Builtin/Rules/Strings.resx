@@ -1173,4 +1173,43 @@
   <data name="AvoidUsingBrokenHashAlgorithmsName" xml:space="preserve">
     <value>AvoidUsingBrokenHashAlgorithms</value>
   </data>
+  <data name="AvoidSemicolonsAsLineTerminatorsCommonName" xml:space="preserve">
+    <value>Avoid semicolons as line terminators</value>
+  </data>
+  <data name="AvoidSemicolonsAsLineTerminatorsDescription" xml:space="preserve">
+    <value>Line should not end with a semicolon</value>
+  </data>
+  <data name="AvoidSemicolonsAsLineTerminatorsError" xml:space="preserve">
+    <value>Line ends with a semicolon</value>
+  </data>
+  <data name="AvoidSemicolonsAsLineTerminatorsName" xml:space="preserve">
+    <value>AvoidSemicolonsAsLineTerminators</value>
+  </data>
+  <data name="AvoidUsingDoubleQuotesForConstantStringCommonName" xml:space="preserve">
+    <value>Avoid using double quotes if the string is constant.</value>
+  </data>
+  <data name="AvoidUsingDoubleQuotesForConstantStringDescription" xml:space="preserve">
+    <value>Use single quotes if the string is constant.</value>
+  </data>
+  <data name="AvoidUsingDoubleQuotesForConstantStringError" xml:space="preserve">
+    <value>Use single quotes when a string is constant.</value>
+  </data>
+  <data name="AvoidUsingDoubleQuotesForConstantStringName" xml:space="preserve">
+    <value>AvoidUsingDoubleQuotesForConstantString</value>
+  </data>
+  <data name="UseUsingScopeModifierInNewRunspacesCommonName" xml:space="preserve">
+    <value>Use 'Using:' scope modifier in RunSpace ScriptBlocks</value>
+  </data>
+  <data name="UseUsingScopeModifierInNewRunspacesDescription" xml:space="preserve">
+    <value>If a ScriptBlock is intended to be run as a new RunSpace, variables inside it should use 'Using:' scope modifier, or be initialized within the ScriptBlock.</value>
+  </data>
+  <data name="UseUsingScopeModifierInNewRunspacesName" xml:space="preserve">
+    <value>UseUsingScopeModifierInNewRunspaces</value>
+  </data>
+  <data name="UseUsingScopeModifierInNewRunspacesError" xml:space="preserve">
+    <value>The variable '{0}' is not declared within this ScriptBlock, and is missing the 'Using:' scope modifier.</value>
+  </data>
+  <data name="UseUsingScopeModifierInNewRunspacesCorrectionDescription" xml:space="preserve">
+    <value>Replace {0} with {1}</value>
+  </data>
 </root>

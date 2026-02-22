@@ -5,6 +5,7 @@
     <AssemblyName>PSpecter.PssaCompatibility</AssemblyName>
     <RootNamespace>PSpecter.PssaCompatibility</RootNamespace>
     <LangVersion>12</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8'">
@@ -21,6 +22,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PSpecter\PSpecter.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="PSpecter.PssaCompatibility.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

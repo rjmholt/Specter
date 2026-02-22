@@ -6,6 +6,7 @@
     <RootNamespace>PSpecter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>12</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8'">
@@ -23,6 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Pluralize.NET" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,13 +34,20 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8'">
-    <Compile Remove="Utils/HashCodeCombinator.cs"/>
+    <Compile Remove="Utils/HashCodeCombinator.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Data\pspecter.db" Condition="Exists('Data\pspecter.db')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Data\pspecter.db</Link>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Settings\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Settings\%(Filename)%(Extension)</Link>
     </None>
   </ItemGroup>
 

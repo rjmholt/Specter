@@ -325,21 +325,28 @@ namespace PSpecter.PssaCompatibility.Commands
         {
             // Build a mapping from PSSA rule name -> (engine config key, config type)
             var ruleConfigMap = BuildRuleConfigMap();
+            var allRuleNameMap = BuildAllRuleNameMap();
 
             foreach (var ruleEntry in ruleArguments)
             {
                 string pssaRuleName = ruleEntry.Key;
                 Dictionary<string, object> args = ruleEntry.Value;
 
-                if (!ruleConfigMap.TryGetValue(pssaRuleName, out var ruleMapping))
+                if (ruleConfigMap.TryGetValue(pssaRuleName, out var ruleMapping))
                 {
-                    continue;
+                    IRuleConfiguration config = CreateConfigFromArguments(ruleMapping.ConfigType, args);
+                    if (config != null)
+                    {
+                        configDict[ruleMapping.EngineConfigKey] = config;
+                    }
                 }
-
-                IRuleConfiguration config = CreateConfigFromArguments(ruleMapping.ConfigType, args);
-                if (config != null)
+                else if (allRuleNameMap.TryGetValue(pssaRuleName, out string engineKey))
                 {
-                    configDict[ruleMapping.EngineConfigKey] = config;
+                    if (args.TryGetValue("Enable", out object enableVal))
+                    {
+                        bool enabled = Convert.ToBoolean(enableVal);
+                        configDict[engineKey] = new CommonConfiguration(enabled);
+                    }
                 }
             }
         }
@@ -424,6 +431,12 @@ namespace PSpecter.PssaCompatibility.Commands
                 }
             }
 
+            // single string -> string[] (PowerShell may pass a scalar for a single-element array)
+            if (value is string singleStr && targetType == typeof(string[]))
+            {
+                return new[] { singleStr };
+            }
+
             // Scalar conversions
             try
             {
@@ -439,6 +452,24 @@ namespace PSpecter.PssaCompatibility.Commands
         {
             public string EngineConfigKey;
             public Type ConfigType;
+        }
+
+        private static Dictionary<string, string> BuildAllRuleNameMap()
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Type ruleType in BuiltinRules.DefaultRules)
+            {
+                if (!RuleInfo.TryGetFromRuleType(ruleType, out RuleInfo ruleInfo))
+                {
+                    continue;
+                }
+
+                string pssaName = RuleNameMapper.ToPssaName(ruleInfo.Name);
+                map[pssaName] = ruleInfo.FullName;
+            }
+
+            return map;
         }
 
         private static Dictionary<string, RuleConfigMapping> BuildRuleConfigMap()

@@ -5,8 +5,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using PSpecter.Rules;
-using SmaScriptPosition = System.Management.Automation.Language.ScriptPosition;
-using SmaScriptExtent = System.Management.Automation.Language.ScriptExtent;
+using SMA = System.Management.Automation.Language;
 
 namespace PSpecter.Builtin.Rules
 {
@@ -121,18 +120,18 @@ namespace PSpecter.Builtin.Rules
             IScriptExtent startExt = usrFirst ? usrExt : pwdExt;
             IScriptExtent endExt = usrFirst ? pwdExt : usrExt;
 
-            var startPos = new SmaScriptPosition(
+            var startPos = new SMA.ScriptPosition(
                 startExt.File,
                 startExt.StartLineNumber,
                 startExt.StartColumnNumber,
                 startExt.StartScriptPosition.Line);
-            var endPos = new SmaScriptPosition(
+            var endPos = new SMA.ScriptPosition(
                 endExt.File,
                 endExt.EndLineNumber,
                 endExt.EndColumnNumber,
                 endExt.EndScriptPosition.Line);
 
-            return new SmaScriptExtent(startPos, endPos);
+            return new SMA.ScriptExtent(startPos, endPos);
         }
     }
 }

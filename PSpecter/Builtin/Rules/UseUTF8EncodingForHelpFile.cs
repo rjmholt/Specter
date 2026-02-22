@@ -1,0 +1,56 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Management.Automation.Language;
+using PSpecter.Rules;
+
+namespace PSpecter.Builtin.Rules
+{
+    [ThreadsafeRule]
+    [IdempotentRule]
+    [Rule("UseUTF8EncodingForHelpFile", typeof(Strings), nameof(Strings.UseUTF8EncodingForHelpFileDescription))]
+    public class UseUTF8EncodingForHelpFile : ScriptRule
+    {
+        public UseUTF8EncodingForHelpFile(RuleInfo ruleInfo)
+            : base(ruleInfo)
+        {
+        }
+
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            {
+                yield break;
+            }
+
+            if (!IsHelpFile(fileName))
+            {
+                yield break;
+            }
+
+            using (var fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new StreamReader(fileStream, detectEncodingFromByteOrderMarks: true))
+            {
+                reader.ReadToEnd();
+                if (reader.CurrentEncoding != System.Text.Encoding.UTF8)
+                {
+                    yield return CreateDiagnostic(
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.UseUTF8EncodingForHelpFileError,
+                            Path.GetFileName(fileName),
+                            reader.CurrentEncoding),
+                        ast.Extent);
+                }
+            }
+        }
+
+        private static bool IsHelpFile(string filePath)
+        {
+            string name = Path.GetFileName(filePath);
+            return name.StartsWith("about_", StringComparison.OrdinalIgnoreCase)
+                && name.EndsWith(".help.txt", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+}
