@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,9 +23,9 @@ namespace PSpecter.CommandDatabase
         /// will look here before probing assembly-relative locations.
         /// Must be set before the first access of <see cref="Instance"/>.
         /// </summary>
-        public static string DefaultDatabasePath { get; set; }
+        public static string? DefaultDatabasePath { get; set; }
 
-        private readonly SqliteCommandDatabase _sqliteDb;
+        private readonly SqliteCommandDatabase? _sqliteDb;
         private readonly Dictionary<string, string> _aliasToCommand;
         private readonly Dictionary<string, List<string>> _commandToAliases;
 
@@ -37,7 +35,7 @@ namespace PSpecter.CommandDatabase
             _commandToAliases = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             PopulateDefaultAliases();
 
-            string dbPath = FindDefaultDatabasePath();
+            string? dbPath = FindDefaultDatabasePath();
             if (dbPath is not null)
             {
                 try
@@ -74,7 +72,7 @@ namespace PSpecter.CommandDatabase
 
         public bool HasSqliteDatabase => _sqliteDb is not null;
 
-        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
+        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo>? platforms, out CommandMetadata? command)
         {
             if (_sqliteDb is not null)
             {
@@ -85,39 +83,39 @@ namespace PSpecter.CommandDatabase
             return false;
         }
 
-        public string GetAliasTarget(string alias)
+        public string? GetAliasTarget(string alias)
         {
             if (_sqliteDb is not null)
             {
-                string result = _sqliteDb.GetAliasTarget(alias);
+                string? result = _sqliteDb.GetAliasTarget(alias);
                 if (result is not null)
                 {
                     return result;
                 }
             }
 
-            return _aliasToCommand.TryGetValue(alias, out string target) ? target : null;
+            return _aliasToCommand.TryGetValue(alias, out string? target) ? target : null;
         }
 
-        public IReadOnlyList<string> GetCommandAliases(string command)
+        public IReadOnlyList<string>? GetCommandAliases(string command)
         {
             if (_sqliteDb is not null)
             {
-                IReadOnlyList<string> result = _sqliteDb.GetCommandAliases(command);
+                IReadOnlyList<string>? result = _sqliteDb.GetCommandAliases(command);
                 if (result is not null)
                 {
                     return result;
                 }
             }
 
-            return _commandToAliases.TryGetValue(command, out List<string> aliases) ? aliases : null;
+            return _commandToAliases.TryGetValue(command, out List<string>? aliases) ? aliases : null;
         }
 
         public IReadOnlyList<string> GetAllNamesForCommand(string command)
         {
             if (_sqliteDb is not null)
             {
-                IReadOnlyList<string> result = _sqliteDb.GetAllNamesForCommand(command);
+                IReadOnlyList<string>? result = _sqliteDb.GetAllNamesForCommand(command);
                 if (result is not null)
                 {
                     return result;
@@ -125,14 +123,14 @@ namespace PSpecter.CommandDatabase
             }
 
             var names = new List<string> { command };
-            if (_commandToAliases.TryGetValue(command, out List<string> aliases))
+            if (_commandToAliases.TryGetValue(command, out List<string>? aliases) && aliases is not null)
             {
                 names.AddRange(aliases);
             }
             return names;
         }
 
-        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo>? platforms)
         {
             if (_sqliteDb is not null)
             {
@@ -152,7 +150,7 @@ namespace PSpecter.CommandDatabase
         /// then probing assembly-relative <c>Data/pspecter.db</c> locations.
         /// Returns null if no database file is found.
         /// </summary>
-        public static string FindDefaultDatabasePath()
+        public static string? FindDefaultDatabasePath()
         {
             try
             {
@@ -161,7 +159,7 @@ namespace PSpecter.CommandDatabase
                     return DefaultDatabasePath;
                 }
 
-                string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string? assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 if (assemblyDir is null)
                 {
                     return null;
@@ -173,7 +171,7 @@ namespace PSpecter.CommandDatabase
                     return candidate;
                 }
 
-                string parentDir = Path.GetDirectoryName(assemblyDir);
+                string? parentDir = Path.GetDirectoryName(assemblyDir);
                 if (parentDir is not null)
                 {
                     candidate = Path.Combine(parentDir, "Data", "pspecter.db");
@@ -194,7 +192,7 @@ namespace PSpecter.CommandDatabase
         {
             _aliasToCommand[alias] = command;
 
-            if (!_commandToAliases.TryGetValue(command, out List<string> aliases))
+            if (!_commandToAliases.TryGetValue(command, out List<string>? aliases))
             {
                 aliases = new List<string>();
                 _commandToAliases[command] = aliases;

@@ -137,7 +137,7 @@ internal sealed class TextDocumentSyncHandler : TextDocumentSyncHandlerBase
                     new Position(result.ScriptExtent.StartLineNumber - 1, result.ScriptExtent.StartColumnNumber - 1),
                     new Position(result.ScriptExtent.EndLineNumber - 1, result.ScriptExtent.EndColumnNumber - 1)),
                 Severity = MapSeverity(result.Severity),
-                Code = result.Rule.Name,
+                Code = result.Rule?.Name ?? string.Empty,
                 Source = "PSpecter",
                 Message = result.Message,
             });

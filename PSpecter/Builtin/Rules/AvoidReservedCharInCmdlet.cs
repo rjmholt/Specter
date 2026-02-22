@@ -21,7 +21,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -34,8 +34,8 @@ namespace PSpecter.Builtin.Rules
                 yield break;
             }
 
-            string reservedChars = Strings.ReserverCmdletChars;
-            HashSet<string> exportedFunctions = AstExtensions.GetExportedFunctionNames(ast);
+            string reservedChars = Strings.ReserverCmdletChars ?? "";
+            HashSet<string>? exportedFunctions = AstExtensions.GetExportedFunctionNames(ast);
 
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {
@@ -44,12 +44,12 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string funcName = funcAst.GetNameWithoutScope();
+                string? funcName = funcAst.GetNameWithoutScope();
 
                 // Only flag functions that are explicitly exported
                 if (exportedFunctions != null
                     && !exportedFunctions.Contains(funcAst.Name)
-                    && !exportedFunctions.Contains(funcName))
+                    && (funcName is null || !exportedFunctions.Contains(funcName)))
                 {
                     continue;
                 }

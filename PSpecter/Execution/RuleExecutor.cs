@@ -1,4 +1,4 @@
-﻿using PSpecter.Rules;
+using PSpecter.Rules;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Language;
@@ -18,11 +18,11 @@ namespace PSpecter
 
         private readonly IReadOnlyList<Token> _scriptTokens;
 
-        private readonly string _scriptPath;
+        private readonly string? _scriptPath;
 
         private readonly List<ScriptDiagnostic> _diagnostics;
 
-        public SequentialRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
+        public SequentialRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             _scriptAst = ast;
             _scriptTokens = tokens;
@@ -47,13 +47,13 @@ namespace PSpecter
 
         private readonly IReadOnlyList<Token> _scriptTokens;
 
-        private readonly string _scriptPath;
+        private readonly string? _scriptPath;
 
         private readonly List<ScriptRule> _parallelRules;
 
         private readonly List<ScriptRule> _sequentialRules;
 
-        public ParallelLinqRuleExecutor(Ast scriptAst, IReadOnlyList<Token> scriptTokens, string scriptPath)
+        public ParallelLinqRuleExecutor(Ast scriptAst, IReadOnlyList<Token> scriptTokens, string? scriptPath)
         {
             _scriptAst = scriptAst;
             _scriptTokens = scriptTokens;

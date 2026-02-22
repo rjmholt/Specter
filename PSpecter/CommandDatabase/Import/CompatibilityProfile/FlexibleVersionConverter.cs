@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,11 +10,11 @@ namespace PSpecter.CommandDatabase.Import.CompatibilityProfile
     /// </summary>
     internal sealed class FlexibleVersionConverter : JsonConverter<string>
     {
-        public override string ReadJson(JsonReader reader, Type objectType, string existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override string? ReadJson(JsonReader reader, Type objectType, string? existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.String)
             {
-                return (string)reader.Value;
+                return (string?)reader.Value;
             }
 
             if (reader.TokenType == JsonToken.StartObject)
@@ -41,7 +39,7 @@ namespace PSpecter.CommandDatabase.Import.CompatibilityProfile
             return reader.Value?.ToString() ?? "0.0.0";
         }
 
-        public override void WriteJson(JsonWriter writer, string value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, string? value, JsonSerializer serializer)
         {
             writer.WriteValue(value);
         }

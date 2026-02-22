@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,7 +26,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -45,7 +43,7 @@ namespace PSpecter.Builtin.Rules
 #endif
             }
 
-            string settingsPath = FindSettingsDirectory();
+            string? settingsPath = FindSettingsDirectory();
             if (settingsPath == null)
             {
                 yield break;
@@ -103,7 +101,7 @@ namespace PSpecter.Builtin.Rules
             var cmdlets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             JObject data = JObject.Parse(File.ReadAllText(jsonPath));
 
-            JArray modules = data["Modules"] as JArray;
+            JArray? modules = data["Modules"] as JArray;
             if (modules == null)
             {
                 return cmdlets;
@@ -111,7 +109,7 @@ namespace PSpecter.Builtin.Rules
 
             foreach (JToken module in modules)
             {
-                JArray commands = module["ExportedCommands"] as JArray;
+                JArray? commands = module["ExportedCommands"] as JArray;
                 if (commands == null)
                 {
                     continue;
@@ -119,7 +117,7 @@ namespace PSpecter.Builtin.Rules
 
                 foreach (JToken command in commands)
                 {
-                    string name = command["Name"]?.ToString();
+                    string? name = command["Name"]?.ToString();
                     if (!string.IsNullOrEmpty(name))
                     {
                         cmdlets.Add(name);
@@ -130,15 +128,15 @@ namespace PSpecter.Builtin.Rules
             return cmdlets;
         }
 
-        private static string FindSettingsDirectory()
+        private static string? FindSettingsDirectory()
         {
-            string assemblyLocation = typeof(AvoidOverwritingBuiltInCmdlets).Assembly.Location;
+            string? assemblyLocation = typeof(AvoidOverwritingBuiltInCmdlets).Assembly.Location;
             if (string.IsNullOrWhiteSpace(assemblyLocation))
             {
                 return null;
             }
 
-            string settingsPath = Path.Combine(Path.GetDirectoryName(assemblyLocation), "Settings");
+            string settingsPath = Path.Combine(Path.GetDirectoryName(assemblyLocation)!, "Settings");
             if (Directory.Exists(settingsPath))
             {
                 return settingsPath;

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -24,7 +22,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -34,7 +32,7 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(testAst => testAst is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
-                ScriptDiagnostic diagnostic = AnalyzeNewObjectCommand(cmdAst);
+                ScriptDiagnostic? diagnostic = AnalyzeNewObjectCommand(cmdAst);
                 if (diagnostic != null)
                 {
                     yield return diagnostic;
@@ -44,7 +42,7 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(testAst => testAst is InvokeMemberExpressionAst, searchNestedScriptBlocks: true))
             {
                 var invokeAst = (InvokeMemberExpressionAst)node;
-                ScriptDiagnostic diagnostic = AnalyzeStaticNewCall(invokeAst);
+                ScriptDiagnostic? diagnostic = AnalyzeStaticNewCall(invokeAst);
                 if (diagnostic != null)
                 {
                     yield return diagnostic;
@@ -52,22 +50,22 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private ScriptDiagnostic AnalyzeNewObjectCommand(CommandAst cmdAst)
+        private ScriptDiagnostic? AnalyzeNewObjectCommand(CommandAst cmdAst)
         {
             if (cmdAst.CommandElements.Count < 2)
             {
                 return null;
             }
 
-            string commandName = cmdAst.GetCommandName();
+            string? commandName = cmdAst.GetCommandName();
             if (commandName == null || !commandName.Equals("New-Object", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
 
-            string typeName = null;
+            string? typeName = null;
             var positionalArgs = new List<CommandElementAst>();
-            ExpressionAst argumentListValue = null;
+            ExpressionAst? argumentListValue = null;
 
             for (int i = 1; i < cmdAst.CommandElements.Count; i++)
             {
@@ -78,7 +76,7 @@ namespace PSpecter.Builtin.Rules
                         && cmdAst.CommandElements[i + 1] is ExpressionAst)
                     {
                         var typeExpr = cmdAst.CommandElements[i + 1] as StringConstantExpressionAst;
-                        if (typeExpr != null)
+                        if (typeExpr is not null)
                         {
                             typeName = typeExpr.Value;
                         }
@@ -126,7 +124,7 @@ namespace PSpecter.Builtin.Rules
             return CreateDiagnosticWithCorrection(cmdAst);
         }
 
-        private ScriptDiagnostic AnalyzeStaticNewCall(InvokeMemberExpressionAst invokeAst)
+        private ScriptDiagnostic? AnalyzeStaticNewCall(InvokeMemberExpressionAst invokeAst)
         {
             if (!(invokeAst.Expression is TypeExpressionAst typeExpr)
                 || !s_hashtableTypeNames.Contains(typeExpr.TypeName.FullName))

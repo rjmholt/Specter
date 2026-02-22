@@ -34,7 +34,7 @@ function Test-Function {
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("AvoidNullOrEmptyHelpMessageAttribute", violation.Rule.Name);
+            Assert.Equal("AvoidNullOrEmptyHelpMessageAttribute", violation.Rule!.Name);
         }
 
         [Fact]

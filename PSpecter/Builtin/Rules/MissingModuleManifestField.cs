@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,14 +26,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            if (fileName is null || !AstExtensions.IsModuleManifest(fileName))
+            if (scriptPath is null || !AstExtensions.IsModuleManifest(scriptPath))
             {
                 yield break;
             }
@@ -43,7 +41,7 @@ namespace PSpecter.Builtin.Rules
             HashtableAst hashtable = ast
                 .FindAll(node => node is HashtableAst, searchNestedScriptBlocks: false)
                 .OfType<HashtableAst>()
-                .FirstOrDefault();
+                .FirstOrDefault()!;
 
             if (hashtable is null)
             {
@@ -81,7 +79,7 @@ namespace PSpecter.Builtin.Rules
                 yield return CreateDiagnostic(
                     message,
                     hashtable,
-                    correction is not null ? new[] { correction } : null);
+                    correction is not null ? new[] { correction } : (IReadOnlyList<Correction>?)null);
             }
         }
 
@@ -99,7 +97,7 @@ namespace PSpecter.Builtin.Rules
             int insertColumn = hashtable.Extent.StartColumnNumber + hashtable.Extent.Text.IndexOf('{') + 1;
 
             var insertPosition = new ScriptPosition(
-                hashtable.Extent.File,
+                hashtable.Extent.File!,
                 startLineNumber: insertLine,
                 startColumnNumber: insertColumn);
 
@@ -150,7 +148,7 @@ namespace PSpecter.Builtin.Rules
             public int Offset => 0;
             public string Line => string.Empty;
 
-            public string GetFullScript() => null;
+            public string GetFullScript() => string.Empty;
         }
 
         internal readonly struct ScriptExtent : IScriptExtent
@@ -164,7 +162,7 @@ namespace PSpecter.Builtin.Rules
                 _end = end;
             }
 
-            public string File => _start.File;
+            public string File => _start.File ?? string.Empty;
             public IScriptPosition StartScriptPosition => _start;
             public IScriptPosition EndScriptPosition => _end;
             public int StartLineNumber => _start.LineNumber;

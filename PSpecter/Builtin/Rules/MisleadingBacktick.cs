@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -20,7 +18,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -48,8 +46,8 @@ namespace PSpecter.Builtin.Rules
 
                 var extent = new ScriptExtent(
                     whitespaceText,
-                    new ScriptPosition(null, fileName, line, 0, lineNumber, startColumn),
-                    new ScriptPosition(null, fileName, line, 0, lineNumber, endColumn));
+                    new ScriptPosition(string.Empty, scriptPath, line, 0, lineNumber, startColumn),
+                    new ScriptPosition(string.Empty, scriptPath, line, 0, lineNumber, endColumn));
 
                 var correction = new Correction(extent, string.Empty, Strings.MisleadingBacktickError);
 

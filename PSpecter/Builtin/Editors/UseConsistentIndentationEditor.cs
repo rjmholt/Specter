@@ -38,7 +38,7 @@ namespace PSpecter.Builtin.Editors
             string scriptContent,
             Ast ast,
             IReadOnlyList<Token> tokens,
-            string filePath)
+            string? filePath)
         {
             if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 

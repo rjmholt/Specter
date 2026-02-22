@@ -21,7 +21,7 @@ namespace PSpecter.Builtin.Rules
             _commandDb = commandDb;
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -43,9 +43,9 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string message = string.IsNullOrWhiteSpace(fileName)
+                string message = string.IsNullOrWhiteSpace(scriptPath)
                     ? Strings.AvoidUsingConvertToSecureStringWithPlainTextErrorScriptDefinition
-                    : string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingConvertToSecureStringWithPlainTextError, System.IO.Path.GetFileName(fileName));
+                    : string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingConvertToSecureStringWithPlainTextError, System.IO.Path.GetFileName(scriptPath));
 
                 yield return CreateDiagnostic(message, cmdAst.Extent);
             }

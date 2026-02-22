@@ -9,12 +9,12 @@ namespace PSpecter.CommandDatabase
         public CommandMetadata(
             string name,
             string commandType,
-            string moduleName,
-            string defaultParameterSet,
-            IReadOnlyList<string> parameterSetNames,
-            IReadOnlyList<string> aliases,
-            IReadOnlyList<ParameterMetadata> parameters,
-            IReadOnlyList<string> outputTypes)
+            string? moduleName,
+            string? defaultParameterSet,
+            IReadOnlyList<string>? parameterSetNames,
+            IReadOnlyList<string>? aliases,
+            IReadOnlyList<ParameterMetadata>? parameters,
+            IReadOnlyList<string>? outputTypes)
         {
             Name = name;
             CommandType = commandType;
@@ -28,8 +28,8 @@ namespace PSpecter.CommandDatabase
 
         public string Name { get; }
         public string CommandType { get; }
-        public string ModuleName { get; }
-        public string DefaultParameterSet { get; }
+        public string? ModuleName { get; }
+        public string? DefaultParameterSet { get; }
         public IReadOnlyList<string> ParameterSetNames { get; }
         public IReadOnlyList<string> Aliases => _aliases;
         public IReadOnlyList<ParameterMetadata> Parameters { get; }
@@ -42,7 +42,7 @@ namespace PSpecter.CommandDatabase
     {
         public ParameterMetadata(
             string name,
-            string type,
+            string? type,
             bool isDynamic,
             IReadOnlyList<ParameterSetInfo> parameterSets)
         {
@@ -53,7 +53,7 @@ namespace PSpecter.CommandDatabase
         }
 
         public string Name { get; }
-        public string Type { get; }
+        public string? Type { get; }
         public bool IsDynamic { get; }
         public IReadOnlyList<ParameterSetInfo> ParameterSets { get; }
     }

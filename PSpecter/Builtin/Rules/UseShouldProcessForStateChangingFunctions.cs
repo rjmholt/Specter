@@ -34,9 +34,9 @@ namespace PSpecter.Builtin.Rules
         /// AnalyzeScript: Analyzes the ast to check if ShouldProcess is included in Advanced functions if the Verb of the function could change system state.
         /// </summary>
         /// <param name="ast">The script's ast</param>
-        /// <param name="fileName">The script's file name</param>
+        /// <param name="scriptPath">The script's file path</param>
         /// <returns>A List of diagnostic results of this rule</returns>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             IEnumerable<Ast> funcDefWithNoShouldProcessAttrAsts = ast.FindAll(IsStateChangingFunctionWithNoShouldProcessAttribute, true);            
 
@@ -45,7 +45,7 @@ namespace PSpecter.Builtin.Rules
                 yield return new ScriptDiagnostic(
                     RuleInfo,
                     string.Format(CultureInfo.CurrentCulture, Strings.UseShouldProcessForStateChangingFunctionsError, funcDefAst.Name),
-                    funcDefAst.GetFunctionNameExtent(tokens),
+                    funcDefAst.GetFunctionNameExtent(tokens) ?? funcDefAst.Extent,
                     DiagnosticSeverity.Warning);
             }
                             
@@ -77,7 +77,8 @@ namespace PSpecter.Builtin.Rules
         /// <returns>Returns true or false</returns>
         private bool HasShouldProcessTrue(IEnumerable<AttributeAst> attributeAsts)
         {
-            return AstTools.TryGetShouldProcessAttributeArgumentAst(attributeAsts, out NamedAttributeArgumentAst shouldProcessArgument)
+            return AstTools.TryGetShouldProcessAttributeArgumentAst(attributeAsts, out NamedAttributeArgumentAst? shouldProcessArgument)
+                && shouldProcessArgument is not null
                 && AstTools.IsTrue(shouldProcessArgument.GetValue());
         }
 

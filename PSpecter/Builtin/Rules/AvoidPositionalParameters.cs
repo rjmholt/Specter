@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -35,7 +33,7 @@ namespace PSpecter.Builtin.Rules
             _commandDb = commandDb;
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -131,7 +129,7 @@ namespace PSpecter.Builtin.Rules
             }
 
             var parent = cmdAst.Parent as PipelineAst;
-            if (parent != null && parent.PipelineElements.Count > 1 && parent.PipelineElements[0] != cmdAst)
+            if (parent is not null && parent.PipelineElements.Count > 1 && parent.PipelineElements[0] != cmdAst)
             {
                 positionalCount++;
             }

@@ -1,6 +1,4 @@
-#nullable disable
-
-﻿using PSpecter.Tools;
+using PSpecter.Tools;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -52,6 +50,16 @@ namespace PSpecter.Configuration.Psd
             BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
             RulePaths = rulePaths;
+            var ruleConfigDict = new Dictionary<string, IRuleConfiguration>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in ruleConfigurations)
+            {
+                var ruleConfig = psdConverter.Convert<IReadOnlyDictionary<string, ExpressionAst>>(kvp.Value);
+                var common = ruleConfig.TryGetValue(ConfigurationKeys.CommonConfiguration, out var commonAst)
+                    ? psdConverter.Convert<CommonConfiguration>(commonAst)
+                    : CommonConfiguration.Default;
+                ruleConfigDict[kvp.Key] = new PsdRuleConfiguration(psdConverter, common, kvp.Value);
+            }
+            RuleConfiguration = ruleConfigDict;
         }
 
         public BuiltinRulePreference? BuiltinRules { get; }
@@ -76,11 +84,11 @@ namespace PSpecter.Configuration.Psd
             _psdConverter = psdConverter;
         }
 
-        public override bool TryConvertObject(Type type, HashtableAst configuration, out IRuleConfiguration result)
+        public override bool TryConvertObject(Type type, HashtableAst configuration, out IRuleConfiguration? result)
         {
             try
             {
-                result = (IRuleConfiguration)_psdConverter.Convert(type, configuration);
+                result = (IRuleConfiguration?)_psdConverter.Convert(type, configuration);
                 return true;
             }
             catch

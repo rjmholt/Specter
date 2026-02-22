@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -47,14 +45,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            var visitor = new NewRunspaceVisitor(this, fileName);
+            var visitor = new NewRunspaceVisitor(this, scriptPath);
             ast.Visit(visitor);
             return visitor.GetDiagnostics();
         }
@@ -66,11 +64,11 @@ namespace PSpecter.Builtin.Rules
 #endif
         {
             private readonly UseUsingScopeModifierInNewRunspaces _rule;
-            private readonly string _filePath;
+            private readonly string? _filePath;
             private readonly List<ScriptDiagnostic> _diagnostics = new List<ScriptDiagnostic>();
             private readonly Dictionary<string, HashSet<string>> _varsDeclaredPerSession = new Dictionary<string, HashSet<string>>();
 
-            public NewRunspaceVisitor(UseUsingScopeModifierInNewRunspaces rule, string filePath)
+            public NewRunspaceVisitor(UseUsingScopeModifierInNewRunspaces rule, string? filePath)
             {
                 _rule = rule;
                 _filePath = filePath;
@@ -85,14 +83,14 @@ namespace PSpecter.Builtin.Rules
                     return AstVisitAction.Continue;
                 }
 
-                string cmdName = commandAst.GetCommandName();
-                if (cmdName == null)
+                string? cmdName = commandAst.GetCommandName();
+                if (cmdName is null)
                 {
                     return AstVisitAction.SkipChildren;
                 }
 
                 int scriptBlockIndex = commandAst.CommandElements.IndexOf(scriptBlockExpressionAst);
-                CommandParameterAst scriptBlockParameterAst = scriptBlockIndex > 0
+                CommandParameterAst? scriptBlockParameterAst = scriptBlockIndex > 0
                     ? commandAst.CommandElements[scriptBlockIndex - 1] as CommandParameterAst
                     : null;
 
@@ -108,15 +106,15 @@ namespace PSpecter.Builtin.Rules
 
                 if (IsInvokeCommandSessionScriptBlock(cmdName, commandAst))
                 {
-                    if (!TryGetSessionName(commandAst, out string sessionName))
+                    if (!TryGetSessionName(commandAst, out string? sessionName))
                     {
                         return AstVisitAction.Continue;
                     }
 
                     IReadOnlyCollection<string> assignedVars = FindAssignedVars(scriptBlockExpressionAst);
-                    AddAssignedVarsToSession(sessionName, assignedVars);
+                    AddAssignedVarsToSession(sessionName!, assignedVars);
 
-                    foreach (VariableExpressionAst varAst in FindNonUsingNonAssignedVars(scriptBlockExpressionAst, GetSessionVars(sessionName)))
+                    foreach (VariableExpressionAst varAst in FindNonUsingNonAssignedVars(scriptBlockExpressionAst, GetSessionVars(sessionName!)))
                     {
                         _diagnostics.Add(CreateDiagnosticForVar(varAst));
                     }
@@ -163,7 +161,7 @@ namespace PSpecter.Builtin.Rules
                 foreach (Ast node in ast.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: true))
                 {
                     var assignment = (AssignmentStatementAst)node;
-                    if (TryGetVariableFromExpression(assignment.Left, out VariableExpressionAst variable))
+                    if (TryGetVariableFromExpression(assignment.Left, out VariableExpressionAst? variable) && variable is not null)
                     {
                         result.Add(variable.VariablePath.UserPath);
                     }
@@ -172,7 +170,7 @@ namespace PSpecter.Builtin.Rules
                 return result;
             }
 
-            private static bool TryGetVariableFromExpression(ExpressionAst expression, out VariableExpressionAst variableAst)
+            private static bool TryGetVariableFromExpression(ExpressionAst expression, out VariableExpressionAst? variableAst)
             {
                 switch (expression)
                 {
@@ -219,7 +217,7 @@ namespace PSpecter.Builtin.Rules
 
             private IReadOnlyCollection<string> GetSessionVars(string sessionName)
             {
-                if (_varsDeclaredPerSession.TryGetValue(sessionName, out HashSet<string> vars))
+                if (_varsDeclaredPerSession.TryGetValue(sessionName, out HashSet<string>? vars) && vars is not null)
                 {
                     return vars;
                 }
@@ -229,7 +227,7 @@ namespace PSpecter.Builtin.Rules
 
             private void AddAssignedVarsToSession(string sessionName, IReadOnlyCollection<string> vars)
             {
-                if (!_varsDeclaredPerSession.TryGetValue(sessionName, out HashSet<string> existingVars))
+                if (!_varsDeclaredPerSession.TryGetValue(sessionName, out HashSet<string>? existingVars))
                 {
                     existingVars = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     _varsDeclaredPerSession[sessionName] = existingVars;
@@ -241,7 +239,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            private static bool TryGetSessionName(CommandAst commandAst, out string sessionName)
+            private static bool TryGetSessionName(CommandAst commandAst, out string? sessionName)
             {
                 for (int i = 1; i < commandAst.CommandElements.Count; i++)
                 {
@@ -276,7 +274,7 @@ namespace PSpecter.Builtin.Rules
             private static bool IsInlineScriptBlock(string cmdName)
                 => s_inlineScriptCmdletNames.Contains(cmdName);
 
-            private static bool IsJobScriptBlock(string cmdName, CommandParameterAst scriptBlockParamAst)
+            private static bool IsJobScriptBlock(string cmdName, CommandParameterAst? scriptBlockParamAst)
             {
                 if (!s_jobCmdletNames.Contains(cmdName) && !s_threadJobCmdletNames.Contains(cmdName))
                 {
@@ -292,7 +290,7 @@ namespace PSpecter.Builtin.Rules
                 return true;
             }
 
-            private static bool IsForeachParallelScriptBlock(string cmdName, CommandParameterAst scriptBlockParamAst)
+            private static bool IsForeachParallelScriptBlock(string cmdName, CommandParameterAst? scriptBlockParamAst)
             {
                 return s_foreachObjectCmdletNames.Contains(cmdName)
                     && scriptBlockParamAst != null

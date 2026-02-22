@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -24,7 +22,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             foreach (ScriptDiagnostic diag in AnalyzeResourceFunctions(ast))
             {
@@ -55,7 +53,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                             output.Extent);
                     }
                 }
-                else if (s_resourceFunctionExpectedTypes.TryGetValue(func.Name, out string expectedType))
+                else if (s_resourceFunctionExpectedTypes.TryGetValue(func.Name, out string? expectedType))
                 {
                     foreach (OutputInfo output in outputs)
                     {
@@ -90,7 +88,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                         continue;
                     }
 
-                    string methodName = null;
+                    string? methodName = null;
                     foreach (string name in DscResourceHelper.ClassResourceMethodNames)
                     {
                         if (method.Name.Equals(name, StringComparison.OrdinalIgnoreCase))

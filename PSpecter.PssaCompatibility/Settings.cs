@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,7 +19,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
     {
         public bool RecurseCustomRulePath { get; private set; }
         public bool IncludeDefaultRules { get; private set; }
-        public string FilePath { get; private set; }
+        public string? FilePath { get; private set; }
         public IEnumerable<string> IncludeRules { get; private set; }
         public IEnumerable<string> ExcludeRules { get; private set; }
         public IEnumerable<string> Severities { get; private set; }
@@ -32,7 +30,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         {
         }
 
-        public Settings(object settings, Func<string, string> presetResolver)
+        public Settings(object settings, Func<string, string?>? presetResolver)
         {
             if (settings == null)
             {
@@ -82,7 +80,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             }
         }
 
-        internal static SettingsMode FindSettingsMode(object settings, string path, out object settingsFound)
+        internal static SettingsMode FindSettingsMode(object? settings, string? path, out object? settingsFound)
         {
             var settingsMode = SettingsMode.None;
 
@@ -102,7 +100,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                         directory = Path.GetDirectoryName(directory);
                     }
 
-                    if (Directory.Exists(directory))
+                    if (directory is not null && Directory.Exists(directory))
                     {
                         var settingsFilePath = Path.Combine(directory, "PSScriptAnalyzerSettings.psd1");
                         settingsFound = settingsFilePath;
@@ -115,7 +113,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             }
             else
             {
-                if (settingsFound is string settingsString)
+                if (settingsFound is string)
                 {
                     settingsMode = SettingsMode.File;
                 }
@@ -133,7 +131,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             foreach (var obj in hashtable.Keys)
             {
-                string key = obj as string;
+                string? key = obj as string;
                 if (key == null)
                 {
                     throw new InvalidDataException(
@@ -145,7 +143,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                 {
                     dictionary.Add(key, GetDictionaryFromHashtable(valueHashtable));
                 }
-                else
+                else if (valueObj is not null)
                 {
                     dictionary.Add(key, valueObj);
                 }
@@ -153,7 +151,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             return dictionary;
         }
 
-        private List<string> GetData(object val, string key)
+        private List<string> GetData(object? val, string key)
         {
             if (val == null)
             {
@@ -168,7 +166,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             }
             else
             {
-                var valueArr = val as object[] ?? val as string[];
+                var valueArr = val as object[] ?? (Array?)val as string[];
                 if (valueArr != null)
                 {
                     foreach (var item in valueArr)
@@ -194,7 +192,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             return values;
         }
 
-        private Dictionary<string, Dictionary<string, object>> ConvertToRuleArgumentType(object ruleArguments)
+        private Dictionary<string, Dictionary<string, object>> ConvertToRuleArgumentType(object? ruleArguments)
         {
             var ruleArgs = ruleArguments as Dictionary<string, object>;
             if (ruleArgs == null)
@@ -285,9 +283,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
 
         private void ParseSettingsFile(string settingsFilePath)
         {
-            Token[] parserTokens = null;
-            ParseError[] parserErrors = null;
-            Ast profileAst = Parser.ParseFile(settingsFilePath, out parserTokens, out parserErrors);
+            Ast profileAst = Parser.ParseFile(settingsFilePath, out _, out _);
             IEnumerable<Ast> hashTableAsts = profileAst.FindAll(item => item is HashtableAst, false);
 
             if (!hashTableAsts.Any())
@@ -296,8 +292,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
                     string.Format(CultureInfo.CurrentCulture, "Invalid settings file: {0}", settingsFilePath));
             }
 
-            HashtableAst hashTableAst = hashTableAsts.First() as HashtableAst;
-            Hashtable hashtable;
+            HashtableAst hashTableAst = (HashtableAst)hashTableAsts.First();
+            Hashtable? hashtable;
             try
             {
                 hashtable = Helper.GetSafeValueFromHashtableAst(hashTableAst);

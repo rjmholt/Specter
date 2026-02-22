@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -19,14 +17,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            if (string.IsNullOrWhiteSpace(scriptPath) || !File.Exists(scriptPath))
             {
                 yield break;
             }
 
-            byte[] byteStream = File.ReadAllBytes(fileName);
+            byte[] byteStream = File.ReadAllBytes(scriptPath);
 
             if (DetectBom(byteStream) != null)
             {
@@ -49,12 +47,12 @@ namespace PSpecter.Builtin.Rules
                     string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.UseBOMForUnicodeEncodedFileError,
-                        Path.GetFileName(fileName)),
+                        Path.GetFileName(scriptPath)),
                     ast.Extent);
             }
         }
 
-        private static string DetectBom(byte[] bytes)
+        private static string? DetectBom(byte[] bytes)
         {
             if (bytes.Length >= 4 && bytes[0] == 0x00 && bytes[1] == 0x00 && bytes[2] == 0xFE && bytes[3] == 0xFF)
             {

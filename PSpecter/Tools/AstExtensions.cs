@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation;
@@ -11,21 +9,21 @@ namespace PSpecter.Tools
     {
         private static readonly string[] s_scopePrefixes = { "Global:", "Local:", "Script:", "Private:" };
 
-        public static IScriptExtent GetFunctionNameExtent(this FunctionDefinitionAst functionDefinitionAst, IReadOnlyList<Token> tokens)
+        public static IScriptExtent? GetFunctionNameExtent(this FunctionDefinitionAst functionDefinitionAst, IReadOnlyList<Token> tokens)
         {
             foreach (Token token in tokens)
             {
                 if (functionDefinitionAst.Extent.Contains(token.Extent)
                     && token.Text.Equals(functionDefinitionAst.Name))
                 {
-                    return token.Extent;
+                    return token.Extent!;
                 }
             }
 
             return null;
         }
 
-        public static object GetValue(this NamedAttributeArgumentAst namedAttributeArgumentAst)
+        public static object? GetValue(this NamedAttributeArgumentAst namedAttributeArgumentAst)
         {
             if (namedAttributeArgumentAst.ExpressionOmitted)
             {
@@ -55,7 +53,7 @@ namespace PSpecter.Tools
         /// <summary>
         /// Strips the scope prefix (Global:, Local:, Script:, Private:) from a function name.
         /// </summary>
-        public static string GetNameWithoutScope(this FunctionDefinitionAst functionDefinitionAst)
+        public static string? GetNameWithoutScope(this FunctionDefinitionAst functionDefinitionAst)
         {
             return StripScopePrefix(functionDefinitionAst.Name);
         }
@@ -63,7 +61,7 @@ namespace PSpecter.Tools
         /// <summary>
         /// Returns true if the <see cref="ParamBlockAst"/> has a <see cref="CmdletBindingAttribute"/>.
         /// </summary>
-        public static bool HasCmdletBinding(this ParamBlockAst paramBlock)
+        public static bool HasCmdletBinding(this ParamBlockAst? paramBlock)
         {
             return paramBlock?.Attributes != null
                 && AstTools.TryGetCmdletBindingAttributeAst(paramBlock.Attributes, out _);
@@ -72,7 +70,7 @@ namespace PSpecter.Tools
         /// <summary>
         /// Returns true if the file path refers to a PowerShell module script (.psm1).
         /// </summary>
-        public static bool IsModuleScript(string filePath)
+        public static bool IsModuleScript(string? filePath)
         {
             return !string.IsNullOrEmpty(filePath)
                 && filePath.EndsWith(".psm1", StringComparison.OrdinalIgnoreCase);
@@ -81,13 +79,13 @@ namespace PSpecter.Tools
         /// <summary>
         /// Returns true if the file path refers to a PowerShell module manifest (.psd1).
         /// </summary>
-        public static bool IsModuleManifest(string filePath)
+        public static bool IsModuleManifest(string? filePath)
         {
             return !string.IsNullOrEmpty(filePath)
                 && filePath.EndsWith(".psd1", StringComparison.OrdinalIgnoreCase);
         }
 
-        internal static string StripScopePrefix(string name)
+        internal static string? StripScopePrefix(string? name)
         {
             if (name == null)
             {
@@ -110,7 +108,7 @@ namespace PSpecter.Tools
         /// Returns null if no Export-ModuleMember calls are found (meaning no explicit export restriction).
         /// Returns an empty set if Export-ModuleMember is called but no functions are exported.
         /// </summary>
-        public static HashSet<string> GetExportedFunctionNames(Ast ast)
+        public static HashSet<string>? GetExportedFunctionNames(Ast? ast)
         {
             if (ast == null)
             {
@@ -122,7 +120,7 @@ namespace PSpecter.Tools
                     && string.Equals(cmdAst.GetCommandName(), "Export-ModuleMember", StringComparison.OrdinalIgnoreCase),
                 searchNestedScriptBlocks: true);
 
-            HashSet<string> exportedNames = null;
+            HashSet<string>? exportedNames = null;
 
             foreach (CommandAst cmdAst in commandAsts)
             {

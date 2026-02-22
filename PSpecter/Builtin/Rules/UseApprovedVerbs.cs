@@ -20,7 +20,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -35,7 +35,7 @@ namespace PSpecter.Builtin.Rules
 
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {
-                string funcName = funcAst.GetNameWithoutScope();
+                string? funcName = funcAst.GetNameWithoutScope();
                 if (funcName == null || !funcName.Contains("-"))
                 {
                     continue;

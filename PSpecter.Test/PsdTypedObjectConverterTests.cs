@@ -1,6 +1,4 @@
-#nullable disable
 
-﻿
 using PSpecter.Configuration.Psd;
 using Newtonsoft.Json;
 using System;
@@ -156,9 +154,9 @@ namespace PSpecter.Test
             var obj = _converter.Convert<CompositeObject>("@{ Name = 'Thing'; Simple = @{ Field = 'Moo' }; SubObject = @{ Count = 3; FullName = 'X' } }");
 
             Assert.Equal("Thing", obj.Name);
-            Assert.Equal("Moo", obj.Simple.Field);
-            Assert.Equal(3, obj.SubObject.Count);
-            Assert.Equal("X", obj.SubObject.Name);
+            Assert.Equal("Moo", obj.Simple!.Field);
+            Assert.Equal(3, obj.SubObject!.Count);
+            Assert.Equal("X", obj.SubObject!.Name);
         }
 
         [Fact]
@@ -167,9 +165,9 @@ namespace PSpecter.Test
             var obj = _converter.Convert<InjectedCompositeObject>("@{ Name = 'Thing'; Simple = @{ Field = 'Moo' }; SubObject = @{ Count = 3; FullName = 'X' } }");
 
             Assert.Equal("Thing", obj.Name);
-            Assert.Equal("Moo", obj.Simple.Field);
-            Assert.Equal(3, obj.SubObject.Count);
-            Assert.Equal("X", obj.SubObject.Name);
+            Assert.Equal("Moo", obj.Simple!.Field);
+            Assert.Equal(3, obj.SubObject!.Count);
+            Assert.Equal("X", obj.SubObject!.Name);
         }
 
         [Fact]
@@ -177,8 +175,8 @@ namespace PSpecter.Test
         {
             var obj = _converter.Convert<Dictionary<string, SimpleFieldObject>>("@{ '1' = @{ Field = 'x' }; '2' = @{ Field = 'y' } }");
 
-            Assert.Equal("x", obj["1"].Field);
-            Assert.Equal("y", obj["2"].Field);
+            Assert.Equal("x", obj["1"]!.Field);
+            Assert.Equal("y", obj["2"]!.Field);
         }
 
         [Fact]
@@ -186,8 +184,8 @@ namespace PSpecter.Test
         {
             var obj = _converter.Convert<IDictionary<string, SimpleFieldObject>>("@{ '1' = @{ Field = 'x' }; '2' = @{ Field = 'y' } }");
 
-            Assert.Equal("x", obj["1"].Field);
-            Assert.Equal("y", obj["2"].Field);
+            Assert.Equal("x", obj["1"]!.Field);
+            Assert.Equal("y", obj["2"]!.Field);
         }
 
         [Fact]
@@ -195,8 +193,8 @@ namespace PSpecter.Test
         {
             var obj = _converter.Convert<IReadOnlyDictionary<string, SimpleFieldObject>>("@{ '1' = @{ Field = 'x' }; '2' = @{ Field = 'y' } }");
 
-            Assert.Equal("x", obj["1"].Field);
-            Assert.Equal("y", obj["2"].Field);
+            Assert.Equal("x", obj["1"]!.Field);
+            Assert.Equal("y", obj["2"]!.Field);
         }
 
         [Fact]
@@ -204,7 +202,7 @@ namespace PSpecter.Test
         {
             var obj = _converter.Convert<Hashtable>("@{ 1 = @{ X = 'x' }; 'hi there' = 2 }");
 
-            Assert.Equal("x", ((Hashtable)obj[1])["X"]);
+            Assert.Equal("x", ((Hashtable)obj[1]!)["X"]);
             Assert.Equal(2, obj["hi there"]);
         }
 
@@ -298,7 +296,7 @@ namespace PSpecter.Test
         public void TestConversionToObject_Array()
         {
             var obj = _converter.Convert<object>("1, $true, 'x'");
-            Assert.Equal(new object[] { 1, true, "x" }, (object[])obj);
+            Assert.Equal(new object[] { 1, true, "x" }, (object[])obj!);
         }
 
         [Fact]
@@ -308,12 +306,12 @@ namespace PSpecter.Test
 
             Assert.IsType<Hashtable>(obj);
 
-            var hashtable = (Hashtable)obj;
+            var hashtable = (Hashtable)obj!;
 
             Assert.Equal(new object[] { "a", 5 }, hashtable[1]);
-            Assert.IsType<Hashtable>(hashtable["b"]);
+            Assert.IsType<Hashtable>(hashtable["b"]!);
 
-            var subtable = (Hashtable)hashtable["b"];
+            var subtable = (Hashtable)hashtable["b"]!;
 
             Assert.Equal(false, subtable["t"]);
         }
@@ -322,24 +320,24 @@ namespace PSpecter.Test
         public void TestPartialInstantiation()
         {
             var obj = _converter.Convert<HashtableAst>("@{ x = 1; y = 2 }");
-            Assert.Equal(1, ((ConstantExpressionAst)GetExpressionAstFromStatementAst(obj.KeyValuePairs[0].Item2)).Value);
-            Assert.Equal(2, ((ConstantExpressionAst)GetExpressionAstFromStatementAst(obj.KeyValuePairs[1].Item2)).Value);
+            Assert.Equal(1, ((ConstantExpressionAst)GetExpressionAstFromStatementAst(obj!.KeyValuePairs[0].Item2)).Value);
+            Assert.Equal(2, ((ConstantExpressionAst)GetExpressionAstFromStatementAst(obj!.KeyValuePairs[1].Item2)).Value);
         }
 
         [Fact]
         public void TestPartialInstantiation_ReadOnlyDict()
         {
             var obj = _converter.Convert<IReadOnlyDictionary<string, ExpressionAst>>("@{ x = 1; y = 2 }");
-            Assert.Equal(1, ((ConstantExpressionAst)obj["x"]).Value);
-            Assert.Equal(2, ((ConstantExpressionAst)obj["y"]).Value);
+            Assert.Equal(1, ((ConstantExpressionAst)obj["x"]!).Value);
+            Assert.Equal(2, ((ConstantExpressionAst)obj["y"]!).Value);
         }
 
         [Fact]
         public void TestPartialInstantiation_ReadOnlyHashtableDict()
         {
             var obj = _converter.Convert<IReadOnlyDictionary<string, HashtableAst>>("@{ x = @{ m = 'hi' }; y = @{ m = 'bye' } }");
-            var x = _converter.Convert<IReadOnlyDictionary<string, string>>(obj["x"]);
-            var y = _converter.Convert<IReadOnlyDictionary<string, string>>(obj["y"]);
+            var x = _converter.Convert<IReadOnlyDictionary<string, string>>(obj["x"]!);
+            var y = _converter.Convert<IReadOnlyDictionary<string, string>>(obj["y"]!);
             Assert.Equal("hi", x["m"]);
             Assert.Equal("bye", y["m"]);
         }
@@ -348,9 +346,9 @@ namespace PSpecter.Test
         public void TestPartialInstantiation_IEnumerable()
         {
             var obj = _converter.Convert<IReadOnlyList<ExpressionAst>>("1, 'hi', $true");
-            var one = _converter.Convert<int>(obj[0]);
-            var two = _converter.Convert<string>(obj[1]);
-            var three = _converter.Convert<bool>(obj[2]);
+            var one = _converter.Convert<int>(obj[0]!);
+            var two = _converter.Convert<string>(obj[1]!);
+            var three = _converter.Convert<bool>(obj[2]!);
             Assert.Equal(1, one);
             Assert.Equal("hi", two);
             Assert.True(three);
@@ -403,12 +401,12 @@ namespace PSpecter.Test
 
     public class SimpleFieldObject
     {
-        public string Field;
+        public string Field = null!;
     }
 
     public class SimplePropertyObject
     {
-        public string Property { get; set; }
+        public string Property { get; set; } = null!;
     }
 
     public class SimpleReadOnlyFieldObject
@@ -477,12 +475,12 @@ namespace PSpecter.Test
     public class DataContractObject
     {
         [DataMember]
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = null!;
 
         [DataMember(Name = "FamilyName")]
-        public string LastName { get; set; }
+        public string LastName { get; set; } = null!;
 
-        public string MiddleName { get; set; }
+        public string? MiddleName { get; set; }
     }
 
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
@@ -500,7 +498,7 @@ namespace PSpecter.Test
         [JsonProperty(PropertyName = "FullName")]
         public string Name { get; }
 
-        public string ShortName { get; set; }
+        public string ShortName { get; set; } = null!;
     }
 
     [JsonObject(MemberSerialization = MemberSerialization.OptOut)]
@@ -518,19 +516,19 @@ namespace PSpecter.Test
         [JsonProperty(PropertyName = "FullName")]
         public string Name { get; }
 
-        public string ShortName { get; set; }
+        public string ShortName { get; set; } = null!;
 
         [JsonIgnore]
-        public string Sign { get; set; }
+        public string Sign { get; set; } = null!;
     }
 
     public class CompositeObject
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
-        public SimpleFieldObject Simple { get; set; }
+        public SimpleFieldObject Simple { get; set; } = null!;
 
-        public JsonObject SubObject { get; set; }
+        public JsonObject SubObject { get; set; } = null!;
     }
 
 

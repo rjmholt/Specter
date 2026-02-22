@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,10 +22,10 @@ namespace PSpecter.Builtin.Rules.Dsc
     internal readonly struct MofClass
     {
         public readonly string Name;
-        public readonly string SuperClassName;
+        public readonly string? SuperClassName;
         public readonly IReadOnlyList<MofProperty> Properties;
 
-        public MofClass(string name, string superClassName, IReadOnlyList<MofProperty> properties)
+        public MofClass(string name, string? superClassName, IReadOnlyList<MofProperty> properties)
         {
             Name = name;
             SuperClassName = superClassName;
@@ -54,7 +52,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             foreach (Match classMatch in s_classRegex.Matches(mofContent))
             {
                 string className = classMatch.Groups[1].Value;
-                string superClassName = classMatch.Groups[2].Success ? classMatch.Groups[2].Value : null;
+                string? superClassName = classMatch.Groups[2].Success ? classMatch.Groups[2].Value : null;
                 string body = classMatch.Groups[3].Value;
 
                 var properties = new List<MofProperty>();

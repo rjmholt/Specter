@@ -29,7 +29,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingConvertToSecureStringWithPlainText", violation.Rule.Name);
+            Assert.Equal("AvoidUsingConvertToSecureStringWithPlainText", violation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Error, violation.Severity);
         }
 

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +28,7 @@ namespace PSpecter.Builtin.Editors
             string scriptContent,
             Ast ast,
             IReadOnlyList<Token> tokens,
-            string filePath)
+            string? filePath)
         {
             if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
@@ -67,8 +65,8 @@ namespace PSpecter.Builtin.Editors
                 ExpressionAst key = pair.Item1;
                 StatementAst value = pair.Item2;
 
-                Token equalsToken = FindEqualsToken(tokens, key.Extent.EndOffset, value.Extent.StartOffset);
-                if (equalsToken == null)
+                Token? equalsToken = FindEqualsToken(tokens, key.Extent.EndOffset, value.Extent.StartOffset);
+                if (equalsToken is null)
                 {
                     continue;
                 }
@@ -114,7 +112,7 @@ namespace PSpecter.Builtin.Editors
             }
         }
 
-        private static Token FindEqualsToken(IReadOnlyList<Token> tokens, int afterOffset, int beforeOffset)
+        private static Token? FindEqualsToken(IReadOnlyList<Token> tokens, int afterOffset, int beforeOffset)
         {
             for (int i = 0; i < tokens.Count; i++)
             {

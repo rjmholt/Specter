@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.Management.Automation;
 using PSpecter.Builder;
 using PSpecter.CommandDatabase;

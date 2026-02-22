@@ -29,7 +29,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("PossibleIncorrectComparisonWithNull", violation.Rule.Name);
+            Assert.Equal("PossibleIncorrectComparisonWithNull", violation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
         }
 
@@ -82,8 +82,8 @@ namespace PSpecter.Test.Rules
 
             ScriptDiagnostic violation = Assert.Single(violations);
             Assert.NotNull(violation.Corrections);
-            Assert.Single(violation.Corrections);
-            Assert.Contains("$null -eq $x", violation.Corrections[0].CorrectionText);
+            Assert.Single(violation.Corrections!);
+            Assert.Contains("$null -eq $x", violation.Corrections![0].CorrectionText);
         }
 
         [Fact]

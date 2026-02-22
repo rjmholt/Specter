@@ -19,14 +19,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            if (!AstExtensions.IsModuleScript(fileName))
+            if (!AstExtensions.IsModuleScript(scriptPath))
             {
                 yield break;
             }

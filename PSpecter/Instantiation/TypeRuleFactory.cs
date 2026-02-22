@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builder;
 using PSpecter.Configuration;
 using PSpecter.Rules;
@@ -37,7 +35,7 @@ namespace PSpecter.Instantiation
 
         private readonly ConstructorInfo _ctorInfo;
 
-        private readonly IRuleConfiguration _ruleConfiguration;
+        private readonly IRuleConfiguration? _ruleConfiguration;
 
         private readonly Lazy<Func<TRule>> _factoryDelegateLazy;
 
@@ -55,7 +53,7 @@ namespace PSpecter.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration,
+            IRuleConfiguration? ruleConfiguration,
             bool isEnabled = true)
             : base(ruleInfo, isEnabled)
         {
@@ -105,11 +103,11 @@ namespace PSpecter.Instantiation
                 if (typeof(IRuleConfiguration).IsAssignableFrom(ctorParameter.ParameterType)
                     && _ruleConfiguration is null)
                 {
-                    ctorArgs.Add(Activator.CreateInstance(ctorParameter.ParameterType));
+                    ctorArgs.Add(Activator.CreateInstance(ctorParameter.ParameterType)!);
                     continue;
                 }
 
-                if (_ruleComponentProvider.TryGetComponentInstance(ctorParameter.ParameterType, out object ctorArg))
+                if (_ruleComponentProvider.TryGetComponentInstance(ctorParameter.ParameterType, out object? ctorArg) && ctorArg is not null)
                 {
                     ctorArgs.Add(ctorArg);
                     continue;
@@ -123,11 +121,11 @@ namespace PSpecter.Instantiation
 
         private Func<TRule> CreateFactoryDelegate()
         {
-            MethodInfo getCtorArgsMethod = typeof(ConstructorInjectingRuleFactory<>).GetMethod(
+            MethodInfo? getCtorArgsMethod = typeof(ConstructorInjectingRuleFactory<>).GetMethod(
                 nameof(GetCtorArgs),
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
-            MethodCallExpression getArgsCall = Expression.Call(getCtorArgsMethod);
+            MethodCallExpression getArgsCall = Expression.Call(getCtorArgsMethod!);
 
             return Expression.Lambda<Func<TRule>>(
                 Expression.New(
@@ -142,7 +140,7 @@ namespace PSpecter.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration,
+            IRuleConfiguration? ruleConfiguration,
             bool isEnabled = true)
             : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration, isEnabled)
         {
@@ -150,54 +148,63 @@ namespace PSpecter.Instantiation
 
         public override void ReturnRuleInstance(TRule rule)
         {
-            ((IDisposable)rule).Dispose();
+            if (rule is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
     }
 
     public class ConstructorInjectionIdempotentRuleFactory<TRule> : ConstructorInjectingRuleFactory<TRule>
     {
-        private readonly TRule _instance;
+        private readonly TRule? _instance;
 
         public ConstructorInjectionIdempotentRuleFactory(
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration,
+            IRuleConfiguration? ruleConfiguration,
             bool isEnabled = true)
             : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration, isEnabled)
         {
-            _instance = isEnabled ? InstantiateRuleInstance() : default;
+            _instance = isEnabled ? InstantiateRuleInstance() : default!;
         }
 
         public override TRule GetRuleInstance()
         {
-            return _instance;
+            return _instance!;
         }
     }
 
     public class ConstructorInjectingResettableRulePoolingFactory<TRule> : ConstructorInjectingRuleFactory<TRule>
     {
-        private readonly ResettablePool _pool;
+        private readonly ResettablePool? _pool;
 
         public ConstructorInjectingResettableRulePoolingFactory(
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration,
+            IRuleConfiguration? ruleConfiguration,
             bool isEnabled = true)
             : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration, isEnabled)
         {
+#pragma warning disable CS8600, CS8603
             _pool = isEnabled ? new ResettablePool(() => (IResettable)InstantiateRuleInstance()) : null;
+#pragma warning restore CS8600, CS8603
         }
 
         public override TRule GetRuleInstance()
         {
-            return (TRule)_pool.Take();
+            IResettable instance = _pool!.Take();
+            return (TRule)instance!;
         }
 
         public override void ReturnRuleInstance(TRule rule)
         {
-            _pool.Release((IResettable)rule);
+            if (rule is not null and IResettable resettable)
+            {
+                _pool!.Release(resettable);
+            }
         }
     }
 
@@ -215,12 +222,12 @@ namespace PSpecter.Instantiation
 
         public IResettable Take()
         {
-            if (_instances.TryTake(out IResettable instance))
+            if (_instances.TryTake(out IResettable? instance) && instance is not null)
             {
                 return instance;
             }
 
-            return _factory();
+            return _factory()!;
         }
 
         public void Release(IResettable instance)

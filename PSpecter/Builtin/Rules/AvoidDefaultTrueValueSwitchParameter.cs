@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,7 +16,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -40,9 +38,9 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string message = string.IsNullOrWhiteSpace(fileName)
+                string message = string.IsNullOrWhiteSpace(scriptPath)
                     ? Strings.AvoidDefaultValueSwitchParameterErrorScriptDefinition
-                    : string.Format(CultureInfo.CurrentCulture, Strings.AvoidDefaultValueSwitchParameterError, System.IO.Path.GetFileName(fileName));
+                    : string.Format(CultureInfo.CurrentCulture, Strings.AvoidDefaultValueSwitchParameterError, System.IO.Path.GetFileName(scriptPath));
 
                 yield return CreateDiagnostic(message, paramAst);
             }
@@ -54,8 +52,8 @@ namespace PSpecter.Builtin.Rules
             {
                 if (attr is TypeConstraintAst typeConstraint)
                 {
-                    Type resolvedType = typeConstraint.TypeName.GetReflectionType();
-                    if (resolvedType == typeof(System.Management.Automation.SwitchParameter))
+                    Type? resolvedType = typeConstraint.TypeName.GetReflectionType();
+                    if (resolvedType is not null && resolvedType == typeof(System.Management.Automation.SwitchParameter))
                     {
                         return true;
                     }

@@ -21,7 +21,7 @@ namespace PSpecter.Builtin.Rules
         /// <summary>
         /// AnalyzeScript: Analyze the script to check that commands accepting pipeline input have a process block.
         /// </summary>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {

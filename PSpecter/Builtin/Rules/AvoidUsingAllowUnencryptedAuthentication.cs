@@ -22,7 +22,7 @@ namespace PSpecter.Builtin.Rules
         /// <summary>
         /// AnalyzeScript: Analyzes the ast to check that AllowUnencryptedAuthentication parameter is not used.
         /// </summary>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {

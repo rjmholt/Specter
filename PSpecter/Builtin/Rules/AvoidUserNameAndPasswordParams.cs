@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -33,7 +31,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -45,8 +43,8 @@ namespace PSpecter.Builtin.Rules
                 var funcAst = (FunctionDefinitionAst)node;
                 IEnumerable<Ast> paramAsts = funcAst.FindAll(testAst => testAst is ParameterAst, searchNestedScriptBlocks: true);
 
-                ParameterAst usernameAst = null;
-                ParameterAst passwordAst = null;
+                ParameterAst? usernameAst = null;
+                ParameterAst? passwordAst = null;
 
                 foreach (ParameterAst paramAst in paramAsts)
                 {

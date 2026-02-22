@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,19 +19,19 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            if (fileName is null || !AstExtensions.IsModuleManifest(fileName))
+            if (scriptPath is null || !AstExtensions.IsModuleManifest(scriptPath))
             {
                 yield break;
             }
 
-            HashtableAst hashtable = ast
+            HashtableAst? hashtable = ast
                 .FindAll(node => node is HashtableAst, searchNestedScriptBlocks: false)
                 .OfType<HashtableAst>()
                 .FirstOrDefault();
@@ -75,8 +73,8 @@ namespace PSpecter.Builtin.Rules
                 {
                     var valueAst = kvp.Item2.Find(node => node is StringConstantExpressionAst, searchNestedScriptBlocks: false);
                     if (valueAst is StringConstantExpressionAst versionAst
-                        && Version.TryParse(versionAst.Value, out Version version)
-                        && version.Major < 3)
+                        && Version.TryParse(versionAst.Value, out Version? version)
+                        && version is not null && version.Major < 3)
                     {
                         return true;
                     }

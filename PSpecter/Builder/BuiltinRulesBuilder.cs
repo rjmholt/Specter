@@ -1,6 +1,4 @@
-#nullable disable
-
-﻿using PSpecter.Builtin;
+using PSpecter.Builtin;
 using PSpecter.Configuration;
 using PSpecter.Instantiation;
 using System;
@@ -10,9 +8,9 @@ namespace PSpecter.Builder
 {
     public class BuiltinRulesBuilder
     {
-        private IReadOnlyDictionary<string, IRuleConfiguration> _ruleConfiguration;
+        private IReadOnlyDictionary<string, IRuleConfiguration>? _ruleConfiguration;
 
-        private RuleComponentProvider _ruleComponents;
+        private RuleComponentProvider? _ruleComponents;
 
         public BuiltinRulesBuilder WithRuleConfiguration(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
         {
@@ -36,7 +34,7 @@ namespace PSpecter.Builder
 
         public IRuleProviderFactory Build()
         {
-            return new BuiltinRuleProviderFactory(_ruleConfiguration);
+            return new BuiltinRuleProviderFactory(_ruleConfiguration ?? (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
         }
     }
 }

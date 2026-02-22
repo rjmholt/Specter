@@ -32,7 +32,7 @@ namespace PSpecter.Builtin.Rules
         /// <summary>
         /// AnalyzeScript: Avoid Using Get-WMIObject, Remove-WMIObject, Invoke-WmiMethod, Register-WmiEvent, Set-WmiInstance
         /// </summary>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -58,7 +58,7 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                if (String.IsNullOrWhiteSpace(fileName))
+                if (String.IsNullOrWhiteSpace(scriptPath))
                 {
                     yield return CreateDiagnostic(
                         String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletErrorScriptDefinition),
@@ -67,7 +67,7 @@ namespace PSpecter.Builtin.Rules
                 else
                 {
                     yield return CreateDiagnostic(
-                        String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletError, System.IO.Path.GetFileName(fileName)),
+                        String.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWMICmdletError, System.IO.Path.GetFileName(scriptPath)),
                         cmdAst.Extent);
                 }
             }

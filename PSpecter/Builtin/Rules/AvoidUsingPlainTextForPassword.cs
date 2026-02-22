@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,7 +18,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -30,7 +28,7 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(testAst => testAst is ParameterAst, searchNestedScriptBlocks: true))
             {
                 var paramAst = (ParameterAst)node;
-                Type paramType = paramAst.StaticType;
+                Type? paramType = paramAst.StaticType;
                 string paramName = paramAst.Name.VariablePath.ToString();
 
                 if (!IsPasswordRelated(paramName))
@@ -38,7 +36,7 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                if (!IsPlainTextType(paramType))
+                if (paramType is null || !IsPlainTextType(paramType))
                 {
                     continue;
                 }
@@ -63,11 +61,16 @@ namespace PSpecter.Builtin.Rules
             return false;
         }
 
-        private static bool IsPlainTextType(Type paramType)
+        private static bool IsPlainTextType(Type? paramType)
         {
+            if (paramType is null)
+            {
+                return false;
+            }
+
             if (paramType.IsArray)
             {
-                Type elementType = paramType.GetElementType();
+                Type? elementType = paramType.GetElementType();
                 return elementType == typeof(string) || elementType == typeof(object);
             }
 
@@ -77,7 +80,7 @@ namespace PSpecter.Builtin.Rules
         private static List<Correction> GetCorrections(ParameterAst paramAst)
         {
             var corrections = new List<Correction>();
-            TypeConstraintAst typeAttr = GetTypeConstraintAst(paramAst);
+            TypeConstraintAst? typeAttr = GetTypeConstraintAst(paramAst);
 
             foreach (string correctionType in new[] { "SecureString", "PSCredential" })
             {
@@ -107,7 +110,7 @@ namespace PSpecter.Builtin.Rules
             return corrections;
         }
 
-        private static TypeConstraintAst GetTypeConstraintAst(ParameterAst paramAst)
+        private static TypeConstraintAst? GetTypeConstraintAst(ParameterAst paramAst)
         {
             if (paramAst.Attributes != null)
             {

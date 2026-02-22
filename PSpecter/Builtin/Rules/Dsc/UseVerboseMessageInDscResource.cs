@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -19,7 +17,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             IReadOnlyList<FunctionDefinitionAst> dscFuncs = DscResourceHelper.GetDscResourceFunctions(ast);
 
@@ -47,7 +45,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             foreach (Ast node in func.Body.FindAll(a => a is CommandAst, searchNestedScriptBlocks: false))
             {
                 var command = (CommandAst)node;
-                string commandName = command.GetCommandName();
+                string? commandName = command.GetCommandName();
                 if (commandName != null
                     && commandName.Equals("Write-Verbose", StringComparison.OrdinalIgnoreCase))
                 {

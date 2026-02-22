@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
@@ -14,7 +12,7 @@ namespace PSpecter.CommandDatabase.Sqlite
     public sealed class SqliteCommandDatabase : IPowerShellCommandDatabase, IDisposable
     {
         private readonly SqliteConnection _connection;
-        private readonly SegmentedLruCache<CacheKey, CommandMetadata> _cache;
+        private readonly SegmentedLruCache<CacheKey, CommandMetadata?> _cache;
         private readonly object _syncLock = new object();
 
         /// <summary>
@@ -45,12 +43,12 @@ namespace PSpecter.CommandDatabase.Sqlite
         private SqliteCommandDatabase(SqliteConnection connection, int cacheCapacity)
         {
             _connection = connection;
-            _cache = new SegmentedLruCache<CacheKey, CommandMetadata>(
+            _cache = new SegmentedLruCache<CacheKey, CommandMetadata?>(
                 cacheCapacity,
                 comparer: new CacheKeyComparer());
         }
 
-        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
+        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo>? platforms, out CommandMetadata? command)
         {
             var key = new CacheKey(nameOrAlias, platforms);
 
@@ -67,14 +65,15 @@ namespace PSpecter.CommandDatabase.Sqlite
             }
         }
 
-        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo>? platforms)
         {
             return TryGetCommand(nameOrAlias, platforms, out _);
         }
 
-        public string GetAliasTarget(string alias)
+        public string? GetAliasTarget(string alias)
         {
-            if (TryGetCommand(alias, platforms: null, out CommandMetadata cmd)
+            if (TryGetCommand(alias, platforms: null, out CommandMetadata? cmd)
+                && cmd is not null
                 && !string.Equals(alias, cmd.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return cmd.Name;
@@ -83,18 +82,18 @@ namespace PSpecter.CommandDatabase.Sqlite
             return null;
         }
 
-        public IReadOnlyList<string> GetCommandAliases(string command)
+        public IReadOnlyList<string>? GetCommandAliases(string command)
         {
-            if (TryGetCommand(command, platforms: null, out CommandMetadata cmd) && cmd.Aliases.Count > 0)
+            if (TryGetCommand(command, platforms: null, out CommandMetadata? cmd) && cmd is not null && cmd.Aliases.Count > 0)
             {
                 return cmd.Aliases;
             }
             return null;
         }
 
-        public IReadOnlyList<string> GetAllNamesForCommand(string command)
+        public IReadOnlyList<string>? GetAllNamesForCommand(string command)
         {
-            if (TryGetCommand(command, platforms: null, out CommandMetadata cmd))
+            if (TryGetCommand(command, platforms: null, out CommandMetadata? cmd) && cmd is not null)
             {
                 var names = new List<string>(1 + cmd.Aliases.Count) { cmd.Name };
                 names.AddRange(cmd.Aliases);
@@ -113,7 +112,7 @@ namespace PSpecter.CommandDatabase.Sqlite
             _connection?.Dispose();
         }
 
-        private CommandMetadata LoadCommand(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        private CommandMetadata? LoadCommand(string nameOrAlias, HashSet<PlatformInfo>? platforms)
         {
             long? commandId = FindCommandId(nameOrAlias, platforms);
             if (commandId is null)
@@ -124,9 +123,9 @@ namespace PSpecter.CommandDatabase.Sqlite
             return BuildCommandMetadata(commandId.Value, platforms);
         }
 
-        private long? FindCommandId(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        private long? FindCommandId(string nameOrAlias, HashSet<PlatformInfo>? platforms)
         {
-            string platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
+            string? platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
 
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
@@ -147,7 +146,7 @@ namespace PSpecter.CommandDatabase.Sqlite
                 }
                 cmd.Parameters.AddWithValue("@name", nameOrAlias);
 
-                object result = cmd.ExecuteScalar();
+                object? result = cmd.ExecuteScalar();
                 if (result is not null)
                 {
                     return (long)result;
@@ -173,7 +172,7 @@ namespace PSpecter.CommandDatabase.Sqlite
                 }
                 cmd.Parameters.AddWithValue("@name", nameOrAlias);
 
-                object result = cmd.ExecuteScalar();
+                object? result = cmd.ExecuteScalar();
                 if (result is not null)
                 {
                     return (long)result;
@@ -183,12 +182,12 @@ namespace PSpecter.CommandDatabase.Sqlite
             return null;
         }
 
-        private CommandMetadata BuildCommandMetadata(long commandId, HashSet<PlatformInfo> platforms)
+        private CommandMetadata? BuildCommandMetadata(long commandId, HashSet<PlatformInfo>? platforms)
         {
-            string name = null;
-            string commandType = null;
-            string moduleName = null;
-            string defaultParameterSet = null;
+            string? name = null;
+            string? commandType = null;
+            string? moduleName = null;
+            string? defaultParameterSet = null;
 
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
@@ -205,8 +204,8 @@ namespace PSpecter.CommandDatabase.Sqlite
                     return null;
                 }
 
-                name = reader.GetString(0);
-                commandType = reader.GetString(1);
+                name = reader.GetString(0) ?? throw new InvalidOperationException("Command name cannot be null");
+                commandType = reader.GetString(1) ?? throw new InvalidOperationException("Command type cannot be null");
                 defaultParameterSet = reader.IsDBNull(2) ? null : reader.GetString(2);
                 moduleName = reader.IsDBNull(3) ? null : reader.GetString(3);
             }
@@ -227,9 +226,9 @@ namespace PSpecter.CommandDatabase.Sqlite
                 outputTypes);
         }
 
-        private IReadOnlyList<string> LoadAliases(long commandId, HashSet<PlatformInfo> platforms)
+        private IReadOnlyList<string> LoadAliases(long commandId, HashSet<PlatformInfo>? platforms)
         {
-            string platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
+            string? platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
             var aliases = new List<string>();
 
             using SqliteCommand cmd = _connection.CreateCommand();
@@ -254,7 +253,7 @@ namespace PSpecter.CommandDatabase.Sqlite
             using SqliteDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                aliases.Add(reader.GetString(0));
+                aliases.Add(reader.GetString(0) ?? string.Empty);
             }
 
             return aliases;
@@ -276,18 +275,18 @@ namespace PSpecter.CommandDatabase.Sqlite
             using SqliteDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                names.Add(reader.GetString(0));
+                names.Add(reader.GetString(0) ?? string.Empty);
             }
 
             return names;
         }
 
-        private IReadOnlyList<ParameterMetadata> LoadParameters(long commandId, HashSet<PlatformInfo> platforms)
+        private IReadOnlyList<ParameterMetadata> LoadParameters(long commandId, HashSet<PlatformInfo>? platforms)
         {
-            string platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
+            string? platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
             var parameters = new List<ParameterMetadata>();
 
-            List<(long Id, string Name, string Type, bool IsDynamic)> paramRows;
+            List<(long Id, string Name, string? Type, bool IsDynamic)> paramRows;
 
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
@@ -309,7 +308,7 @@ namespace PSpecter.CommandDatabase.Sqlite
                 }
                 cmd.Parameters.AddWithValue("@cid", commandId);
 
-                paramRows = new List<(long, string, string, bool)>();
+                paramRows = new List<(long, string, string?, bool)>();
                 using SqliteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -344,11 +343,11 @@ namespace PSpecter.CommandDatabase.Sqlite
             cmd.Parameters.AddWithValue("@pid", parameterId);
 
             using SqliteDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                sets.Add(new ParameterSetInfo(
-                    reader.GetString(0),
-                    reader.IsDBNull(1) ? null : (int)reader.GetInt64(1),
+                while (reader.Read())
+                {
+                    sets.Add(new ParameterSetInfo(
+                        reader.GetString(0) ?? string.Empty,
+                        reader.IsDBNull(1) ? null : (int)reader.GetInt64(1),
                     reader.GetInt64(2) != 0,
                     reader.GetInt64(3) != 0,
                     reader.GetInt64(4) != 0));
@@ -370,13 +369,13 @@ namespace PSpecter.CommandDatabase.Sqlite
             using SqliteDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                types.Add(reader.GetString(0));
+                types.Add(reader.GetString(0) ?? string.Empty);
             }
 
             return types;
         }
 
-        private static string BuildPlatformFilter(HashSet<PlatformInfo> platforms, out List<SqliteParameter> parameters)
+        private static string? BuildPlatformFilter(HashSet<PlatformInfo>? platforms, out List<SqliteParameter> parameters)
         {
             parameters = new List<SqliteParameter>();
 
@@ -406,9 +405,9 @@ namespace PSpecter.CommandDatabase.Sqlite
         private readonly struct CacheKey
         {
             public readonly string NameOrAlias;
-            public readonly HashSet<PlatformInfo> Platforms;
+            public readonly HashSet<PlatformInfo>? Platforms;
 
-            public CacheKey(string nameOrAlias, HashSet<PlatformInfo> platforms)
+            public CacheKey(string nameOrAlias, HashSet<PlatformInfo>? platforms)
             {
                 NameOrAlias = nameOrAlias;
                 Platforms = platforms;

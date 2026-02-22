@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -101,18 +99,29 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         /// <param name="tokens">The script's tokens</param>
         /// <param name="fileName">The script's file name</param>
         /// <returns>A List of diagnostic results of this rule</returns>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             IEnumerable<Ast> commandAsts = ast.FindAll(testAst => testAst is CommandAst, true);
 
-            if (commandAsts == null)
+            if (commandAsts is null)
             {
                 yield break;
             }
 
             foreach (CommandAst cmdAst in commandAsts)
             {
-                string commandName = cmdAst.GetCommandName();
+                if (cmdAst.CommandElements.Count == 0)
+                {
+                    continue;
+                }
+
+                CommandElementAst firstElement = cmdAst.CommandElements[0];
+                if (firstElement is null)
+                {
+                    continue;
+                }
+
+                string? commandName = cmdAst.GetCommandName();
                 if (string.IsNullOrEmpty(commandName))
                 {
                     continue;
@@ -125,39 +134,39 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 }
 
                 // Check if command is a known alias
-                string cmdletNameIfCommandNameWasAlias = _commandDb.GetAliasTarget(commandName);
+                string? cmdletNameIfCommandNameWasAlias = _commandDb.GetAliasTarget(commandName);
                 if (cmdletNameIfCommandNameWasAlias is not null)
                 {
                     var correction = new AstCorrection(
-                        cmdAst.CommandElements[0],
+                        firstElement,
                         cmdletNameIfCommandNameWasAlias,
                         string.Format(CultureInfo.CurrentCulture, "Replace {0} with {1}", commandName, cmdletNameIfCommandNameWasAlias));
 
                     yield return CreateDiagnostic(
                         string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingCmdletAliasesError, commandName, cmdletNameIfCommandNameWasAlias),
-                        cmdAst.CommandElements[0],
+                        firstElement,
                         new[] { correction });
                     continue;
                 }
 
                 // Check for implicit Get- prefix aliases, but skip if the command
                 // exists as a real (non-alias) command (e.g. native 'date' on Unix)
-                if (s_knownGetAliases.TryGetValue(commandName, out string getCommandName))
+                if (s_knownGetAliases.TryGetValue(commandName, out string? getCommandName))
                 {
-                    if (_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata meta)
-                        && !string.Equals(meta.CommandType, "Alias", StringComparison.OrdinalIgnoreCase))
+                    if (_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata? meta)
+                        && meta is not null && !string.Equals(meta.CommandType, "Alias", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
                     var correction = new AstCorrection(
-                        cmdAst.CommandElements[0],
+                        firstElement,
                         getCommandName,
                         string.Format(CultureInfo.CurrentCulture, "{0} is an implicit get alias for {1}", commandName, getCommandName));
 
                     yield return CreateDiagnostic(
                         string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingCmdletAliasesMissingGetPrefixError, commandName, getCommandName),
-                        cmdAst.CommandElements[0]);
+                        firstElement);
                 }
             }
         }

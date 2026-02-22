@@ -1,6 +1,5 @@
-#nullable disable
-
-﻿using PSpecter.Tools;
+#pragma warning disable CS8600, CS8601, CS8602, CS8603, CS8604, CS8618, CS8625
+using PSpecter.Tools;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -37,13 +36,13 @@ namespace PSpecter.Configuration.Psd
     {
         private readonly PsdDataParser _psdDataParser;
 
-        private readonly IReadOnlyList<PsdTypeConverter> _converters;
+        private readonly IReadOnlyList<PsdTypeConverter>? _converters;
 
         private readonly Dictionary<Type, PsdTypeConverter> _converterCache;
 
         private readonly Dictionary<Type, Dictionary<string, object>> _enumMembers;
 
-        public PsdTypedObjectConverter(IReadOnlyList<PsdTypeConverter> converters)
+        public PsdTypedObjectConverter(IReadOnlyList<PsdTypeConverter>? converters)
         {
             _converters = converters;
             _psdDataParser = new PsdDataParser();
@@ -57,10 +56,10 @@ namespace PSpecter.Configuration.Psd
 
         public TTarget Convert<TTarget>(string str)
         {
-            return (TTarget)Convert(typeof(TTarget), str);
+            return (TTarget)Convert(typeof(TTarget), str)!;
         }
 
-        public object Convert(Type type, string str)
+        public object? Convert(Type type, string str)
         {
             ExpressionAst expressionAst = PowerShellParsing.ParseExpressionFromInput(str);
             return Convert(type, expressionAst);
@@ -68,10 +67,10 @@ namespace PSpecter.Configuration.Psd
 
         public TTarget Convert<TTarget>(ExpressionAst ast)
         {
-            return (TTarget)Convert(typeof(TTarget), ast);
+            return (TTarget)Convert(typeof(TTarget), ast)!;
         }
 
-        public object Convert(Type type, ExpressionAst ast)
+        public object? Convert(Type type, ExpressionAst ast)
         {
             if (type == typeof(ExpressionAst))
             {
@@ -83,7 +82,7 @@ namespace PSpecter.Configuration.Psd
                 return _psdDataParser.ConvertAstValue(ast);
             }
 
-            object conversionResult;
+            object? conversionResult;
 
             if (TryCustomConversion(type, ast, out conversionResult))
             {
@@ -140,7 +139,7 @@ namespace PSpecter.Configuration.Psd
             return ConvertPoco(type, ast);
         }
 
-        private bool TryEnumConversion(Type target, ExpressionAst ast, out object result)
+        private bool TryEnumConversion(Type target, ExpressionAst ast, out object? result)
         {
             if (!target.IsEnum)
             {
@@ -183,7 +182,7 @@ namespace PSpecter.Configuration.Psd
             return true;
         }
 
-        private bool TryConvertNullable(Type target, ExpressionAst ast, out object result)
+        private bool TryConvertNullable(Type target, ExpressionAst ast, out object? result)
         {
             if (!target.IsGenericType
                 || target.GetGenericTypeDefinition() != typeof(Nullable<>))
@@ -202,9 +201,9 @@ namespace PSpecter.Configuration.Psd
             return true;
         }
 
-        private bool TryCustomConversion(Type target, ExpressionAst ast, out object result)
+        private bool TryCustomConversion(Type target, ExpressionAst ast, out object? result)
         {
-            if (_converterCache.TryGetValue(target, out PsdTypeConverter cachedConverter))
+            if (_converterCache.TryGetValue(target, out PsdTypeConverter? cachedConverter))
             {
                 result = cachedConverter.ConvertPsdType(target, ast);
                 return true;
@@ -249,7 +248,7 @@ namespace PSpecter.Configuration.Psd
             // Work out if we'll be able to construct this type
             ConstructorInfo[] constructors = target.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            ConstructorInfo designatedConstructor = null;
+            ConstructorInfo? designatedConstructor = null;
             if (constructors.Length == 1)
             {
                 designatedConstructor = constructors[0];
@@ -303,7 +302,7 @@ namespace PSpecter.Configuration.Psd
         private void AddFieldsToInstantiate(
             Type target,
             MemberSerialization memberSerialization,
-            JsonObjectAttribute jsonObjectAttribute,
+            JsonObjectAttribute? jsonObjectAttribute,
             Dictionary<string, SerializedProperty> membersToInstantiate)
         {
             foreach (FieldInfo field in target.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
@@ -339,7 +338,7 @@ namespace PSpecter.Configuration.Psd
         private void AddPropertiesToInstantiate(
             Type target,
             MemberSerialization memberSerialization,
-            JsonObjectAttribute jsonObjectAttribute,
+            JsonObjectAttribute? jsonObjectAttribute,
             Dictionary<string, SerializedProperty> membersToInstantiate)
         {
 
@@ -370,7 +369,7 @@ namespace PSpecter.Configuration.Psd
             }
         }
 
-        private SerializedProperty CreateSerializedPropertyObject(MemberInfo member, JsonPropertyAttribute jsonPropertyAttribute, DataMemberAttribute dataMemberAttribute)
+        private SerializedProperty CreateSerializedPropertyObject(MemberInfo member, JsonPropertyAttribute? jsonPropertyAttribute, DataMemberAttribute? dataMemberAttribute)
         {
             return new SerializedProperty
             {
@@ -453,7 +452,7 @@ namespace PSpecter.Configuration.Psd
             }
         }
 
-        private object ConvertPoco(Type target, ExpressionAst ast)
+        private object? ConvertPoco(Type target, ExpressionAst ast)
         {
             // Validate hashtable and convert to a key value dict
             Dictionary<string, ExpressionAst> hashtableDict = GetHashtableDict(target, ast);
@@ -474,7 +473,7 @@ namespace PSpecter.Configuration.Psd
             return instance;
         }
 
-        private object InstantiateHashtablePropertyAsMember(MemberInfo memberInfo, IReadOnlyDictionary<string, ExpressionAst> hashtable, string name)
+        private object? InstantiateHashtablePropertyAsMember(MemberInfo memberInfo, IReadOnlyDictionary<string, ExpressionAst> hashtable, string name)
         {
             if (!hashtable.TryGetValue(name, out ExpressionAst expressionAst))
             {
@@ -494,7 +493,7 @@ namespace PSpecter.Configuration.Psd
             }
         }
 
-        private bool TryConvertDictionary(Type target, ExpressionAst ast, out object result)
+        private bool TryConvertDictionary(Type target, ExpressionAst ast, out object? result)
         {
             var hashtableAst = ast as HashtableAst;
 
@@ -592,7 +591,7 @@ namespace PSpecter.Configuration.Psd
             }
 
             // Otherwise, it might implement a dictionary and have a default constructor 
-            if (ImplementsGenericInterface(target, typeof(IDictionary<,>), out IReadOnlyList<Type> _))
+            if (ImplementsGenericInterface(target, typeof(IDictionary<,>), out IReadOnlyList<Type>? _))
             {
                 if (hashtableAst == null)
                 {
@@ -626,7 +625,11 @@ namespace PSpecter.Configuration.Psd
 
         private void SetHashtableValuesInDictionary(Type dictionaryType, Type keyType, Type valueType, object dictionary, HashtableAst hashtableAst)
         {
-            MethodInfo setter = dictionaryType.GetProperty("Item").GetSetMethod();
+            MethodInfo? setter = dictionaryType.GetProperty("Item")?.GetSetMethod();
+            if (setter == null)
+            {
+                throw new ArgumentException($"Type '{dictionaryType.FullName}' has no Item setter");
+            }
 
             foreach (Tuple<ExpressionAst, StatementAst> entry in hashtableAst.KeyValuePairs)
             {
@@ -637,16 +640,20 @@ namespace PSpecter.Configuration.Psd
         }
 
 
-        private bool TryConvertEnumerable(Type target, ExpressionAst ast, out object result)
+        private bool TryConvertEnumerable(Type target, ExpressionAst ast, out object? result)
         {
             if (target.IsArray)
             {
-                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst> arrayExpressions))
+                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst>? arrayExpressions))
                 {
                     throw CreateConversionMismatchException(ast, target);
                 }
 
-                Type elementType = target.GetElementType();
+                Type? elementType = target.GetElementType();
+                if (elementType == null)
+                {
+                    throw CreateConversionMismatchException(ast, target);
+                }
 
                 Array array = Array.CreateInstance(elementType, arrayExpressions.Count);
 
@@ -662,7 +669,7 @@ namespace PSpecter.Configuration.Psd
             if (target == typeof(IList)
                 || target == typeof(IEnumerable))
             {
-                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst> arrayExpressions))
+                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst>? arrayExpressions))
                 {
                     throw CreateConversionMismatchException(ast, target);
                 }
@@ -676,7 +683,7 @@ namespace PSpecter.Configuration.Psd
 
             if (typeof(IList).IsAssignableFrom(target))
             {
-                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst> arrayExpressions))
+                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst>? arrayExpressions))
                 {
                     throw CreateConversionMismatchException(ast, target);
                 }
@@ -710,7 +717,7 @@ namespace PSpecter.Configuration.Psd
                 || targetBaseGenericType == typeof(IReadOnlyList<>)
                 || targetBaseGenericType == typeof(IReadOnlyCollection<>))
             {
-                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst> arrayExpressions))
+                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst>? arrayExpressions))
                 {
                     throw CreateConversionMismatchException(ast, target);
                 }
@@ -724,9 +731,9 @@ namespace PSpecter.Configuration.Psd
                 return true;
             }
 
-            if (ImplementsGenericInterface(target, typeof(IList<>), out IReadOnlyList<Type> _))
+            if (ImplementsGenericInterface(target, typeof(IList<>), out IReadOnlyList<Type>? _))
             {
-                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst> arrayExpressions))
+                if (!TryExtractExpressionArray(ast, out IReadOnlyList<ExpressionAst>? arrayExpressions))
                 {
                     throw CreateConversionMismatchException(ast, target);
                 }
@@ -763,7 +770,11 @@ namespace PSpecter.Configuration.Psd
 
         private void AddItemsToList(Type targetType, Type elementType, object list, IEnumerable<ExpressionAst> expressions)
         {
-            MethodInfo setter = targetType.GetProperty("Item").GetSetMethod();
+            MethodInfo? setter = targetType.GetProperty("Item")?.GetSetMethod();
+            if (setter == null)
+            {
+                throw new ArgumentException($"Type '{targetType.FullName}' has no Item setter");
+            }
 
             foreach (ExpressionAst expression in expressions)
             {
@@ -771,7 +782,7 @@ namespace PSpecter.Configuration.Psd
             }
         }
 
-        private bool TryConvertVariableExpression(Type target, ExpressionAst ast, out object result)
+        private bool TryConvertVariableExpression(Type target, ExpressionAst ast, out object? result)
         {
             if (!(ast is VariableExpressionAst variableExpressionAst))
             {
@@ -823,7 +834,7 @@ namespace PSpecter.Configuration.Psd
             throw CreateConversionMismatchException(ast, typeof(string));
         }
 
-        private bool TryConvertNumber(Type target, ExpressionAst ast, out object result)
+        private bool TryConvertNumber(Type target, ExpressionAst ast, out object? result)
         {
             if (IsNumericType(target))
             {
@@ -852,7 +863,7 @@ namespace PSpecter.Configuration.Psd
             throw CreateConversionMismatchException(ast, typeof(DateTime));
         }
 
-        private bool TryExtractExpressionArray(ExpressionAst ast, out IReadOnlyList<ExpressionAst> arrayItems)
+        private bool TryExtractExpressionArray(ExpressionAst ast, out IReadOnlyList<ExpressionAst>? arrayItems)
         {
             switch (ast)
             {
@@ -923,7 +934,7 @@ namespace PSpecter.Configuration.Psd
         private static bool ImplementsGenericInterface(
             Type target,
             Type genericInterface,
-            out IReadOnlyList<Type> genericParameters)
+            out IReadOnlyList<Type>? genericParameters)
         {
             foreach (Type implementedInterface in target.GetInterfaces())
             {
@@ -945,13 +956,13 @@ namespace PSpecter.Configuration.Psd
 
         private class SerializedProperty
         {
-            public MemberInfo MemberInfo { get; set; }
+            public MemberInfo MemberInfo { get; set; } = null!;
 
-            public JsonPropertyAttribute JsonPropertyAttribute { get; set; }
+            public JsonPropertyAttribute? JsonPropertyAttribute { get; set; }
 
-            public DataMemberAttribute DataMemberAttribute { get; set; }
+            public DataMemberAttribute? DataMemberAttribute { get; set; }
 
-            public string Name { get; set; }
+            public string Name { get; set; } = null!;
         }
     }
 }

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.IO;
 using System.Reflection;
@@ -19,7 +17,7 @@ namespace PSpecter.CommandDatabase.Sqlite
 #if NET
         private static readonly Lazy<bool> s_initialized = new Lazy<bool>(() =>
         {
-            Assembly providerAssembly = FindProviderAssembly();
+            Assembly? providerAssembly = FindProviderAssembly();
             if (providerAssembly is not null)
             {
                 NativeLibrary.SetDllImportResolver(providerAssembly, ResolveNativeLibrary);
@@ -37,7 +35,7 @@ namespace PSpecter.CommandDatabase.Sqlite
         }
 
 #if NET
-        private static Assembly FindProviderAssembly()
+        private static Assembly? FindProviderAssembly()
         {
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -50,7 +48,7 @@ namespace PSpecter.CommandDatabase.Sqlite
             // The provider assembly may not be loaded yet. Force-load it so we
             // can register the resolver before the static ctor of SqliteConnection
             // triggers Batteries_V2.Init().
-            string assemblyDir = Path.GetDirectoryName(typeof(SqliteNativeLibrary).Assembly.Location);
+            string? assemblyDir = Path.GetDirectoryName(typeof(SqliteNativeLibrary).Assembly.Location);
             if (assemblyDir is null)
             {
                 return null;
@@ -72,7 +70,7 @@ namespace PSpecter.CommandDatabase.Sqlite
                 return IntPtr.Zero;
             }
 
-            string assemblyDir = Path.GetDirectoryName(typeof(SqliteNativeLibrary).Assembly.Location);
+            string? assemblyDir = Path.GetDirectoryName(typeof(SqliteNativeLibrary).Assembly.Location);
             if (assemblyDir is null)
             {
                 return IntPtr.Zero;

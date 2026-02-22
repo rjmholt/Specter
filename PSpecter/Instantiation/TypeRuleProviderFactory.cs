@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builder;
 using PSpecter.Configuration;
 using PSpecter.Rules;
@@ -14,12 +12,12 @@ namespace PSpecter.Instantiation
     {
         private readonly Dictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
 
-        private readonly Dictionary<Type, RuleInfo> _ruleTypes;
+        private readonly Dictionary<Type, RuleInfo?> _ruleTypes;
 
         public TypeRuleProviderFactoryBuilder(
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
         {
-            _ruleTypes = new Dictionary<Type, RuleInfo>();
+            _ruleTypes = new Dictionary<Type, RuleInfo?>();
             _ruleConfigurationCollection = ruleConfigurationCollection.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -31,8 +29,8 @@ namespace PSpecter.Instantiation
 
         public TypeRuleProviderFactoryBuilder AddRule<TRule, TConfiguration>(TConfiguration configuration) where TRule : IConfigurableRule<TConfiguration> where TConfiguration : IRuleConfiguration
         {
-            RuleInfo ruleInfo = RuleInfo.TryGetFromRuleType(typeof(TRule), out ruleInfo)
-                ? ruleInfo
+            RuleInfo ruleInfo = RuleInfo.TryGetFromRuleType(typeof(TRule), out RuleInfo? ruleInfoOut)
+                ? ruleInfoOut!
                 : throw new ArgumentException($"Type '{typeof(TRule)}' is not a valid rule type");
             _ruleTypes.Add(typeof(TRule), ruleInfo);
             _ruleConfigurationCollection[ruleInfo.FullName] = configuration;
@@ -58,16 +56,16 @@ namespace PSpecter.Instantiation
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
             Assembly ruleAssembly)
         {
-            return new TypeRuleProviderFactory(ruleConfigurationCollection, ruleAssembly.GetExportedTypes().ToDictionary(t => t, _ => (RuleInfo)null));
+            return new TypeRuleProviderFactory(ruleConfigurationCollection, ruleAssembly.GetExportedTypes().ToDictionary(t => t, _ => (RuleInfo?)null));
         }
 
         private readonly IReadOnlyDictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
 
-        private readonly IReadOnlyDictionary<Type, RuleInfo> _ruleTypes;
+        private readonly IReadOnlyDictionary<Type, RuleInfo?> _ruleTypes;
 
         public TypeRuleProviderFactory(
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
-            IReadOnlyDictionary<Type, RuleInfo> ruleTypes)
+            IReadOnlyDictionary<Type, RuleInfo?> ruleTypes)
         {
             _ruleConfigurationCollection = ruleConfigurationCollection;
             _ruleTypes = ruleTypes;
@@ -83,15 +81,17 @@ namespace PSpecter.Instantiation
         {
             var ruleFactories = new Dictionary<RuleInfo, TypeRuleFactory<ScriptRule>>();
 
-            foreach (KeyValuePair<Type, RuleInfo> rule in _ruleTypes)
+            foreach (KeyValuePair<Type, RuleInfo?> rule in _ruleTypes)
             {
-                RuleInfo ruleInfo = rule.Value;
+                RuleInfo? ruleInfo = rule.Value;
                 if (RuleGeneration.TryGetRuleFromType(
                     _ruleConfigurationCollection,
                     ruleComponentProvider,
                     rule.Key,
                     ref ruleInfo,
-                    out TypeRuleFactory<ScriptRule> factory))
+                    out TypeRuleFactory<ScriptRule>? factory)
+                    && ruleInfo is not null
+                    && factory is not null)
                 {
                     ruleFactories[ruleInfo] = factory;
                 }

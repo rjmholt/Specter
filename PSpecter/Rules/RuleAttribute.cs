@@ -1,6 +1,4 @@
-#nullable disable
-
-﻿using System;
+using System;
 using System.Reflection;
 
 namespace PSpecter.Rules
@@ -12,33 +10,33 @@ namespace PSpecter.Rules
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public sealed class RuleAttribute : ScriptAnalyzerAttribute
     {
-        private readonly Lazy<string> _descriptionLazy;
+        private readonly Lazy<string?> _descriptionLazy;
 
         public RuleAttribute(string name, string description)
         {
             Name = name;
-            _descriptionLazy = new Lazy<string>(() => description);
+            _descriptionLazy = new Lazy<string?>(() => description);
         }
 
 
         public RuleAttribute(string name, Type descriptionResourceProvider, string descriptionResourceKey)
         {
             Name = name;
-            _descriptionLazy = new Lazy<string>(() => GetStringFromResourceProvider(descriptionResourceProvider, descriptionResourceKey));
+            _descriptionLazy = new Lazy<string?>(() => GetStringFromResourceProvider(descriptionResourceProvider, descriptionResourceKey));
         }
 
         public string Name { get; }
 
         public DiagnosticSeverity Severity { get; set; } = DiagnosticSeverity.Warning;
 
-        public string Namespace { get; set; }
+        public string? Namespace { get; set; }
 
-        public string Description => _descriptionLazy.Value;
+        public string? Description => _descriptionLazy.Value;
 
-        private static string GetStringFromResourceProvider(Type resourceProvider, string resourceKey)
+        private static string? GetStringFromResourceProvider(Type resourceProvider, string resourceKey)
         {
-            PropertyInfo resourceProperty = resourceProvider.GetProperty(resourceKey, BindingFlags.Static | BindingFlags.NonPublic);
-            return (string)resourceProperty.GetValue(null);
+            PropertyInfo? resourceProperty = resourceProvider.GetProperty(resourceKey, BindingFlags.Static | BindingFlags.NonPublic);
+            return (string?)resourceProperty?.GetValue(null);
         }
     }
 

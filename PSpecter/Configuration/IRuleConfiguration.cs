@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builtin;
 using Newtonsoft.Json;
 using System;
@@ -32,9 +30,9 @@ namespace PSpecter.Configuration
     {
         private readonly TConfiguration _configurationObject;
 
-        private IRuleConfiguration _convertedObject;
+        private IRuleConfiguration? _convertedObject;
 
-        private Type _convertedObjectType;
+        private Type? _convertedObjectType;
 
         protected LazyConvertedRuleConfiguration(
             CommonConfiguration commonConfiguration,
@@ -46,9 +44,9 @@ namespace PSpecter.Configuration
 
         public CommonConfiguration Common { get; }
 
-        public abstract bool TryConvertObject(Type type, TConfiguration configuration, out IRuleConfiguration result);
+        public abstract bool TryConvertObject(Type type, TConfiguration configuration, out IRuleConfiguration? result);
 
-        public IRuleConfiguration AsTypedConfiguration(Type configurationType)
+        public IRuleConfiguration? AsTypedConfiguration(Type configurationType)
         {
             if (_convertedObject != null
                 && configurationType.IsAssignableFrom(_convertedObjectType))

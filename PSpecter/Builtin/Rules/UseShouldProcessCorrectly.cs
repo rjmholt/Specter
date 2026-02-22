@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -36,7 +34,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -115,19 +113,19 @@ namespace PSpecter.Builtin.Rules
             while (queue.Count > 0)
             {
                 string current = queue.Dequeue();
-                if (!callGraph.TryGetValue(current, out HashSet<string> callees))
+                if (!callGraph.TryGetValue(current, out HashSet<string>? callees) || callees is null)
                 {
                     continue;
                 }
 
                 foreach (string callee in callees)
                 {
-                    if (!visited.Add(callee))
+                    if (callee is null || !visited.Add(callee))
                     {
                         continue;
                     }
 
-                    FunctionDefinitionAst calleeFuncAst = allFunctions.FirstOrDefault(
+                    FunctionDefinitionAst? calleeFuncAst = allFunctions.FirstOrDefault(
                         f => string.Equals(f.Name, callee, StringComparison.OrdinalIgnoreCase));
 
                     if (calleeFuncAst is not null)
@@ -198,7 +196,7 @@ namespace PSpecter.Builtin.Rules
                             return true;
                         }
 
-                        object value = namedArg.GetValue();
+                        object? value = namedArg.GetValue();
                         return AstTools.IsTrue(value);
                     }
                 }
@@ -207,7 +205,7 @@ namespace PSpecter.Builtin.Rules
             return false;
         }
 
-        private static IScriptExtent GetShouldProcessAttributeExtent(FunctionDefinitionAst funcAst)
+        private static IScriptExtent? GetShouldProcessAttributeExtent(FunctionDefinitionAst funcAst)
         {
             if (funcAst.Body?.ParamBlock?.Attributes is null)
             {
@@ -231,7 +229,7 @@ namespace PSpecter.Builtin.Rules
             return null;
         }
 
-        private static IScriptExtent GetShouldProcessCallExtent(FunctionDefinitionAst funcAst)
+        private static IScriptExtent? GetShouldProcessCallExtent(FunctionDefinitionAst funcAst)
         {
             foreach (Ast node in funcAst.Body.FindAll(a => a is InvokeMemberExpressionAst, searchNestedScriptBlocks: false))
             {

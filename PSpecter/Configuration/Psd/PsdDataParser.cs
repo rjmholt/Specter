@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Utils;
 using System;
 using System.Collections;
@@ -19,7 +17,7 @@ namespace PSpecter.Configuration.Psd
         /// </summary>
         /// <param name="exprAst">The expression AST to try to evaluate.</param>
         /// <returns>The .NET value represented by the PowerShell expression.</returns>
-        public object ConvertAstValue(ExpressionAst exprAst)
+        public object? ConvertAstValue(ExpressionAst exprAst)
         {
             switch (exprAst)
             {
@@ -64,10 +62,9 @@ namespace PSpecter.Configuration.Psd
                         return new object[0];
                     }
 
-                    var listComponents = new List<object>();
+                    var listComponents = new List<object?>();
                     // Arrays can either be array expressions (1, 2, 3) or array literals with statements @(1 `n 2 `n 3)
                     // Or they can be a combination of these
-                    // We go through each statement (line) in an array and read the whole subarray
                     // This will also mean that @(1; 2) is parsed as an array of two elements, but there's not much point defending against this
                     foreach (StatementAst statement in arrExprAst.SubExpression.Statements)
                     {
@@ -76,13 +73,13 @@ namespace PSpecter.Configuration.Psd
                             throw CreateInvalidDataExceptionFromAst(arrExprAst);
                         }
 
-                        ExpressionAst pipelineExpressionAst = pipelineAst.GetPureExpression();
+                        ExpressionAst? pipelineExpressionAst = pipelineAst.GetPureExpression();
                         if (pipelineExpressionAst == null)
                         {
                             throw CreateInvalidDataExceptionFromAst(arrExprAst);
                         }
 
-                        object arrayValue = ConvertAstValue(pipelineExpressionAst);
+                        object? arrayValue = ConvertAstValue(pipelineExpressionAst);
                         // We might hit arrays like @(\n1,2,3\n4,5,6), which the parser sees as two statements containing array expressions
                         if (arrayValue is object[] subArray)
                         {
@@ -92,7 +89,7 @@ namespace PSpecter.Configuration.Psd
 
                         listComponents.Add(arrayValue);
                     }
-                    return listComponents.ToArray();
+                    return (object[])listComponents.ToArray();
 
 
                 case ArrayLiteralAst arrLiteralAst:
@@ -125,13 +122,13 @@ namespace PSpecter.Configuration.Psd
                 throw CreateInvalidDataExceptionFromAst(arrLiteralAst);
             }
 
-            var elements = new List<object>();
+            var elements = new List<object?>();
             foreach (ExpressionAst exprAst in arrLiteralAst.Elements)
             {
                 elements.Add(ConvertAstValue(exprAst));
             }
 
-            return elements.ToArray();
+            return elements.ToArray()!;
         }
 
         /// <summary>
@@ -156,10 +153,14 @@ namespace PSpecter.Configuration.Psd
             var hashtable = new Hashtable();
             foreach (Tuple<ExpressionAst, StatementAst> entry in hashtableAst.KeyValuePairs)
             {
-                object key = ConvertAstValue(entry.Item1);
+                object? key = ConvertAstValue(entry.Item1);
+                if (key == null)
+                {
+                    throw CreateInvalidDataExceptionFromAst(entry.Item1);
+                }
 
                 // Get the value
-                ExpressionAst valueExprAst = (entry.Item2 as PipelineAst)?.GetPureExpression();
+                ExpressionAst? valueExprAst = (entry.Item2 as PipelineAst)?.GetPureExpression();
                 if (valueExprAst == null)
                 {
                     throw CreateInvalidDataExceptionFromAst(entry.Item2);

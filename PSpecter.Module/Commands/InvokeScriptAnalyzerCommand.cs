@@ -1,6 +1,4 @@
-#nullable disable
-
-﻿using PSpecter.Builder;
+using PSpecter.Builder;
 using PSpecter.Configuration;
 using System;
 using System.Collections.Concurrent;
@@ -17,21 +15,21 @@ namespace PSpecter.Module.Commands
     {
         private static readonly ConcurrentDictionary<ParameterSetting, ScriptAnalyzer> s_configuredScriptAnalyzers = new ConcurrentDictionary<ParameterSetting, ScriptAnalyzer>();
 
-        private ScriptAnalyzer _scriptAnalyzer;
+        private ScriptAnalyzer? _scriptAnalyzer;
 
         [ValidateNotNullOrEmpty]
         [Parameter(Position = 0, Mandatory = true, ParameterSetName = "FilePath")]
-        public string[] Path { get; set; }
+        public string[]? Path { get; set; }
 
         [ValidateNotNullOrEmpty]
         [Parameter(Position = 0, Mandatory = true, ParameterSetName = "Input")]
-        public string[] ScriptDefinition { get; set; }
+        public string[]? ScriptDefinition { get; set; }
 
         [Parameter]
-        public string ConfigurationPath { get; set; }
+        public string? ConfigurationPath { get; set; }
 
         [Parameter]
-        public string[] ExcludeRules { get; set; }
+        public string[]? ExcludeRules { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -40,6 +38,11 @@ namespace PSpecter.Module.Commands
 
         protected override void ProcessRecord()
         {
+            if (_scriptAnalyzer is null)
+            {
+                return;
+            }
+
             if (Path != null)
             {
                 foreach (string path in Path)
@@ -91,7 +94,7 @@ namespace PSpecter.Module.Commands
                 ConfigurationPath = command.ConfigurationPath;
             }
 
-            public string ConfigurationPath { get; }
+            public string? ConfigurationPath { get; }
 
             public override int GetHashCode()
             {

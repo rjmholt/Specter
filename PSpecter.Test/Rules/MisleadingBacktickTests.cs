@@ -29,7 +29,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("MisleadingBacktick", violation.Rule.Name);
+            Assert.Equal("MisleadingBacktick", violation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
         }
 

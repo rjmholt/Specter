@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -19,25 +17,25 @@ namespace PSpecter.Builtin.Rules.Dsc
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(scriptPath))
             {
                 yield break;
             }
 
-            foreach (ScriptDiagnostic diag in AnalyzeResourceModule(ast, fileName))
+            foreach (ScriptDiagnostic diag in AnalyzeResourceModule(ast, scriptPath!))
             {
                 yield return diag;
             }
 
-            foreach (ScriptDiagnostic diag in AnalyzeDscClasses(ast, fileName))
+            foreach (ScriptDiagnostic diag in AnalyzeDscClasses(ast, scriptPath!))
             {
                 yield return diag;
             }
         }
 
-        private IEnumerable<ScriptDiagnostic> AnalyzeResourceModule(Ast ast, string fileName)
+        private IEnumerable<ScriptDiagnostic> AnalyzeResourceModule(Ast ast, string scriptPath)
         {
             IReadOnlyList<FunctionDefinitionAst> dscFuncs = DscResourceHelper.GetDscResourceFunctions(ast);
             if (dscFuncs.Count == 0)
@@ -45,8 +43,8 @@ namespace PSpecter.Builtin.Rules.Dsc
                 yield break;
             }
 
-            string resourceName = Path.GetFileNameWithoutExtension(fileName);
-            string examplesPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(fileName), "..", "..", "Examples"));
+            string resourceName = Path.GetFileNameWithoutExtension(scriptPath);
+            string examplesPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(scriptPath)!, "..", "..", "Examples"));
 
             if (!HasMatchingFiles(examplesPath, resourceName))
             {
@@ -56,14 +54,14 @@ namespace PSpecter.Builtin.Rules.Dsc
             }
         }
 
-        private IEnumerable<ScriptDiagnostic> AnalyzeDscClasses(Ast ast, string fileName)
+        private IEnumerable<ScriptDiagnostic> AnalyzeDscClasses(Ast ast, string scriptPath)
         {
             IReadOnlyList<TypeDefinitionAst> dscClasses = DscResourceHelper.GetDscClasses(ast);
 
             foreach (TypeDefinitionAst dscClass in dscClasses)
             {
                 string resourceName = dscClass.Name;
-                string examplesPath = Path.Combine(Path.GetDirectoryName(fileName), "Examples");
+                string examplesPath = Path.Combine(Path.GetDirectoryName(scriptPath)!, "Examples");
 
                 if (!HasMatchingFiles(examplesPath, resourceName))
                 {

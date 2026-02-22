@@ -26,7 +26,7 @@ namespace PSpecter.Rules
         /// </summary>
         protected abstract string GetDiagnosticMessage(ScriptEdit edit, string scriptContent);
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null) { throw new ArgumentNullException(nameof(ast)); }
 
@@ -38,7 +38,7 @@ namespace PSpecter.Rules
             return AnalyzeScriptCore(ast, tokens, scriptPath);
         }
 
-        private IEnumerable<ScriptDiagnostic> AnalyzeScriptCore(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
+        private IEnumerable<ScriptDiagnostic> AnalyzeScriptCore(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             string scriptContent = ast.Extent.Text;
             IScriptEditor editor = CreateEditor();

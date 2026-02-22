@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 using System.Text;
@@ -7,12 +7,12 @@ namespace PSpecter.Execution
 {
     public interface IRuleExecutorFactory
     {
-        IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string scriptPath);
+        IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath);
     }
 
     public class SequentialRuleExecutorFactory : IRuleExecutorFactory
     {
-        public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
+        public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             return new SequentialRuleExecutor(ast, tokens, scriptPath);
         }
@@ -20,7 +20,7 @@ namespace PSpecter.Execution
 
     public class ParallelLinqRuleExecutorFactory : IRuleExecutorFactory
     {
-        public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
+        public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             return new ParallelLinqRuleExecutor(ast, tokens, scriptPath);
         }

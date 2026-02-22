@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -32,7 +30,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -61,14 +59,14 @@ namespace PSpecter.Builtin.Rules
 
                 foreach (var returnType in InferReturnTypes(funcAst))
                 {
-                    string typeName = NormalizeTypeName(returnType.TypeName);
+                    string? typeName = NormalizeTypeName(returnType.TypeName);
 
-                    if (s_ignoredTypes.Contains(typeName))
+                    if (typeName is null || s_ignoredTypes.Contains(typeName))
                     {
                         continue;
                     }
 
-                    if (!declaredOutputTypes.Contains(typeName))
+                    if (!declaredOutputTypes.Contains(typeName) && returnType.Extent is not null)
                     {
                         yield return CreateDiagnostic(
                             string.Format(
@@ -136,11 +134,13 @@ namespace PSpecter.Builtin.Rules
                 {
                     if (positionalArg is StringConstantExpressionAst strConst)
                     {
-                        types.Add(NormalizeTypeName(strConst.Value));
+                        if (NormalizeTypeName(strConst.Value) is string normalized)
+                            types.Add(normalized);
                     }
                     else if (positionalArg is TypeExpressionAst typeExpr)
                     {
-                        types.Add(NormalizeTypeName(typeExpr.TypeName.FullName));
+                        if (NormalizeTypeName(typeExpr.TypeName.FullName) is string normalized)
+                            types.Add(normalized);
                     }
                     else if (positionalArg is ArrayLiteralAst arrayLit)
                     {
@@ -148,11 +148,13 @@ namespace PSpecter.Builtin.Rules
                         {
                             if (elem is StringConstantExpressionAst elemStr)
                             {
-                                types.Add(NormalizeTypeName(elemStr.Value));
+                                if (NormalizeTypeName(elemStr.Value) is string normalized)
+                                    types.Add(normalized);
                             }
                             else if (elem is TypeExpressionAst elemType)
                             {
-                                types.Add(NormalizeTypeName(elemType.TypeName.FullName));
+                                if (NormalizeTypeName(elemType.TypeName.FullName) is string normalized)
+                                    types.Add(normalized);
                             }
                         }
                     }
@@ -173,8 +175,8 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string typeName = null;
-                IScriptExtent extent = null;
+                string? typeName = null;
+                IScriptExtent? extent = null;
 
                 if (node is ReturnStatementAst returnStmt && returnStmt.Pipeline is not null)
                 {
@@ -198,7 +200,7 @@ namespace PSpecter.Builtin.Rules
 
                 if (typeName is not null && !s_ignoredTypes.Contains(typeName) && seen.Add(typeName))
                 {
-                    yield return new ReturnTypeInfo(typeName, extent);
+                    yield return new ReturnTypeInfo(typeName!, extent);
                 }
             }
         }
@@ -273,7 +275,9 @@ namespace PSpecter.Builtin.Rules
             {
                 if (constExpr.Value is not null)
                 {
-                    return new ReturnTypeInfo(constExpr.Value.GetType().FullName, expr.Extent);
+                    string? fullName = constExpr.Value.GetType().FullName;
+                    if (fullName is not null)
+                        return new ReturnTypeInfo(fullName, expr.Extent);
                 }
             }
 
@@ -284,32 +288,34 @@ namespace PSpecter.Builtin.Rules
 
             if (expr is ConvertExpressionAst convertExpr)
             {
-                string typeName = convertExpr.Type.TypeName.FullName;
-                if (string.Equals(typeName, "pscustomobject", StringComparison.OrdinalIgnoreCase))
+                string? typeName = convertExpr.Type.TypeName.FullName;
+                if (typeName is not null && string.Equals(typeName, "pscustomobject", StringComparison.OrdinalIgnoreCase))
                 {
                     if (convertExpr.Child is HashtableAst htAst)
                     {
-                        string psTypeName = GetPSTypeName(htAst);
+                        string? psTypeName = GetPSTypeName(htAst);
                         if (psTypeName is not null)
                         {
-                            return new ReturnTypeInfo(psTypeName, expr.Extent);
+                            return new ReturnTypeInfo(psTypeName!, expr.Extent);
                         }
                     }
 
                     return null;
                 }
 
-                return new ReturnTypeInfo(typeName, expr.Extent);
+                if (typeName is not null)
+                    return new ReturnTypeInfo(typeName, expr.Extent);
             }
 
             return null;
         }
 
-        private static string GetPSTypeName(HashtableAst hashtable)
+        private static string? GetPSTypeName(HashtableAst hashtable)
         {
             foreach (var kvp in hashtable.KeyValuePairs)
             {
                 if (kvp.Item1 is StringConstantExpressionAst key
+                    && key.Value is not null
                     && string.Equals(key.Value, "PSTypeName", StringComparison.OrdinalIgnoreCase))
                 {
                     if (kvp.Item2 is PipelineAst pipeline)
@@ -317,7 +323,9 @@ namespace PSpecter.Builtin.Rules
                         ExpressionAst valueExpr = pipeline.GetPureExpression();
                         if (valueExpr is StringConstantExpressionAst strValue)
                         {
-                            return strValue.Value;
+                            string? val = strValue.Value;
+                            if (val is not null)
+                                return val!;
                         }
                     }
                 }
@@ -326,11 +334,11 @@ namespace PSpecter.Builtin.Rules
             return null;
         }
 
-        private static string NormalizeTypeName(string typeName)
+        private static string? NormalizeTypeName(string? typeName)
         {
             if (typeName is null)
             {
-                return typeName;
+                return null;
             }
 
             if (typeName.StartsWith("[") && typeName.EndsWith("]"))
@@ -358,9 +366,9 @@ namespace PSpecter.Builtin.Rules
         private readonly struct ReturnTypeInfo
         {
             public readonly string TypeName;
-            public readonly IScriptExtent Extent;
+            public readonly IScriptExtent? Extent;
 
-            public ReturnTypeInfo(string typeName, IScriptExtent extent)
+            public ReturnTypeInfo(string typeName, IScriptExtent? extent)
             {
                 TypeName = typeName;
                 Extent = extent;

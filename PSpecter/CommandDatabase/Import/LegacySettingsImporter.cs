@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,12 +30,12 @@ namespace PSpecter.CommandDatabase.Import
             foreach (string filePath in Directory.GetFiles(settingsDirectory, "*.json"))
             {
                 string fileName = Path.GetFileNameWithoutExtension(filePath);
-                if (!TryParsePlatformFromFileName(fileName, out string edition, out string version, out string os))
+                if (!TryParsePlatformFromFileName(fileName, out string? edition, out string? version, out string? os))
                 {
                     continue;
                 }
 
-                var platform = new PlatformInfo(edition, version, os);
+                var platform = new PlatformInfo(edition!, version!, os!);
                 string json = File.ReadAllText(filePath);
                 var commands = ParseJson(json);
                 writer.ImportCommands(commands, platform);
@@ -68,9 +66,9 @@ namespace PSpecter.CommandDatabase.Import
 
             var result = new List<CommandMetadata>();
 
-            foreach (Module module in root.Modules)
+            foreach (Module module in root!.Modules)
             {
-                string moduleName = module.Name;
+                string? moduleName = module.Name;
 
                 if (module.ExportedCommands is not null)
                 {
@@ -121,7 +119,7 @@ namespace PSpecter.CommandDatabase.Import
         /// <summary>
         /// Parses a filename like "core-6.1.0-windows" into platform components.
         /// </summary>
-        internal static bool TryParsePlatformFromFileName(string fileName, out string edition, out string version, out string os)
+        internal static bool TryParsePlatformFromFileName(string fileName, out string? edition, out string? version, out string? os)
         {
             edition = null;
             version = null;

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -27,19 +25,19 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            if (fileName is null || !AstExtensions.IsModuleManifest(fileName))
+            if (scriptPath is null || !AstExtensions.IsModuleManifest(scriptPath))
             {
                 yield break;
             }
 
-            HashtableAst hashtable = ast
+            HashtableAst? hashtable = ast
                 .FindAll(node => node is HashtableAst, searchNestedScriptBlocks: false)
                 .OfType<HashtableAst>()
                 .FirstOrDefault();
@@ -61,7 +59,7 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string fieldName = null;
+                string? fieldName = null;
                 foreach (string exportField in s_exportFields)
                 {
                     if (string.Equals(keyAst.Value, exportField, StringComparison.OrdinalIgnoreCase))
@@ -167,9 +165,9 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private static bool ContainsWildcard(string value)
+        private static bool ContainsWildcard(string? value)
         {
-            return value.IndexOfAny(new[] { '*', '?' }) >= 0;
+            return value is not null && value.IndexOfAny(new[] { '*', '?' }) >= 0;
         }
 
         private static bool HasModuleVersion(HashtableAst hashtable)

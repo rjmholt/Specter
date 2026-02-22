@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -23,7 +21,7 @@ namespace PSpecter.Builtin.Rules
             _commandDb = commandDb;
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -33,7 +31,7 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
-                string commandName = cmdAst.GetCommandName();
+                string? commandName = cmdAst.GetCommandName();
 
                 if (commandName is null)
                 {
@@ -50,12 +48,12 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                if (!_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata meta))
+                if (!_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata? meta) || meta is null)
                 {
                     continue;
                 }
 
-                if (!string.Equals(meta.CommandType, "Cmdlet", StringComparison.OrdinalIgnoreCase)
+                if (!string.Equals(meta!.CommandType, "Cmdlet", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(meta.CommandType, "Function", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
@@ -97,7 +95,7 @@ namespace PSpecter.Builtin.Rules
                 foreach (ParameterSetInfo setInfo in param.ParameterSets)
                 {
                     string setName = setInfo.SetName ?? "__AllParameterSets";
-                    if (!paramSetMandatories.TryGetValue(setName, out List<string> mandatoryList))
+                    if (!paramSetMandatories.TryGetValue(setName, out List<string>? mandatoryList))
                     {
                         mandatoryList = new List<string>();
                         paramSetMandatories[setName] = mandatoryList;

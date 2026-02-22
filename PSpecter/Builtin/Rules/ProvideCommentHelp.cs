@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -35,14 +33,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            HashSet<string> exportedFunctions = Configuration.ExportedOnly
+            HashSet<string>? exportedFunctions = Configuration.ExportedOnly
                 ? GetExportedFunctionNames(ast)
                 : null;
 
@@ -82,7 +80,7 @@ namespace PSpecter.Builtin.Rules
 
         private static bool IsInsideTypeDefinition(Ast ast)
         {
-            Ast parent = ast.Parent;
+            Ast? parent = ast.Parent;
             while (parent is not null)
             {
                 if (parent is TypeDefinitionAst)
@@ -130,8 +128,8 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: false))
             {
                 var cmdAst = (CommandAst)node;
-                string commandName = cmdAst.GetCommandName();
-                if (!string.Equals(commandName, "Export-ModuleMember", StringComparison.OrdinalIgnoreCase))
+                string? commandName = cmdAst.GetCommandName();
+                if (commandName is null || !string.Equals(commandName, "Export-ModuleMember", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -303,28 +301,28 @@ namespace PSpecter.Builtin.Rules
             {
                 IScriptExtent bodyExtent = funcAst.Body.Extent;
                 return new MissingModuleManifestField.ScriptExtent(
-                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File, bodyExtent.StartLineNumber, bodyExtent.StartColumnNumber),
-                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File, bodyExtent.StartLineNumber, bodyExtent.StartColumnNumber + 1));
+                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File!, bodyExtent.StartLineNumber, bodyExtent.StartColumnNumber),
+                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File!, bodyExtent.StartLineNumber, bodyExtent.StartColumnNumber + 1));
             }
 
             if (string.Equals(placement, "end", StringComparison.OrdinalIgnoreCase))
             {
                 IScriptExtent bodyExtent = funcAst.Body.Extent;
                 return new MissingModuleManifestField.ScriptExtent(
-                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File, bodyExtent.EndLineNumber, bodyExtent.EndColumnNumber - 1),
-                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File, bodyExtent.EndLineNumber, bodyExtent.EndColumnNumber - 1));
+                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File!, bodyExtent.EndLineNumber, bodyExtent.EndColumnNumber - 1),
+                    new MissingModuleManifestField.ScriptPosition(bodyExtent.File!, bodyExtent.EndLineNumber, bodyExtent.EndColumnNumber - 1));
             }
 
             return new MissingModuleManifestField.ScriptExtent(
-                new MissingModuleManifestField.ScriptPosition(funcAst.Extent.File, funcAst.Extent.StartLineNumber, funcAst.Extent.StartColumnNumber),
-                new MissingModuleManifestField.ScriptPosition(funcAst.Extent.File, funcAst.Extent.StartLineNumber, funcAst.Extent.StartColumnNumber));
+                new MissingModuleManifestField.ScriptPosition(funcAst.Extent.File!, funcAst.Extent.StartLineNumber, funcAst.Extent.StartColumnNumber),
+                new MissingModuleManifestField.ScriptPosition(funcAst.Extent.File!, funcAst.Extent.StartLineNumber, funcAst.Extent.StartColumnNumber));
         }
 
         private static IReadOnlyList<string> GetParameters(FunctionDefinitionAst funcAst)
         {
             var result = new List<string>();
 
-            IReadOnlyList<ParameterAst> parameters = null;
+            IReadOnlyList<ParameterAst>? parameters = null;
             if (funcAst.Parameters is not null && funcAst.Parameters.Count > 0)
             {
                 parameters = funcAst.Parameters;

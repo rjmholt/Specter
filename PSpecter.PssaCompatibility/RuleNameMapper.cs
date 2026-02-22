@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Text.RegularExpressions;
 
@@ -16,11 +14,11 @@ namespace PSpecter.PssaCompatibility
         /// "PSAvoidFoo" -> "PS/AvoidFoo"
         /// If the name already contains "/", it's assumed to be in engine format.
         /// </summary>
-        public static string ToEngineFullName(string pssaRuleName)
+        public static string ToEngineFullName(string? pssaRuleName)
         {
             if (string.IsNullOrEmpty(pssaRuleName))
             {
-                return pssaRuleName;
+                return pssaRuleName!;
             }
 
             if (pssaRuleName.Contains("/"))
@@ -49,11 +47,11 @@ namespace PSpecter.PssaCompatibility
         /// Converts an engine full name to PSSA-style rule name.
         /// "PS/AvoidFoo" -> "PSAvoidFoo"
         /// </summary>
-        public static string ToPssaRuleName(string engineFullName)
+        public static string ToPssaRuleName(string? engineFullName)
         {
             if (string.IsNullOrEmpty(engineFullName))
             {
-                return engineFullName;
+                return engineFullName!;
             }
 
             int slashIndex = engineFullName.IndexOf('/');
@@ -69,11 +67,11 @@ namespace PSpecter.PssaCompatibility
         /// Converts an engine short name to PSSA-style rule name.
         /// "AvoidFoo" -> "PSAvoidFoo"
         /// </summary>
-        public static string ToPssaName(string engineShortName)
+        public static string ToPssaName(string? engineShortName)
         {
             if (string.IsNullOrEmpty(engineShortName))
             {
-                return engineShortName;
+                return engineShortName!;
             }
 
             if (engineShortName.StartsWith("PS", StringComparison.OrdinalIgnoreCase))

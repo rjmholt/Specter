@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -27,7 +25,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -143,7 +141,7 @@ namespace PSpecter.Builtin.Rules
         private static Dictionary<string, int> GetVariableCount(
             Ast ast,
             HashSet<string> traverseCommands,
-            Dictionary<string, int> data = null)
+            Dictionary<string, int>? data = null)
         {
             var content = data ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 

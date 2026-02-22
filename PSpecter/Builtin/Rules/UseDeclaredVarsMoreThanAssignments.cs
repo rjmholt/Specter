@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -34,7 +32,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         /// <param name="ast">The script's ast</param>
         /// <param name="fileName">The script's file name</param>
         /// <returns>A List of results from this rule</returns>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             var scriptBlockAsts = ast.FindAll(x => x is ScriptBlockAst, true);
 
@@ -46,7 +44,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             foreach (var scriptBlockAst in scriptBlockAsts)
             {
                 var sbAst = scriptBlockAst as ScriptBlockAst;
-                foreach (var diagnosticRecord in AnalyzeScriptBlockAst(sbAst, fileName))
+                foreach (var diagnosticRecord in AnalyzeScriptBlockAst(sbAst!, scriptPath))
                 {
                     yield return diagnosticRecord;
                 }
@@ -59,11 +57,11 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         /// <param name="scriptBlockAst">Ast of type ScriptBlock</param>
         /// <param name="fileName">Name of file containing the ast</param>
         /// <returns>An enumerable containing diagnostic records</returns>
-        private IEnumerable<ScriptDiagnostic> AnalyzeScriptBlockAst(ScriptBlockAst scriptBlockAst, string fileName)
+        private IEnumerable<ScriptDiagnostic> AnalyzeScriptBlockAst(ScriptBlockAst scriptBlockAst, string? fileName)
         {
             IEnumerable<Ast> assignmentAsts = scriptBlockAst.FindAll(testAst => testAst is AssignmentStatementAst, false);
             IEnumerable<Ast> varAsts = scriptBlockAst.FindAll(testAst => testAst is VariableExpressionAst, true);
-            IEnumerable<Ast> varsInAssignment;
+            IEnumerable<Ast>? varsInAssignment = null;
 
             Dictionary<string, AssignmentStatementAst> assignmentsDictionary_OrdinalIgnoreCase = new Dictionary<string, AssignmentStatementAst>(StringComparer.OrdinalIgnoreCase);
 
@@ -78,7 +76,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             foreach (AssignmentStatementAst assignmentAst in assignmentAsts)
             {
                 // Only checks for the case where lhs is a variable. Ignore things like $foo.property
-                VariableExpressionAst assignmentVarAst = assignmentAst.Left as VariableExpressionAst;
+                VariableExpressionAst? assignmentVarAst = assignmentAst.Left as VariableExpressionAst;
 
                 if (assignmentVarAst == null)
                 {

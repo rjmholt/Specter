@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,10 +26,10 @@ namespace PSpecter.PssaCompatibility.Commands
     [OutputType(typeof(DiagnosticRecord))]
     public class InvokeScriptAnalyzerCommand : PSCmdlet
     {
-        private ScriptAnalyzer _scriptAnalyzer;
-        private string[] _effectiveIncludeRules;
-        private string[] _effectiveExcludeRules;
-        private string[] _effectiveSeverity;
+        private ScriptAnalyzer? _scriptAnalyzer;
+        private string[]? _effectiveIncludeRules;
+        private string[]? _effectiveExcludeRules;
+        private string[]? _effectiveSeverity;
 
         [Parameter(
             Position = 0,
@@ -41,7 +39,7 @@ namespace PSpecter.PssaCompatibility.Commands
             ValueFromPipelineByPropertyName = true)]
         [ValidateNotNull]
         [Alias("PSPath")]
-        public string Path { get; set; }
+        public string Path { get; set; } = string.Empty;
 
         [Parameter(
             Position = 0,
@@ -50,23 +48,23 @@ namespace PSpecter.PssaCompatibility.Commands
             ValueFromPipeline = true,
             ValueFromPipelineByPropertyName = true)]
         [ValidateNotNull]
-        public string ScriptDefinition { get; set; }
+        public string ScriptDefinition { get; set; } = string.Empty;
 
         [Parameter]
         [ValidateNotNull]
-        public string[] IncludeRule { get; set; }
+        public string[]? IncludeRule { get; set; }
 
         [Parameter]
         [ValidateNotNull]
-        public string[] ExcludeRule { get; set; }
+        public string[]? ExcludeRule { get; set; }
 
         [ValidateSet("Warning", "Error", "Information", "ParseError", IgnoreCase = true)]
         [Parameter]
-        public string[] Severity { get; set; }
+        public string[]? Severity { get; set; }
 
         [Parameter]
         [ValidateNotNull]
-        public object Settings { get; set; }
+        public object? Settings { get; set; }
 
         [Parameter]
         public SwitchParameter Recurse { get; set; }
@@ -90,13 +88,18 @@ namespace PSpecter.PssaCompatibility.Commands
 
         protected override void ProcessRecord()
         {
+            if (_scriptAnalyzer is null)
+            {
+                return;
+            }
+
             IReadOnlyCollection<ScriptDiagnostic> diagnostics;
 
             try
             {
                 if (ParameterSetName == "File")
                 {
-                    string resolvedPath = ResolvePath(Path);
+                    string? resolvedPath = ResolvePath(Path);
                     if (resolvedPath == null)
                     {
                         return;
@@ -122,7 +125,7 @@ namespace PSpecter.PssaCompatibility.Commands
                 return;
             }
 
-            HashSet<string> severityFilter = BuildSeverityFilter();
+            HashSet<string>? severityFilter = BuildSeverityFilter();
 
             foreach (ScriptDiagnostic diagnostic in diagnostics)
             {
@@ -147,7 +150,7 @@ namespace PSpecter.PssaCompatibility.Commands
             }
         }
 
-        private string ResolvePath(string inputPath)
+        private string? ResolvePath(string inputPath)
         {
             try
             {
@@ -205,7 +208,7 @@ namespace PSpecter.PssaCompatibility.Commands
             return false;
         }
 
-        private HashSet<string> BuildSeverityFilter()
+        private HashSet<string>? BuildSeverityFilter()
         {
             if (_effectiveSeverity is null || _effectiveSeverity.Length == 0)
             {
@@ -215,9 +218,9 @@ namespace PSpecter.PssaCompatibility.Commands
             return new HashSet<string>(_effectiveSeverity, StringComparer.OrdinalIgnoreCase);
         }
 
-        private Settings ResolveSettings()
+        private Settings? ResolveSettings()
         {
-            object settingsInput = Settings;
+            object? settingsInput = Settings;
 
             if (settingsInput is PSObject psObj)
             {
@@ -226,8 +229,7 @@ namespace PSpecter.PssaCompatibility.Commands
 
             if (settingsInput == null)
             {
-                // Auto-discover PSScriptAnalyzerSettings.psd1 from target path or CWD
-                string searchPath = ParameterSetName == "File" ? Path : SessionState.Path.CurrentFileSystemLocation.Path;
+                string? searchPath = ParameterSetName == "File" ? Path : SessionState.Path.CurrentFileSystemLocation.Path;
                 if (searchPath != null)
                 {
                     var directory = searchPath.TrimEnd(System.IO.Path.DirectorySeparatorChar);
@@ -236,7 +238,7 @@ namespace PSpecter.PssaCompatibility.Commands
                         directory = System.IO.Path.GetDirectoryName(directory);
                     }
 
-                    if (Directory.Exists(directory))
+                    if (directory is not null && Directory.Exists(directory))
                     {
                         var autoSettingsPath = System.IO.Path.Combine(directory, "PSScriptAnalyzerSettings.psd1");
                         if (File.Exists(autoSettingsPath))
@@ -253,7 +255,6 @@ namespace PSpecter.PssaCompatibility.Commands
                 return null;
             }
 
-            // Resolve relative file paths
             if (settingsInput is string settingsPath)
             {
                 try
@@ -266,7 +267,6 @@ namespace PSpecter.PssaCompatibility.Commands
                 }
                 catch
                 {
-                    // If resolution fails, keep the original path and let Settings handle the error
                 }
             }
 
@@ -287,23 +287,22 @@ namespace PSpecter.PssaCompatibility.Commands
 
         private ScriptAnalyzer BuildAnalyzer()
         {
-            // Start with default rule configurations
             var configDict = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in Default.RuleConfiguration)
             {
-                configDict[kvp.Key] = kvp.Value;
+                if (kvp.Value is not null)
+                {
+                    configDict[kvp.Key] = kvp.Value;
+                }
             }
 
-            // Parse settings and merge
-            Settings parsedSettings = ResolveSettings();
+            Settings? parsedSettings = ResolveSettings();
             if (parsedSettings != null)
             {
-                // Settings values serve as defaults; explicit cmdlet parameters override
                 _effectiveIncludeRules = IncludeRule ?? parsedSettings.IncludeRules?.ToArray();
                 _effectiveExcludeRules = ExcludeRule ?? parsedSettings.ExcludeRules?.ToArray();
                 _effectiveSeverity = Severity ?? parsedSettings.Severities?.ToArray();
 
-                // Apply rule arguments from settings to configuration objects
                 if (parsedSettings.RuleArguments != null && parsedSettings.RuleArguments.Count > 0)
                 {
                     ApplyRuleArguments(configDict, parsedSettings.RuleArguments);
@@ -316,9 +315,7 @@ namespace PSpecter.PssaCompatibility.Commands
                 _effectiveSeverity = Severity;
             }
 
-            // Set the default database path from the module location so the
-            // BuiltinCommandDatabase can find it even when the assembly is loaded in-memory
-            string moduleBase = MyInvocation?.MyCommand?.Module?.ModuleBase;
+            string? moduleBase = MyInvocation?.MyCommand?.Module?.ModuleBase;
             if (moduleBase is not null)
             {
                 string dbPath = System.IO.Path.Combine(moduleBase, "Data", "pspecter.db");
@@ -339,7 +336,6 @@ namespace PSpecter.PssaCompatibility.Commands
             Dictionary<string, IRuleConfiguration> configDict,
             Dictionary<string, Dictionary<string, object>> ruleArguments)
         {
-            // Build a mapping from PSSA rule name -> (engine config key, config type)
             var ruleConfigMap = BuildRuleConfigMap();
             var allRuleNameMap = BuildAllRuleNameMap();
 
@@ -350,15 +346,15 @@ namespace PSpecter.PssaCompatibility.Commands
 
                 if (ruleConfigMap.TryGetValue(pssaRuleName, out var ruleMapping))
                 {
-                    IRuleConfiguration config = CreateConfigFromArguments(ruleMapping.ConfigType, args);
+                    IRuleConfiguration? config = CreateConfigFromArguments(ruleMapping.ConfigType, args);
                     if (config != null)
                     {
                         configDict[ruleMapping.EngineConfigKey] = config;
                     }
                 }
-                else if (allRuleNameMap.TryGetValue(pssaRuleName, out string engineKey))
+                else if (allRuleNameMap.TryGetValue(pssaRuleName, out string? engineKey))
                 {
-                    if (args.TryGetValue("Enable", out object enableVal))
+                    if (args.TryGetValue("Enable", out object? enableVal))
                     {
                         bool enabled = Convert.ToBoolean(enableVal);
                         configDict[engineKey] = new CommonConfiguration(enabled);
@@ -367,11 +363,15 @@ namespace PSpecter.PssaCompatibility.Commands
             }
         }
 
-        private static IRuleConfiguration CreateConfigFromArguments(Type configType, Dictionary<string, object> args)
+        private static IRuleConfiguration? CreateConfigFromArguments(Type configType, Dictionary<string, object> args)
         {
             try
             {
-                object config = Activator.CreateInstance(configType);
+                object? config = Activator.CreateInstance(configType);
+                if (config is null)
+                {
+                    return null;
+                }
 
                 bool hasExplicitEnable = false;
                 bool hasNonEnableSettings = false;
@@ -405,7 +405,7 @@ namespace PSpecter.PssaCompatibility.Commands
                         continue;
                     }
 
-                    object convertedValue = ConvertSettingsValue(arg.Value, prop.PropertyType);
+                    object? convertedValue = ConvertSettingsValue(arg.Value, prop.PropertyType);
                     if (convertedValue != null || !prop.PropertyType.IsValueType)
                     {
                         prop.SetValue(config, convertedValue);
@@ -413,8 +413,6 @@ namespace PSpecter.PssaCompatibility.Commands
                     }
                 }
 
-                // PSSA behavior: if settings are configured for a rule (beyond just Enable),
-                // implicitly enable it unless explicitly disabled
                 if (hasNonEnableSettings && !hasExplicitEnable)
                 {
                     if (config is IEditorConfiguration editorCfg)
@@ -435,7 +433,7 @@ namespace PSpecter.PssaCompatibility.Commands
             }
         }
 
-        private static object ConvertSettingsValue(object value, Type targetType)
+        private static object? ConvertSettingsValue(object? value, Type targetType)
         {
             if (value == null)
             {
@@ -447,7 +445,6 @@ namespace PSpecter.PssaCompatibility.Commands
                 return value;
             }
 
-            // object[] -> IReadOnlyCollection<string>, string[], List<string>, etc.
             if (value is object[] objArray)
             {
                 if (targetType == typeof(IReadOnlyCollection<string>)
@@ -464,7 +461,6 @@ namespace PSpecter.PssaCompatibility.Commands
                 }
             }
 
-            // string[] -> IReadOnlyCollection<string>
             if (value is string[] strArray)
             {
                 if (typeof(IEnumerable<string>).IsAssignableFrom(targetType))
@@ -473,13 +469,11 @@ namespace PSpecter.PssaCompatibility.Commands
                 }
             }
 
-            // single string -> string[] (PowerShell may pass a scalar for a single-element array)
             if (value is string singleStr && targetType == typeof(string[]))
             {
                 return new[] { singleStr };
             }
 
-            // Scalar conversions
             try
             {
                 return Convert.ChangeType(value, targetType);
@@ -502,7 +496,7 @@ namespace PSpecter.PssaCompatibility.Commands
 
             foreach (Type ruleType in BuiltinRules.DefaultRules)
             {
-                if (!RuleInfo.TryGetFromRuleType(ruleType, out RuleInfo ruleInfo))
+                if (!RuleInfo.TryGetFromRuleType(ruleType, out RuleInfo? ruleInfo) || ruleInfo is null)
                 {
                     continue;
                 }
@@ -520,12 +514,12 @@ namespace PSpecter.PssaCompatibility.Commands
 
             foreach (Type ruleType in BuiltinRules.DefaultRules)
             {
-                if (!RuleInfo.TryGetFromRuleType(ruleType, out RuleInfo ruleInfo))
+                if (!RuleInfo.TryGetFromRuleType(ruleType, out RuleInfo? ruleInfo) || ruleInfo is null)
                 {
                     continue;
                 }
 
-                Type configType = FindConfigurationType(ruleType);
+                Type? configType = FindConfigurationType(ruleType);
                 if (configType == null)
                 {
                     continue;
@@ -542,7 +536,7 @@ namespace PSpecter.PssaCompatibility.Commands
             return map;
         }
 
-        private static Type FindConfigurationType(Type ruleType)
+        private static Type? FindConfigurationType(Type ruleType)
         {
             foreach (Type iface in ruleType.GetInterfaces())
             {

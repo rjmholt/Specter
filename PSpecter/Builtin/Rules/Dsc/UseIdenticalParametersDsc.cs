@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,12 +16,12 @@ namespace PSpecter.Builtin.Rules.Dsc
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             IReadOnlyList<FunctionDefinitionAst> dscFuncs = DscResourceHelper.GetDscResourceFunctions(ast);
 
-            FunctionDefinitionAst setFunc = null;
-            FunctionDefinitionAst testFunc = null;
+            FunctionDefinitionAst? setFunc = null;
+            FunctionDefinitionAst? testFunc = null;
 
             foreach (FunctionDefinitionAst func in dscFuncs)
             {
@@ -63,7 +61,8 @@ namespace PSpecter.Builtin.Rules.Dsc
             {
                 string paramName = testParam.Name.VariablePath.UserPath;
 
-                if (!setParamDict.TryGetValue(paramName, out ParameterAst setParam)
+                if (!setParamDict.TryGetValue(paramName, out ParameterAst? setParam)
+                    || setParam is null
                     || !CompareParameters(setParam, testParam))
                 {
                     yield return CreateDiagnostic(

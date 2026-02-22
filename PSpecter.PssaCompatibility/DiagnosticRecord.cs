@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 using EngineDiagnostic = PSpecter.ScriptDiagnostic;
@@ -15,7 +13,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
     {
         public string Message { get; }
 
-        public IScriptExtent Extent { get; }
+        public IScriptExtent? Extent { get; }
 
         public string RuleName { get; }
 
@@ -33,20 +31,20 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
         public string ScriptPath { get; }
 
-        public string RuleSuppressionID { get; set; }
+        public string? RuleSuppressionID { get; set; }
 
-        public IReadOnlyList<CorrectionExtent> SuggestedCorrections { get; }
+        public IReadOnlyList<CorrectionExtent>? SuggestedCorrections { get; }
 
         public bool IsSuppressed { get; }
 
         public DiagnosticRecord(
-            string message,
-            IScriptExtent extent,
-            string ruleName,
+            string? message,
+            IScriptExtent? extent,
+            string? ruleName,
             DiagnosticSeverity severity,
-            string scriptPath,
-            string ruleId = null,
-            IReadOnlyList<CorrectionExtent> suggestedCorrections = null)
+            string? scriptPath,
+            string? ruleId = null,
+            IReadOnlyList<CorrectionExtent>? suggestedCorrections = null)
         {
             Message = message ?? string.Empty;
             Extent = extent;
@@ -63,9 +61,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
         {
             string ruleName = MapRuleName(diagnostic);
             DiagnosticSeverity severity = MapSeverity(diagnostic.Severity);
-            string scriptPath = diagnostic.ScriptExtent?.File;
+            string? scriptPath = diagnostic.ScriptExtent?.File;
 
-            IReadOnlyList<CorrectionExtent> corrections = null;
+            IReadOnlyList<CorrectionExtent>? corrections = null;
             if (diagnostic.Corrections is { Count: > 0 })
             {
                 var list = new List<CorrectionExtent>(diagnostic.Corrections.Count);

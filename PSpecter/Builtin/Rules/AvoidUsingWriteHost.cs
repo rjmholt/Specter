@@ -17,14 +17,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            var visitor = new WriteHostVisitor(this, fileName);
+            var visitor = new WriteHostVisitor(this, scriptPath);
             ast.Visit(visitor);
             return visitor.Diagnostics;
         }
@@ -32,13 +32,13 @@ namespace PSpecter.Builtin.Rules
         private class WriteHostVisitor : AstVisitor
         {
             private readonly AvoidUsingWriteHost _rule;
-            private readonly string _fileName;
+            private readonly string? _scriptPath;
             private readonly List<ScriptDiagnostic> _diagnostics = new List<ScriptDiagnostic>();
 
-            public WriteHostVisitor(AvoidUsingWriteHost rule, string fileName)
+            public WriteHostVisitor(AvoidUsingWriteHost rule, string? scriptPath)
             {
                 _rule = rule;
-                _fileName = fileName;
+                _scriptPath = scriptPath;
             }
 
             public IReadOnlyList<ScriptDiagnostic> Diagnostics => _diagnostics;
@@ -58,9 +58,9 @@ namespace PSpecter.Builtin.Rules
                 string commandName = cmdAst.GetCommandName();
                 if (string.Equals(commandName, "Write-Host", StringComparison.OrdinalIgnoreCase))
                 {
-                    string message = string.IsNullOrWhiteSpace(_fileName)
+                    string message = string.IsNullOrWhiteSpace(_scriptPath)
                         ? Strings.AvoidUsingWriteHostErrorScriptDefinition
-                        : string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWriteHostError, System.IO.Path.GetFileName(_fileName));
+                        : string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWriteHostError, System.IO.Path.GetFileName(_scriptPath));
 
                     _diagnostics.Add(_rule.CreateDiagnostic(message, cmdAst));
                 }
@@ -77,7 +77,7 @@ namespace PSpecter.Builtin.Rules
                     string message = string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.AvoidUsingConsoleWriteError,
-                        string.IsNullOrWhiteSpace(_fileName) ? "Script definition" : System.IO.Path.GetFileName(_fileName),
+                        string.IsNullOrWhiteSpace(_scriptPath) ? "Script definition" : System.IO.Path.GetFileName(_scriptPath),
                         imeAst.Member.Extent.Text);
 
                     _diagnostics.Add(_rule.CreateDiagnostic(message, imeAst));

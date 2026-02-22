@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation;
@@ -20,11 +18,11 @@ namespace PSpecter.PssaCompatibility.Commands
     {
         [Parameter(Position = 0)]
         [ValidateNotNull]
-        public string[] Name { get; set; }
+        public string[]? Name { get; set; }
 
         [ValidateSet("Warning", "Error", "Information", "ParseError", IgnoreCase = true)]
         [Parameter]
-        public string[] Severity { get; set; }
+        public string[]? Severity { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -34,7 +32,7 @@ namespace PSpecter.PssaCompatibility.Commands
                 .AddBuiltinRules()
                 .Build();
 
-            HashSet<string> severityFilter = null;
+            HashSet<string>? severityFilter = null;
             if (Severity is { Length: > 0 })
             {
                 severityFilter = new HashSet<string>(Severity, StringComparer.OrdinalIgnoreCase);
@@ -97,7 +95,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
         {
             RuleName = pssaRuleName;
             CommonName = ruleInfo.Name;
-            Description = ruleInfo.Description;
+            Description = ruleInfo.Description ?? string.Empty;
             SourceType = ruleInfo.Source.ToString();
             Severity = severity;
         }

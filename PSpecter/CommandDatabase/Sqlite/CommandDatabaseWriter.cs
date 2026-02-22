@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
@@ -78,7 +76,7 @@ namespace PSpecter.CommandDatabase.Sqlite
 
             foreach (CommandMetadata meta in commands)
             {
-                long moduleId = EnsureModule(meta.ModuleName, moduleVersion: null);
+                long moduleId = EnsureModule(meta.ModuleName ?? string.Empty, moduleVersion: null);
 
                 long commandId = ExecuteUpsertCommand(upsertCommand, moduleId, meta.Name, meta.CommandType, meta.DefaultParameterSet);
                 ExecuteLink(linkCommandPlat, commandId, platformId);
@@ -152,12 +150,12 @@ namespace PSpecter.CommandDatabase.Sqlite
             cmd.Parameters.AddWithValue("@v", version);
             cmd.Parameters.AddWithValue("@o", os);
 
-            long id = (long)cmd.ExecuteScalar();
+            long id = (long)(cmd.ExecuteScalar() ?? throw new InvalidOperationException("Expected platform ID from INSERT"));
             _platformCache[key] = id;
             return id;
         }
 
-        private long EnsureModule(string name, string moduleVersion)
+        private long EnsureModule(string name, string? moduleVersion)
         {
             string normName = name ?? string.Empty;
             string normVersion = moduleVersion ?? string.Empty;
@@ -178,7 +176,7 @@ namespace PSpecter.CommandDatabase.Sqlite
             cmd.Parameters.AddWithValue("@n", normName);
             cmd.Parameters.AddWithValue("@v", normVersion);
 
-            long id = (long)cmd.ExecuteScalar();
+            long id = (long)(cmd.ExecuteScalar() ?? throw new InvalidOperationException("Expected module ID from INSERT"));
             _moduleCache[key] = id;
             return id;
         }
@@ -314,13 +312,13 @@ namespace PSpecter.CommandDatabase.Sqlite
 
         // ---------- Prepared statement executors ----------
 
-        private static long ExecuteUpsertCommand(SqliteCommand prepared, long moduleId, string name, string commandType, string defaultParameterSet)
+        private static long ExecuteUpsertCommand(SqliteCommand prepared, long moduleId, string name, string commandType, string? defaultParameterSet)
         {
             prepared.Parameters["@mid"].Value = moduleId;
             prepared.Parameters["@n"].Value = name;
-            prepared.Parameters["@ct"].Value = (object)commandType ?? "Cmdlet";
-            prepared.Parameters["@dps"].Value = (object)defaultParameterSet ?? DBNull.Value;
-            return (long)prepared.ExecuteScalar();
+            prepared.Parameters["@ct"].Value = commandType ?? (object)"Cmdlet";
+            prepared.Parameters["@dps"].Value = defaultParameterSet ?? (object)DBNull.Value;
+            return (long)(prepared.ExecuteScalar() ?? throw new InvalidOperationException("Expected command ID from upsert"));
         }
 
         private static void ExecuteLink(SqliteCommand prepared, long id1, long id2)
@@ -330,20 +328,20 @@ namespace PSpecter.CommandDatabase.Sqlite
             prepared.ExecuteNonQuery();
         }
 
-        private static long ExecuteUpsertParameter(SqliteCommand prepared, long commandId, string name, string type, bool isDynamic)
+        private static long ExecuteUpsertParameter(SqliteCommand prepared, long commandId, string name, string? type, bool isDynamic)
         {
             prepared.Parameters["@cid"].Value = commandId;
             prepared.Parameters["@n"].Value = name;
-            prepared.Parameters["@t"].Value = (object)type ?? DBNull.Value;
+            prepared.Parameters["@t"].Value = type ?? (object)DBNull.Value;
             prepared.Parameters["@d"].Value = isDynamic ? 1 : 0;
-            return (long)prepared.ExecuteScalar();
+            return (long)(prepared.ExecuteScalar() ?? throw new InvalidOperationException("Expected parameter ID from upsert"));
         }
 
         private static void ExecuteUpsertPsm(SqliteCommand prepared, long parameterId, ParameterSetInfo psi)
         {
             prepared.Parameters["@pid"].Value = parameterId;
             prepared.Parameters["@sn"].Value = psi.SetName;
-            prepared.Parameters["@pos"].Value = (object)psi.Position ?? DBNull.Value;
+            prepared.Parameters["@pos"].Value = psi.Position ?? (object)DBNull.Value;
             prepared.Parameters["@m"].Value = psi.IsMandatory ? 1 : 0;
             prepared.Parameters["@vfp"].Value = psi.ValueFromPipeline ? 1 : 0;
             prepared.Parameters["@vfpbn"].Value = psi.ValueFromPipelineByPropertyName ? 1 : 0;
@@ -354,13 +352,13 @@ namespace PSpecter.CommandDatabase.Sqlite
         {
             prepared.Parameters["@n"].Value = aliasName;
             prepared.Parameters["@cid"].Value = commandId;
-            return (long)prepared.ExecuteScalar();
+            return (long)(prepared.ExecuteScalar() ?? throw new InvalidOperationException("Expected alias ID from upsert"));
         }
 
-        private static void ExecuteUpsertOutputType(SqliteCommand prepared, long commandId, string typeName)
+        private static void ExecuteUpsertOutputType(SqliteCommand prepared, long commandId, string? typeName)
         {
             prepared.Parameters["@cid"].Value = commandId;
-            prepared.Parameters["@t"].Value = typeName;
+            prepared.Parameters["@t"].Value = typeName ?? (object)DBNull.Value;
             prepared.ExecuteNonQuery();
         }
     }

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -31,7 +29,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -51,8 +49,8 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string noun = GetLastWordInCmdlet(funcAst.Name);
-                if (noun == null)
+                string? noun = GetLastWordInCmdlet(funcAst.Name);
+                if (noun is null)
                 {
                     continue;
                 }
@@ -81,7 +79,7 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private static string GetLastWordInCmdlet(string cmdletName)
+        private static string? GetLastWordInCmdlet(string? cmdletName)
         {
             if (string.IsNullOrEmpty(cmdletName))
             {

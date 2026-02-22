@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -148,7 +146,7 @@ namespace PSpecter.CommandDatabase.Import
         private static CommandMetadata ConvertCommand(
             string commandName,
             string commandType,
-            CommandData data,
+            CommandData? data,
             string moduleName,
             Dictionary<string, List<string>> aliasLookup)
         {
@@ -212,7 +210,7 @@ namespace PSpecter.CommandDatabase.Import
                 }
             }
 
-            List<string> aliases = null;
+            List<string>? aliases = null;
             if (aliasLookup.TryGetValue(commandName, out var aliasList))
             {
                 aliases = aliasList;
@@ -229,7 +227,7 @@ namespace PSpecter.CommandDatabase.Import
                 outputTypes: data?.OutputType);
         }
 
-        private static PlatformInfo ExtractPlatform(ProfileRoot root)
+        private static PlatformInfo ExtractPlatform(ProfileRoot? root)
         {
             string edition = "Core";
             string version = "0.0.0";
@@ -242,7 +240,7 @@ namespace PSpecter.CommandDatabase.Import
                     edition = NormalizeEdition(root.Platform.PowerShell.Edition);
                     if (!string.IsNullOrEmpty(root.Platform.PowerShell.Version))
                     {
-                        version = root.Platform.PowerShell.Version;
+                        version = root.Platform.PowerShell.Version ?? "0.0.0";
                     }
                 }
 
@@ -255,7 +253,7 @@ namespace PSpecter.CommandDatabase.Import
             return new PlatformInfo(edition, version, os);
         }
 
-        private static string NormalizeEdition(string edition)
+        private static string NormalizeEdition(string? edition)
         {
             if (string.Equals(edition, "Core", StringComparison.OrdinalIgnoreCase))
             {
@@ -268,7 +266,7 @@ namespace PSpecter.CommandDatabase.Import
             return edition ?? "Core";
         }
 
-        private static string NormalizeOsFamily(string family)
+        private static string NormalizeOsFamily(string? family)
         {
             if (family is null)
             {

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +8,10 @@ namespace PSpecter.Builtin.Rules.Dsc
 {
     internal readonly struct OutputInfo
     {
-        public readonly string TypeName;
+        public readonly string? TypeName;
         public readonly IScriptExtent Extent;
 
-        public OutputInfo(string typeName, IScriptExtent extent)
+        public OutputInfo(string? typeName, IScriptExtent extent)
         {
             TypeName = typeName;
             Extent = extent;
@@ -32,7 +30,7 @@ namespace PSpecter.Builtin.Rules.Dsc
 
         internal static IReadOnlyList<OutputInfo> GetOutputs(
             FunctionDefinitionAst func,
-            IReadOnlyList<TypeDefinitionAst> classes = null)
+            IReadOnlyList<TypeDefinitionAst>? classes = null)
         {
             var assignments = BuildAssignmentMap(func, classes);
             var outputs = new List<OutputInfo>();
@@ -57,14 +55,14 @@ namespace PSpecter.Builtin.Rules.Dsc
                     continue;
                 }
 
-                string type = InferStatementType(ret.Pipeline, assignments, classes);
+                string? type = InferStatementType(ret.Pipeline, assignments, classes);
                 outputs.Add(new OutputInfo(type, ret.Pipeline.Extent));
             }
 
             return outputs;
         }
 
-        internal static bool ShouldSkipType(string typeName, string expectedType)
+        internal static bool ShouldSkipType(string? typeName, string expectedType)
         {
             return string.IsNullOrEmpty(typeName)
                    || s_skipTypes.Contains(typeName)
@@ -74,7 +72,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         private static void CollectOutputs(
             ScriptBlockAst body,
             Dictionary<string, string> assignments,
-            IReadOnlyList<TypeDefinitionAst> classes,
+            IReadOnlyList<TypeDefinitionAst>? classes,
             List<OutputInfo> outputs)
         {
             if (body.EndBlock is not null)
@@ -96,7 +94,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         private static void CollectFromStatementBlock(
             IReadOnlyList<StatementAst> statements,
             Dictionary<string, string> assignments,
-            IReadOnlyList<TypeDefinitionAst> classes,
+            IReadOnlyList<TypeDefinitionAst>? classes,
             List<OutputInfo> outputs)
         {
             foreach (StatementAst stmt in statements)
@@ -108,7 +106,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         private static void CollectFromStatement(
             StatementAst stmt,
             Dictionary<string, string> assignments,
-            IReadOnlyList<TypeDefinitionAst> classes,
+            IReadOnlyList<TypeDefinitionAst>? classes,
             List<OutputInfo> outputs)
         {
             switch (stmt)
@@ -120,7 +118,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                     ExpressionAst expr = pipeline.GetPureExpression();
                     if (expr is not null)
                     {
-                        string type = InferExpressionType(expr, assignments, classes);
+                        string? type = InferExpressionType(expr, assignments, classes);
                         outputs.Add(new OutputInfo(type, stmt.Extent));
                     }
                     break;
@@ -128,7 +126,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                 case ReturnStatementAst ret:
                     if (ret.Pipeline is not null)
                     {
-                        string retType = InferStatementType(ret.Pipeline, assignments, classes);
+                        string? retType = InferStatementType(ret.Pipeline, assignments, classes);
                         outputs.Add(new OutputInfo(retType, ret.Extent));
                     }
                     break;
@@ -200,10 +198,10 @@ namespace PSpecter.Builtin.Rules.Dsc
             }
         }
 
-        private static string InferStatementType(
+        private static string? InferStatementType(
             StatementAst stmt,
             Dictionary<string, string> assignments,
-            IReadOnlyList<TypeDefinitionAst> classes)
+            IReadOnlyList<TypeDefinitionAst>? classes)
         {
             if (stmt is PipelineAst pipeline)
             {
@@ -222,10 +220,10 @@ namespace PSpecter.Builtin.Rules.Dsc
             return null;
         }
 
-        internal static string InferExpressionType(
+        internal static string? InferExpressionType(
             ExpressionAst expr,
             Dictionary<string, string> assignments,
-            IReadOnlyList<TypeDefinitionAst> classes)
+            IReadOnlyList<TypeDefinitionAst>? classes)
         {
             switch (expr)
             {
@@ -237,7 +235,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                     return "System.String";
 
                 case ConstantExpressionAst constExpr:
-                    return constExpr.Value?.GetType().FullName;
+                    return constExpr.Value?.GetType()?.FullName;
 
                 case ArrayExpressionAst:
                 case ArrayLiteralAst:
@@ -275,7 +273,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                         return null;
                     }
                     if (assignments is not null
-                        && assignments.TryGetValue(varName, out string varType))
+                        && assignments.TryGetValue(varName, out string? varType))
                     {
                         return varType;
                     }
@@ -292,7 +290,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             }
         }
 
-        private static string InferBinaryExpressionType(BinaryExpressionAst binExpr)
+        private static string? InferBinaryExpressionType(BinaryExpressionAst binExpr)
         {
             switch (binExpr.Operator)
             {
@@ -331,7 +329,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             }
         }
 
-        private static string InferUnaryExpressionType(UnaryExpressionAst unaryExpr)
+        private static string? InferUnaryExpressionType(UnaryExpressionAst unaryExpr)
         {
             switch (unaryExpr.TokenKind)
             {
@@ -350,13 +348,13 @@ namespace PSpecter.Builtin.Rules.Dsc
             }
         }
 
-        private static string InferInvokeMemberType(
+        private static string? InferInvokeMemberType(
             InvokeMemberExpressionAst invokeMember,
-            IReadOnlyList<TypeDefinitionAst> classes)
+            IReadOnlyList<TypeDefinitionAst>? classes)
         {
             if (invokeMember.Expression is TypeExpressionAst typeExpr && invokeMember.Member is StringConstantExpressionAst methodName)
             {
-                return ResolveStaticMethodReturnType(typeExpr.TypeName, methodName.Value);
+                return ResolveStaticMethodReturnType(typeExpr.TypeName, methodName.Value!);
             }
 
             if (invokeMember.Expression is VariableExpressionAst varExpr
@@ -366,7 +364,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             {
                 foreach (TypeDefinitionAst cls in classes)
                 {
-                    FunctionMemberAst method = DscResourceHelper.FindClassMethod(cls, memberName.Value);
+                    FunctionMemberAst? method = DscResourceHelper.FindClassMethod(cls, memberName.Value!);
                     if (method is not null && method.ReturnType is not null)
                     {
                         return ResolveTypeName(method.ReturnType.TypeName);
@@ -377,18 +375,18 @@ namespace PSpecter.Builtin.Rules.Dsc
             return null;
         }
 
-        private static string InferMemberAccessType(
+        private static string? InferMemberAccessType(
             MemberExpressionAst memberExpr,
-            IReadOnlyList<TypeDefinitionAst> classes)
+            IReadOnlyList<TypeDefinitionAst>? classes)
         {
             return null;
         }
 
-        private static string ResolveStaticMethodReturnType(ITypeName typeName, string methodName)
+        private static string? ResolveStaticMethodReturnType(ITypeName typeName, string methodName)
         {
             try
             {
-                Type type = typeName.GetReflectionType();
+                Type? type = typeName.GetReflectionType();
                 if (type is null)
                 {
                     return null;
@@ -399,7 +397,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                 {
                     if (method.Name.Equals(methodName, StringComparison.OrdinalIgnoreCase))
                     {
-                        return method.ReturnType.FullName;
+                        return method.ReturnType.FullName!;
                     }
                 }
             }
@@ -411,14 +409,14 @@ namespace PSpecter.Builtin.Rules.Dsc
             return null;
         }
 
-        internal static string ResolveTypeName(ITypeName typeName)
+        internal static string? ResolveTypeName(ITypeName typeName)
         {
             try
             {
-                Type type = typeName.GetReflectionType();
+                Type? type = typeName.GetReflectionType();
                 if (type is not null)
                 {
-                    return type.FullName;
+                    return type.FullName!;
                 }
             }
             catch
@@ -426,12 +424,12 @@ namespace PSpecter.Builtin.Rules.Dsc
                 // Reflection failures are non-fatal
             }
 
-            return typeName.FullName;
+            return typeName.FullName!;
         }
 
         private static Dictionary<string, string> BuildAssignmentMap(
             FunctionDefinitionAst func,
-            IReadOnlyList<TypeDefinitionAst> classes)
+            IReadOnlyList<TypeDefinitionAst>? classes)
         {
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -447,7 +445,7 @@ namespace PSpecter.Builtin.Rules.Dsc
 
                 if (assignment.Right is StatementAst rightStmt)
                 {
-                    string type = InferStatementType(rightStmt, map, classes);
+                    string? type = InferStatementType(rightStmt, map, classes);
                     if (type is not null)
                     {
                         map[varName] = type;
@@ -478,7 +476,7 @@ namespace PSpecter.Builtin.Rules.Dsc
 
                 if (assignment.Right is StatementAst rightStmt)
                 {
-                    string type = InferStatementType(rightStmt, map, classes);
+                    string? type = InferStatementType(rightStmt, map, classes);
                     if (type is not null)
                     {
                         map[varName] = type;

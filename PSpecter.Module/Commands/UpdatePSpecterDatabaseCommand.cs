@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,26 +22,26 @@ namespace PSpecter.Module.Commands
     {
         [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty]
-        public string DatabasePath { get; set; }
+        public string? DatabasePath { get; set; }
 
         [Parameter(ParameterSetName = "Session")]
         public SwitchParameter FromSession { get; set; }
 
         [Parameter(ParameterSetName = "LegacyJson", Mandatory = true)]
         [ValidateNotNullOrEmpty]
-        public string LegacySettingsPath { get; set; }
+        public string LegacySettingsPath { get; set; } = null!;
 
         [Parameter(ParameterSetName = "CompatibilityProfile", Mandatory = true)]
         [ValidateNotNullOrEmpty]
-        public string CompatibilityProfilePath { get; set; }
+        public string CompatibilityProfilePath { get; set; } = null!;
 
         [Parameter(ParameterSetName = "Session")]
         [ValidateNotNullOrEmpty]
-        public string Edition { get; set; }
+        public string? Edition { get; set; }
 
         [Parameter(ParameterSetName = "Session")]
         [ValidateNotNullOrEmpty]
-        public string PlatformOS { get; set; }
+        public string? PlatformOS { get; set; }
 
         [Parameter(ParameterSetName = "Session")]
         public SwitchParameter IncludeNativeCommands { get; set; }
@@ -57,7 +55,7 @@ namespace PSpecter.Module.Commands
 
             SqliteNativeLibrary.EnsureLoaded();
 
-            string parentDir = Path.GetDirectoryName(dbPath);
+            string? parentDir = Path.GetDirectoryName(dbPath);
             if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
             {
                 Directory.CreateDirectory(parentDir);
@@ -123,7 +121,7 @@ namespace PSpecter.Module.Commands
             {
                 if (cmdObj.BaseObject is CommandInfo cmdInfo)
                 {
-                    PsCommandMetadata meta = ConvertCommandInfo(cmdInfo);
+                    PsCommandMetadata? meta = ConvertCommandInfo(cmdInfo);
                     if (meta is not null)
                     {
                         commands.Add(meta);
@@ -142,10 +140,10 @@ namespace PSpecter.Module.Commands
 
         private PsCommandMetadata ConvertCommandInfo(CommandInfo cmdInfo)
         {
-            string moduleName = string.IsNullOrEmpty(cmdInfo.ModuleName) ? null : cmdInfo.ModuleName;
+            string? moduleName = string.IsNullOrEmpty(cmdInfo.ModuleName) ? null : cmdInfo.ModuleName;
 
             string commandType = cmdInfo.CommandType.ToString();
-            string defaultParamSet = null;
+            string? defaultParamSet = null;
 
             if (cmdInfo is CmdletInfo cmdletInfo)
             {
@@ -188,7 +186,6 @@ namespace PSpecter.Module.Commands
             }
             catch (Exception) when (cmdInfo is not CmdletInfo && cmdInfo is not FunctionInfo)
             {
-                // ApplicationInfo and other command types may throw NotSupportedException
             }
             catch (RuntimeException)
             {
@@ -199,7 +196,7 @@ namespace PSpecter.Module.Commands
             {
                 foreach (var outputType in cmdInfo.OutputType)
                 {
-                    string typeName = outputType.Type?.FullName ?? outputType.Name;
+                    string? typeName = outputType.Type?.FullName ?? outputType.Name;
                     if (!string.IsNullOrWhiteSpace(typeName))
                     {
                         outputTypes.Add(typeName);
@@ -251,13 +248,13 @@ namespace PSpecter.Module.Commands
                     continue;
                 }
 
-                if (commandLookup.TryGetValue(targetName, out PsCommandMetadata existing))
+                if (commandLookup.TryGetValue(targetName, out PsCommandMetadata? existing))
                 {
                     existing.AddAlias(aliasInfo.Name);
                 }
                 else
                 {
-                    string moduleName = string.IsNullOrEmpty(aliasInfo.Module?.Name) ? null : aliasInfo.Module.Name;
+                    string? moduleName = string.IsNullOrEmpty(aliasInfo.Module?.Name) ? null : aliasInfo.Module!.Name;
                     var meta = new PsCommandMetadata(
                         name: targetName,
                         commandType: "Alias",
@@ -289,7 +286,7 @@ namespace PSpecter.Module.Commands
                 string fileName = Path.GetFileNameWithoutExtension(path);
 
                 if (!LegacySettingsImporter.TryParsePlatformFromFileName(
-                    fileName, out string edition, out string version, out string os))
+                    fileName, out string? edition, out string? version, out string? os))
                 {
                     WriteWarning($"Could not parse platform from filename '{fileName}'. Using defaults.");
                     edition = "Core";
@@ -297,7 +294,7 @@ namespace PSpecter.Module.Commands
                     os = "unknown";
                 }
 
-                var platform = new PlatformInfo(edition, version, os);
+                var platform = new PlatformInfo(edition!, version!, os!);
                 using var writer = CommandDatabaseWriter.Begin(connection);
                 LegacySettingsImporter.ImportJson(writer, json, platform);
                 writer.Commit();
@@ -346,7 +343,7 @@ namespace PSpecter.Module.Commands
                 return GetUnresolvedProviderPathFromPSPath(DatabasePath);
             }
 
-            string moduleBase = MyInvocation.MyCommand.Module?.ModuleBase;
+            string? moduleBase = MyInvocation.MyCommand.Module?.ModuleBase;
             if (moduleBase is not null)
             {
                 return Path.Combine(moduleBase, "Data", "pspecter.db");

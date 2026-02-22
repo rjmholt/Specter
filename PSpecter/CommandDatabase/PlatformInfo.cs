@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -23,7 +21,7 @@ namespace PSpecter.CommandDatabase
         /// <summary>Operating system: "windows", "macos", or "linux".</summary>
         public string OS { get; }
 
-        public bool Equals(PlatformInfo other)
+        public bool Equals(PlatformInfo? other)
         {
             if (other is null)
             {
@@ -34,7 +32,7 @@ namespace PSpecter.CommandDatabase
                 && string.Equals(OS, other.OS, StringComparison.OrdinalIgnoreCase);
         }
 
-        public override bool Equals(object obj) => Equals(obj as PlatformInfo);
+        public override bool Equals(object? obj) => Equals(obj as PlatformInfo);
 
         public override int GetHashCode()
         {

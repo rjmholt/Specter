@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,7 +21,7 @@ namespace PSpecter.Module.CommandDatabase
             {
                 aliasTargets[aliasInfo.Name] = aliasInfo.Definition;
 
-                if (commandAliases.TryGetValue(aliasInfo.Definition, out IReadOnlyList<string> aliases))
+                if (commandAliases.TryGetValue(aliasInfo.Definition, out IReadOnlyList<string>? aliases))
                 {
                     ((List<string>)aliases).Add(aliasInfo.Name);
                 }
@@ -42,13 +40,13 @@ namespace PSpecter.Module.CommandDatabase
 
         private readonly IReadOnlyDictionary<string, IReadOnlyList<string>> _commandAliases;
 
-        private readonly ConcurrentDictionary<string, IReadOnlyList<string>> _commandNames;
+        private readonly ConcurrentDictionary<string, IReadOnlyList<string>?> _commandNames;
 
         /// <summary>
         /// Lazily caches resolved commands so we only call GetCommand() once per name.
         /// A null value means we checked and the command doesn't exist.
         /// </summary>
-        private readonly ConcurrentDictionary<string, PsDb.CommandMetadata> _commandCache;
+        private readonly ConcurrentDictionary<string, PsDb.CommandMetadata?> _commandCache;
 
         private SessionStateCommandDatabase(
             CommandInvocationIntrinsics invokeCommand,
@@ -58,15 +56,14 @@ namespace PSpecter.Module.CommandDatabase
             _invokeCommand = invokeCommand;
             _aliasTargets = aliasTargets;
             _commandAliases = commandAliases;
-            _commandNames = new ConcurrentDictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
-            _commandCache = new ConcurrentDictionary<string, PsDb.CommandMetadata>(StringComparer.OrdinalIgnoreCase);
+            _commandNames = new ConcurrentDictionary<string, IReadOnlyList<string>?>(StringComparer.OrdinalIgnoreCase);
+            _commandCache = new ConcurrentDictionary<string, PsDb.CommandMetadata?>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out PsDb.CommandMetadata command)
+        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo>? platforms, out PsDb.CommandMetadata? command)
         {
             string resolved = GetAliasTarget(nameOrAlias) ?? nameOrAlias;
 
-            // Use a sentinel check: the cache stores null for commands that don't exist
             if (_commandCache.TryGetValue(resolved, out command))
             {
                 return command is not null;
@@ -77,9 +74,9 @@ namespace PSpecter.Module.CommandDatabase
             return command is not null;
         }
 
-        private PsDb.CommandMetadata ResolveCommand(string commandName)
+        private PsDb.CommandMetadata? ResolveCommand(string commandName)
         {
-            CommandInfo cmdInfo;
+            CommandInfo? cmdInfo;
             try
             {
                 cmdInfo = _invokeCommand.GetCommand(commandName, ResolvableCommandTypes);
@@ -103,12 +100,11 @@ namespace PSpecter.Module.CommandDatabase
                         kvp.Key,
                         kvp.Value.ParameterType?.FullName,
                         isDynamic: kvp.Value.IsDynamic,
-                        parameterSets: System.Array.Empty<PsDb.ParameterSetInfo>()));
+                        parameterSets: Array.Empty<PsDb.ParameterSetInfo>()));
                 }
             }
             catch
             {
-                // Some commands may throw when accessing Parameters
             }
 
             return new PsDb.CommandMetadata(
@@ -116,15 +112,15 @@ namespace PSpecter.Module.CommandDatabase
                 cmdInfo.CommandType.ToString(),
                 cmdInfo.ModuleName ?? string.Empty,
                 defaultParameterSet: null,
-                parameterSetNames: System.Array.Empty<string>(),
-                aliases: System.Array.Empty<string>(),
+                parameterSetNames: Array.Empty<string>(),
+                aliases: Array.Empty<string>(),
                 parameters: parameters,
-                outputTypes: System.Array.Empty<string>());
+                outputTypes: Array.Empty<string>());
         }
 
-        public string GetAliasTarget(string alias)
+        public string? GetAliasTarget(string alias)
         {
-            if (_aliasTargets.TryGetValue(alias, out string target))
+            if (_aliasTargets.TryGetValue(alias, out string? target))
             {
                 return target;
             }
@@ -132,9 +128,9 @@ namespace PSpecter.Module.CommandDatabase
             return null;
         }
 
-        public IReadOnlyList<string> GetCommandAliases(string command)
+        public IReadOnlyList<string>? GetCommandAliases(string command)
         {
-            if (_commandAliases.TryGetValue(command, out IReadOnlyList<string> aliases))
+            if (_commandAliases.TryGetValue(command, out IReadOnlyList<string>? aliases))
             {
                 return aliases;
             }
@@ -142,26 +138,26 @@ namespace PSpecter.Module.CommandDatabase
             return null;
         }
 
-        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo>? platforms)
         {
             return TryGetCommand(nameOrAlias, platforms, out _);
         }
 
-        public IReadOnlyList<string> GetAllNamesForCommand(string command)
+        public IReadOnlyList<string>? GetAllNamesForCommand(string command)
         {
             return _commandNames.GetOrAdd(command, GenerateCommandNameList);
         }
 
-        private IReadOnlyList<string> GenerateCommandNameList(string command)
+        private IReadOnlyList<string>? GenerateCommandNameList(string command)
         {
             var names = new List<string>();
 
-            if (_commandAliases.TryGetValue(command, out IReadOnlyList<string> aliases))
+            if (_commandAliases.TryGetValue(command, out IReadOnlyList<string>? aliases))
             {
                 names.AddRange(aliases);
             }
 
-            if (_aliasTargets.TryGetValue(command, out string target))
+            if (_aliasTargets.TryGetValue(command, out string? target))
             {
                 names.Add(target);
             }

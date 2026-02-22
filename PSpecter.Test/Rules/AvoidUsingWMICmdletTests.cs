@@ -30,7 +30,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, oneViolation.Severity);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);
@@ -46,7 +46,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);
@@ -61,7 +61,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);
@@ -76,7 +76,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);
@@ -91,7 +91,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);
@@ -189,7 +189,7 @@ Register-WMIEvent -Class Win32_ProcessStartTrace";
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             Assert.Equal(3, violations.Count);
-            Assert.All(violations, v => Assert.Equal("AvoidUsingWMICmdlet", v.Rule.Name));
+            Assert.All(violations, v => Assert.Equal("AvoidUsingWMICmdlet", v.Rule!.Name));
         }
 
         [Fact]
@@ -214,7 +214,7 @@ Get-WmiObject -Class Win32_ComputerSystem";
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(3, oneViolation.ScriptExtent.StartLineNumber);
         }
 
@@ -252,7 +252,7 @@ Set-Variable";
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingWMICmdlet", oneViolation.Rule!.Name);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);
             Assert.Equal(35, oneViolation.ScriptExtent.EndColumnNumber);

@@ -61,8 +61,8 @@ public sealed class GrpcAnalysisService : PSpecterAnalysis.PSpecterAnalysisBase
         {
             var grpcDiag = new Diagnostic
             {
-                RuleName = diag.Rule.Name,
-                RuleId = diag.Rule.FullName,
+                RuleName = diag.Rule?.Name ?? string.Empty,
+                RuleId = diag.Rule?.FullName ?? string.Empty,
                 Severity = MapSeverity(diag.Severity),
                 Message = diag.Message,
             };

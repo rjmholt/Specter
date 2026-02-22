@@ -15,9 +15,9 @@ namespace PSpecter.Formatting
         private string _content;
         private Ast _ast;
         private IReadOnlyList<Token> _tokens;
-        private readonly string _filePath;
+        private readonly string? _filePath;
 
-        private ScriptFormatBuffer(string content, Ast ast, IReadOnlyList<Token> tokens, string filePath)
+        private ScriptFormatBuffer(string content, Ast ast, IReadOnlyList<Token> tokens, string? filePath)
         {
             _content = content;
             _ast = ast;
@@ -31,7 +31,7 @@ namespace PSpecter.Formatting
 
         public IReadOnlyList<Token> Tokens => _tokens;
 
-        public static ScriptFormatBuffer FromScript(string scriptContent, string filePath)
+        public static ScriptFormatBuffer FromScript(string scriptContent, string? filePath)
         {
             if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 

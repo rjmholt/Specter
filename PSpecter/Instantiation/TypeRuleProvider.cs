@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builder;
 using PSpecter.Configuration;
 using PSpecter.Rules;
@@ -45,7 +43,7 @@ namespace PSpecter.Instantiation
                 return;
             }
 
-            if (_scriptRuleFactories.TryGetValue(rule.RuleInfo, out TypeRuleFactory<ScriptRule> astRuleFactory))
+            if (_scriptRuleFactories.TryGetValue(rule.RuleInfo, out TypeRuleFactory<ScriptRule>? astRuleFactory))
             {
                 astRuleFactory.ReturnRuleInstance(scriptRule);
             }

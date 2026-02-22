@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -32,7 +30,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -77,7 +75,7 @@ namespace PSpecter.Builtin.Rules
 
             ExpressionAst left = binExpr.Left;
 
-            if (left.StaticType.IsArray)
+            if (left.StaticType?.IsArray == true)
             {
                 return true;
             }
@@ -92,7 +90,7 @@ namespace PSpecter.Builtin.Rules
                 // Without full type inference, a variable with StaticType == object
                 // could be anything including an array. Try a simple assignment lookup;
                 // if we can resolve to a concrete non-array/non-object type, skip it.
-                Type resolvedType = TryResolveVariableType(leftVar);
+                Type? resolvedType = TryResolveVariableType(leftVar);
                 if (resolvedType is null)
                 {
                     return true;
@@ -113,11 +111,11 @@ namespace PSpecter.Builtin.Rules
         /// and looks for a simple assignment to the variable. If found, returns the
         /// StaticType of the assigned expression.
         /// </summary>
-        private static Type TryResolveVariableType(VariableExpressionAst variable)
+        private static Type? TryResolveVariableType(VariableExpressionAst variable)
         {
-            string varName = variable.VariablePath.UserPath;
+            string? varName = variable.VariablePath.UserPath;
 
-            Ast scope = FindEnclosingScope(variable);
+            Ast? scope = FindEnclosingScope(variable);
             if (scope is null)
             {
                 return null;
@@ -132,7 +130,7 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                if (!string.Equals(target.VariablePath.UserPath, varName, StringComparison.OrdinalIgnoreCase))
+                if (varName is null || !string.Equals(target.VariablePath.UserPath, varName, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -143,10 +141,10 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                ExpressionAst rhs = (assignment.Right as PipelineBaseAst)?.GetPureExpression()
+                ExpressionAst? rhs = (assignment.Right as PipelineBaseAst)?.GetPureExpression()
                     ?? (assignment.Right as CommandExpressionAst)?.Expression;
 
-                if (rhs is not null && rhs.StaticType != typeof(object))
+                if (rhs is not null && rhs.StaticType is not null && rhs.StaticType != typeof(object))
                 {
                     return rhs.StaticType;
                 }
@@ -155,12 +153,12 @@ namespace PSpecter.Builtin.Rules
             return null;
         }
 
-        private static Ast FindEnclosingScope(Ast node)
+        private static Ast? FindEnclosingScope(Ast node)
         {
             for (Ast current = node.Parent; current is not null; current = current.Parent)
             {
                 if (current is FunctionDefinitionAst
-                    || current is ScriptBlockAst { Parent: null })
+                    || (current is ScriptBlockAst scriptBlock && scriptBlock.Parent is null))
                 {
                     return current;
                 }

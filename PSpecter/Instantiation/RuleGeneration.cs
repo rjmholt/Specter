@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builder;
 using PSpecter.Configuration;
 using PSpecter.Rules;
@@ -15,17 +13,18 @@ namespace PSpecter.Instantiation
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
             RuleComponentProvider ruleComponentProvider,
             Type type,
-            ref RuleInfo ruleInfo,
-            out TypeRuleFactory<ScriptRule> ruleFactory)
+            ref RuleInfo? ruleInfo,
+            out TypeRuleFactory<ScriptRule>? ruleFactory)
         {
             ruleFactory = null;
-            if (ruleInfo == null
+            if (ruleInfo is null
                 && !RuleInfo.TryGetFromRuleType(type, out ruleInfo))
             {
                 return false;
             }
 
-            return typeof(ScriptRule).IsAssignableFrom(type)
+            return ruleInfo is not null
+                && typeof(ScriptRule).IsAssignableFrom(type)
                 && TryGetRuleFactory(ruleInfo, type, ruleConfigurationCollection, ruleComponentProvider, out ruleFactory);
         }
 
@@ -34,7 +33,7 @@ namespace PSpecter.Instantiation
             Type ruleType,
             IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
             RuleComponentProvider ruleComponentProvider,
-            out TypeRuleFactory<TRuleBase> factory)
+            out TypeRuleFactory<TRuleBase>? factory)
         {
             ConstructorInfo[] ruleConstructors = ruleType.GetConstructors();
             if (ruleConstructors.Length != 1)
@@ -44,7 +43,7 @@ namespace PSpecter.Instantiation
             }
             ConstructorInfo ruleConstructor = ruleConstructors[0];
 
-            ruleConfigurationCollection.TryGetValue(ruleInfo.FullName, out IRuleConfiguration ruleConfiguration);
+            ruleConfigurationCollection.TryGetValue(ruleInfo.FullName, out IRuleConfiguration? ruleConfiguration);
             bool isEnabled = ruleConfiguration?.Common?.Enabled ?? true;
 
             if (ruleInfo.IsIdempotent)

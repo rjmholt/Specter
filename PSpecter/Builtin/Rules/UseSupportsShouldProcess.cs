@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -21,7 +19,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -31,8 +29,8 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
-                ParamBlockAst paramBlockAst;
-                ParameterAst[] parameters = GetParameterAsts(funcAst, out paramBlockAst);
+                ParamBlockAst? paramBlockAst;
+                ParameterAst[]? parameters = GetParameterAsts(funcAst, out paramBlockAst);
                 if (parameters == null || parameters.Length == 0)
                 {
                     continue;
@@ -63,7 +61,7 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private static ParameterAst[] GetParameterAsts(FunctionDefinitionAst funcAst, out ParamBlockAst paramBlockAst)
+        private static ParameterAst[]? GetParameterAsts(FunctionDefinitionAst funcAst, out ParamBlockAst? paramBlockAst)
         {
             if (funcAst.Parameters != null && funcAst.Parameters.Count > 0)
             {
@@ -98,7 +96,7 @@ namespace PSpecter.Builtin.Rules
             int whatIfIndex,
             int confirmIndex,
             ParameterAst[] parameters,
-            ParamBlockAst paramBlockAst,
+            ParamBlockAst? paramBlockAst,
             FunctionDefinitionAst funcAst,
             IReadOnlyList<Token> tokens)
         {
@@ -113,7 +111,7 @@ namespace PSpecter.Builtin.Rules
             }
             else
             {
-                CollectFunctionParameterEdits(edits, whatIfIndex, confirmIndex, parameters, funcAst, tokens, funcStartOffset);
+                CollectFunctionParameterEdits(edits, whatIfIndex, confirmIndex, parameters!, funcAst, tokens, funcStartOffset);
             }
 
             edits.Sort((a, b) => b.StartOffset.CompareTo(a.StartOffset));
@@ -166,18 +164,18 @@ namespace PSpecter.Builtin.Rules
                     && t.Extent.EndOffset <= funcAst.Extent.EndOffset)
                 .ToArray();
 
-            Token lParen = funcTokens.FirstOrDefault(t => t.Kind == TokenKind.LParen);
-            Token rParen = funcTokens.FirstOrDefault(t => t.Kind == TokenKind.RParen);
+            Token? lParen = funcTokens.FirstOrDefault(t => t.Kind == TokenKind.LParen);
+            Token? rParen = funcTokens.FirstOrDefault(t => t.Kind == TokenKind.RParen);
 
-            if (lParen == null || rParen == null)
+            if (lParen is null || rParen is null)
             {
                 return;
             }
 
-            Token nameToken = funcTokens.LastOrDefault(
+            Token? nameToken = funcTokens.LastOrDefault(
                 t => t.Extent.EndOffset <= lParen.Extent.StartOffset && t.Kind != TokenKind.NewLine);
 
-            int removeStart = nameToken != null
+            int removeStart = nameToken is not null
                 ? nameToken.Extent.EndOffset - funcStartOffset
                 : lParen.Extent.StartOffset - funcStartOffset;
 
@@ -220,7 +218,8 @@ namespace PSpecter.Builtin.Rules
             int funcStartOffset)
         {
             if (paramBlockAst.Attributes == null
-                || !AstTools.TryGetCmdletBindingAttributeAst(paramBlockAst.Attributes, out AttributeAst cmdletBindingAttr))
+                || !AstTools.TryGetCmdletBindingAttributeAst(paramBlockAst.Attributes, out AttributeAst? cmdletBindingAttr)
+                || cmdletBindingAttr is null)
             {
                 int paramBlockStart = paramBlockAst.Extent.StartOffset - funcStartOffset;
                 int lineStartOffset = paramBlockStart - (paramBlockAst.Extent.StartColumnNumber - 1);
@@ -230,9 +229,10 @@ namespace PSpecter.Builtin.Rules
                 return;
             }
 
-            if (AstTools.TryGetShouldProcessAttributeArgumentAst(paramBlockAst.Attributes, out NamedAttributeArgumentAst shouldProcessArg))
+            if (AstTools.TryGetShouldProcessAttributeArgumentAst(paramBlockAst.Attributes, out NamedAttributeArgumentAst? shouldProcessArg)
+                && shouldProcessArg is not null)
             {
-                object argValue = shouldProcessArg.GetValue();
+                object? argValue = shouldProcessArg.GetValue();
                 if (!AstTools.IsTrue(argValue))
                 {
                     if (!shouldProcessArg.ExpressionOmitted)
@@ -245,7 +245,7 @@ namespace PSpecter.Builtin.Rules
                 return;
             }
 
-            string attrText = cmdletBindingAttr.Extent.Text;
+            string attrText = cmdletBindingAttr!.Extent.Text;
             int openParenIdx = attrText.IndexOf('(');
             if (openParenIdx < 0)
             {

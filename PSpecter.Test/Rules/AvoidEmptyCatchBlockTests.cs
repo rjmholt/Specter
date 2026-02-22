@@ -34,7 +34,7 @@ catch {
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingEmptyCatchBlock", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingEmptyCatchBlock", oneViolation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, oneViolation.Severity);
             Assert.Equal(5, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.StartColumnNumber);

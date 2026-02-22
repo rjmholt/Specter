@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.Management.Automation.Language;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
@@ -15,9 +13,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
             int endLineNumber,
             int startColumnNumber,
             int endColumnNumber,
-            string text,
-            string file,
-            string description)
+            string? text,
+            string? file,
+            string? description)
         {
             StartLineNumber = startLineNumber;
             EndLineNumber = endLineNumber;
@@ -36,17 +34,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
         public int EndColumnNumber { get; }
 
-        public string Text { get; }
+        public string? Text { get; }
 
-        public string File { get; }
+        public string? File { get; }
 
-        public string Description { get; }
+        public string? Description { get; }
 
-        public override string ToString() => Text;
+        public override string ToString() => Text ?? string.Empty;
 
         internal static CorrectionExtent FromEngineCorrection(
             PSpecter.Correction correction,
-            string filePath)
+            string? filePath)
         {
             IScriptExtent extent = correction.Extent;
             return new CorrectionExtent(

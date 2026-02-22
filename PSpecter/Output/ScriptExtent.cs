@@ -1,6 +1,3 @@
-#nullable disable
-
-
 using System;
 using System.Management.Automation.Language;
 
@@ -8,7 +5,7 @@ namespace PSpecter
 {
     public class ScriptPosition : IScriptPosition
     {
-        public static ScriptPosition FromOffset(string scriptText, string scriptPath, int offset)
+        public static ScriptPosition FromOffset(string scriptText, string? scriptPath, int offset)
         {
             int currLine = 1;
             int lineStart = 0;
@@ -34,7 +31,7 @@ namespace PSpecter
             return new ScriptPosition(scriptText, scriptPath, lineText, offset, currLine, column);
         }
 
-        public static ScriptPosition FromPosition(string scriptText, string scriptPath, int line, int column)
+        public static ScriptPosition FromPosition(string scriptText, string? scriptPath, int line, int column)
         {
             int offset = 0;
             int currLine = 1;
@@ -60,11 +57,11 @@ namespace PSpecter
 
         private readonly string _scriptText;
 
-        public ScriptPosition(string scriptText, string scriptPath, string line, int offset, int lineNumber, int columnNumber)
+        public ScriptPosition(string scriptText, string? scriptPath, string? line, int offset, int lineNumber, int columnNumber)
         {
             _scriptText = scriptText;
             File = scriptPath;
-            Line = line;
+            Line = line ?? string.Empty;
             Offset = offset;
             LineNumber = lineNumber;
             ColumnNumber = columnNumber;
@@ -72,7 +69,7 @@ namespace PSpecter
 
         public int ColumnNumber { get; }
 
-        public string File { get; }
+        public string? File { get; }
 
         public string Line { get; }
 
@@ -85,7 +82,7 @@ namespace PSpecter
 
     public class ScriptExtent : IScriptExtent
     {
-        public static ScriptExtent FromOffsets(string scriptText, string scriptPath, int startOffset, int endOffset)
+        public static ScriptExtent FromOffsets(string scriptText, string? scriptPath, int startOffset, int endOffset)
         {
             return new ScriptExtent(
                 scriptText.Substring(startOffset, endOffset - startOffset),
@@ -93,7 +90,7 @@ namespace PSpecter
                 ScriptPosition.FromOffset(scriptText, scriptPath, endOffset));
         }
 
-        public static ScriptExtent FromPositions(string scriptText, string scriptPath, int startLine, int startColumn, int endLine, int endColumn)
+        public static ScriptExtent FromPositions(string scriptText, string? scriptPath, int startLine, int startColumn, int endLine, int endColumn)
         {
             var startPosition = ScriptPosition.FromPosition(scriptText, scriptPath, startLine, startColumn);
             var endPosition = ScriptPosition.FromPosition(scriptText, scriptPath, endLine, endColumn);
@@ -118,7 +115,7 @@ namespace PSpecter
 
         public IScriptPosition EndScriptPosition { get; }
 
-        public string File => StartScriptPosition.File;
+        public string? File => StartScriptPosition.File;
 
         public int StartColumnNumber => StartScriptPosition.ColumnNumber;
 

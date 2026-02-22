@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -32,7 +30,8 @@ namespace PSpecter.Internal
         /// </summary>
         public static Dictionary<TKey, TValue> CopyDictionary<TKey, TValue>(
             IReadOnlyDictionary<TKey, TValue> source,
-            IEqualityComparer<TKey> comparer = null)
+            IEqualityComparer<TKey>? comparer = null)
+            where TKey : notnull
         {
             var copy = comparer != null
                 ? new Dictionary<TKey, TValue>(source.Count, comparer)

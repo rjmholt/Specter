@@ -1,5 +1,3 @@
-#nullable disable
-
 using Xunit;
 using PSpecter.Utils;
 
@@ -149,9 +147,9 @@ namespace PSpecter.Test.Utils
         public void NullValuesCached()
         {
             var cache = new SegmentedLruCache<string, string>(capacity: 10);
-            cache.Set("key", null);
+            cache.Set("key", null!);
 
-            Assert.True(cache.TryGet("key", out string value));
+            Assert.True(cache.TryGet("key", out string? value));
             Assert.Null(value);
         }
     }

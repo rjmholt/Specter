@@ -1,5 +1,3 @@
-#nullable disable
-
 using CompatSeverity = Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticSeverity;
 using EngineSeverity = PSpecter.DiagnosticSeverity;
 

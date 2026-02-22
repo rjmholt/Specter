@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -28,7 +26,7 @@ namespace PSpecter.Formatting
         /// </summary>
         public static ScriptFormatter FromEditorConfigs(
             IReadOnlyDictionary<string, IEditorConfiguration> configs,
-            IReadOnlyDictionary<Type, object> services = null)
+            IReadOnlyDictionary<Type, object>? services = null)
         {
             if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
 
@@ -44,7 +42,7 @@ namespace PSpecter.Formatting
         public static ScriptFormatter FromEditorConfigs(
             IReadOnlyList<Type> editorTypes,
             IReadOnlyDictionary<string, IEditorConfiguration> configs,
-            IReadOnlyDictionary<Type, object> services = null)
+            IReadOnlyDictionary<Type, object>? services = null)
         {
             if (editorTypes is null) { throw new ArgumentNullException(nameof(editorTypes)); }
             if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
@@ -64,7 +62,7 @@ namespace PSpecter.Formatting
         /// <summary>
         /// Format a script string, returning the formatted result.
         /// </summary>
-        public string Format(string scriptContent, string filePath = null)
+        public string Format(string scriptContent, string? filePath = null)
         {
             if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
@@ -72,7 +70,7 @@ namespace PSpecter.Formatting
 
             foreach (IScriptEditor editor in _editors)
             {
-                var edits = editor.GetEdits(buffer.Content, buffer.Ast, buffer.Tokens, filePath);
+                var edits = editor.GetEdits(buffer.Content, buffer.Ast, buffer.Tokens, filePath ?? string.Empty);
                 buffer.ApplyEdits(edits);
             }
 
@@ -105,6 +103,7 @@ namespace PSpecter.Formatting
             /// </summary>
             public Builder AddService<T>(T instance)
             {
+                if (instance is null) { throw new ArgumentNullException(nameof(instance)); }
                 _services[typeof(T)] = instance;
                 return this;
             }
@@ -123,23 +122,23 @@ namespace PSpecter.Formatting
 
                 foreach (Type editorType in editorTypes)
                 {
-                    if (!EditorInfo.TryGetFromEditorType(editorType, out EditorInfo info))
+                    if (!EditorInfo.TryGetFromEditorType(editorType, out EditorInfo? info) || info is null)
                     {
                         continue;
                     }
 
-                    if (!configs.TryGetValue(info.Name, out IEditorConfiguration editorConfig))
+                    if (!configs.TryGetValue(info.Name, out IEditorConfiguration? editorConfig) || editorConfig is null)
                     {
                         continue;
                     }
 
-                    if (editorConfig.Common != null && !editorConfig.Common.Enabled)
+                    if (editorConfig.Common is not null && !editorConfig.Common.Enabled)
                     {
                         continue;
                     }
 
-                    IScriptEditor editor = CreateEditorInstance(editorType, editorConfig);
-                    if (editor != null)
+                    IScriptEditor? editor = CreateEditorInstance(editorType, editorConfig);
+                    if (editor is not null)
                     {
                         _editors.Add(editor);
                     }
@@ -172,12 +171,12 @@ namespace PSpecter.Formatting
                 return new ScriptFormatter(new List<IScriptEditor>(_editors));
             }
 
-            private IScriptEditor CreateEditorInstance(Type editorType, IEditorConfiguration config)
+            private IScriptEditor? CreateEditorInstance(Type editorType, IEditorConfiguration config)
             {
-                Type configType = EditorInfo.GetConfigurationType(editorType);
+                Type? configType = EditorInfo.GetConfigurationType(editorType);
 
                 // Try constructor with config + services
-                if (configType != null)
+                if (configType is not null)
                 {
                     foreach (ConstructorInfo ctor in editorType.GetConstructors())
                     {
@@ -187,7 +186,7 @@ namespace PSpecter.Formatting
                             continue;
                         }
 
-                        object[] args = TryResolveConstructorArgs(parameters, configType, config);
+                        object[]? args = TryResolveConstructorArgs(parameters, configType, config);
                         if (args is not null)
                         {
                             return (IScriptEditor)ctor.Invoke(args);
@@ -196,8 +195,8 @@ namespace PSpecter.Formatting
                 }
 
                 // Fall back to parameterless constructor
-                ConstructorInfo defaultCtor = editorType.GetConstructor(Type.EmptyTypes);
-                if (defaultCtor != null)
+                ConstructorInfo? defaultCtor = editorType.GetConstructor(Type.EmptyTypes);
+                if (defaultCtor is not null)
                 {
                     return (IScriptEditor)defaultCtor.Invoke(null);
                 }
@@ -205,7 +204,7 @@ namespace PSpecter.Formatting
                 return null;
             }
 
-            private object[] TryResolveConstructorArgs(
+            private object[]? TryResolveConstructorArgs(
                 ParameterInfo[] parameters,
                 Type configType,
                 IEditorConfiguration config)
@@ -218,7 +217,7 @@ namespace PSpecter.Formatting
                     {
                         args[i] = config;
                     }
-                    else if (_services.TryGetValue(paramType, out object service))
+                    else if (_services.TryGetValue(paramType, out object? service) && service is not null)
                     {
                         args[i] = service;
                     }

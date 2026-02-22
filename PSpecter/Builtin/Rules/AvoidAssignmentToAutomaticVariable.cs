@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -40,7 +38,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -59,7 +57,13 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                ScriptDiagnostic diagnostic = CheckVariable(variable.VariablePath.UserPath, variable.Extent, fileName);
+                string? userPath = variable.VariablePath.UserPath;
+                if (string.IsNullOrEmpty(userPath))
+                {
+                    continue;
+                }
+
+                ScriptDiagnostic? diagnostic = CheckVariable(userPath, variable.Extent, scriptPath);
                 if (diagnostic != null)
                 {
                     yield return diagnostic;
@@ -70,7 +74,13 @@ namespace PSpecter.Builtin.Rules
             {
                 var forEach = (ForEachStatementAst)node;
                 var variable = forEach.Variable;
-                ScriptDiagnostic diagnostic = CheckVariable(variable.VariablePath.UserPath, variable.Extent, fileName);
+                string? forEachUserPath = variable.VariablePath.UserPath;
+                if (string.IsNullOrEmpty(forEachUserPath))
+                {
+                    continue;
+                }
+
+                ScriptDiagnostic? diagnostic = CheckVariable(forEachUserPath, variable.Extent, scriptPath);
                 if (diagnostic != null)
                 {
                     yield return diagnostic;
@@ -94,7 +104,13 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                ScriptDiagnostic diagnostic = CheckVariable(variable.VariablePath.UserPath, variable.Extent, fileName);
+                string? paramUserPath = variable.VariablePath.UserPath;
+                if (string.IsNullOrEmpty(paramUserPath))
+                {
+                    continue;
+                }
+
+                ScriptDiagnostic? diagnostic = CheckVariable(paramUserPath, variable.Extent, scriptPath);
                 if (diagnostic != null)
                 {
                     yield return diagnostic;
@@ -102,10 +118,10 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private ScriptDiagnostic CheckVariable(string variableName, IScriptExtent extent, string fileName)
+        private ScriptDiagnostic? CheckVariable(string variableName, IScriptExtent extent, string? scriptPath)
         {
             string suppressionId = variableName;
-            ScriptDiagnostic diagnostic = null;
+            ScriptDiagnostic? diagnostic = null;
 
             if (s_readOnlyAutomaticVariables.Contains(variableName))
             {

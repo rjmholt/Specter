@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -35,7 +33,7 @@ namespace PSpecter.PssaCompatibility
         /// </summary>
         private static readonly Dictionary<string, Type> s_editorConfigTypes = BuildEditorConfigTypeMap();
 
-        public static bool TryGetPreset(string name, out IReadOnlyDictionary<string, IEditorConfiguration> configs)
+        public static bool TryGetPreset(string name, out IReadOnlyDictionary<string, IEditorConfiguration>? configs)
         {
             return s_presets.TryGetValue(name, out configs);
         }
@@ -69,12 +67,12 @@ namespace PSpecter.PssaCompatibility
                     continue;
                 }
 
-                if (!s_editorConfigTypes.TryGetValue(editorName, out Type configType))
+                if (!s_editorConfigTypes.TryGetValue(editorName, out Type? configType))
                 {
                     continue;
                 }
 
-                IEditorConfiguration editorConfig = CreateAndPopulateConfig(configType, pssaName, pssaArgs);
+                IEditorConfiguration? editorConfig = CreateAndPopulateConfig(configType, pssaName, pssaArgs);
                 if (editorConfig != null)
                 {
                     configs[editorName] = editorConfig;
@@ -84,10 +82,14 @@ namespace PSpecter.PssaCompatibility
             return configs;
         }
 
-        private static IEditorConfiguration CreateAndPopulateConfig(
+        private static IEditorConfiguration? CreateAndPopulateConfig(
             Type configType, string pssaRuleName, Dictionary<string, object> pssaArgs)
         {
-            var config = (IEditorConfiguration)Activator.CreateInstance(configType);
+            var config = (IEditorConfiguration?)Activator.CreateInstance(configType);
+            if (config is null)
+            {
+                return null;
+            }
 
             bool enabled = GetBool(pssaArgs, "Enable", true);
             config.Common.Enabled = enabled;
@@ -99,11 +101,10 @@ namespace PSpecter.PssaCompatibility
                     continue;
                 }
 
-                // Handle PSSA "Kind" -> engine "UseTabs" special case
                 if (string.Equals(pssaRuleName, "PSUseConsistentIndentation", StringComparison.OrdinalIgnoreCase)
                     && string.Equals(kvp.Key, "Kind", StringComparison.OrdinalIgnoreCase))
                 {
-                    PropertyInfo useTabsProp = configType.GetProperty("UseTabs");
+                    PropertyInfo? useTabsProp = configType.GetProperty("UseTabs");
                     if (useTabsProp != null)
                     {
                         bool useTabs = string.Equals(kvp.Value?.ToString(), "tab", StringComparison.OrdinalIgnoreCase);
@@ -112,16 +113,15 @@ namespace PSpecter.PssaCompatibility
                     continue;
                 }
 
-                // Map property name: try explicit mapping, then fall back to same name
                 EditorNameMapper.TryGetPropertyName(pssaRuleName, kvp.Key, out string enginePropName);
 
-                PropertyInfo prop = configType.GetProperty(enginePropName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                PropertyInfo? prop = configType.GetProperty(enginePropName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                 if (prop == null || !prop.CanWrite)
                 {
                     continue;
                 }
 
-                object value = ConvertValue(kvp.Value, prop.PropertyType);
+                object? value = ConvertValue(kvp.Value, prop.PropertyType);
                 if (value != null)
                 {
                     prop.SetValue(config, value);
@@ -131,7 +131,7 @@ namespace PSpecter.PssaCompatibility
             return config;
         }
 
-        private static object ConvertValue(object value, Type targetType)
+        private static object? ConvertValue(object? value, Type targetType)
         {
             if (value == null)
             {
@@ -175,7 +175,12 @@ namespace PSpecter.PssaCompatibility
 
             if (targetType.IsEnum)
             {
-                string strVal = value.ToString();
+                string? strVal = value.ToString();
+                if (strVal is null)
+                {
+                    return null;
+                }
+
                 try
                 {
                     return Enum.Parse(targetType, strVal, ignoreCase: true);
@@ -191,7 +196,7 @@ namespace PSpecter.PssaCompatibility
 
         private static bool GetBool(Dictionary<string, object> args, string key, bool defaultValue)
         {
-            if (!TryGetValue(args, key, out object val))
+            if (!TryGetValue(args, key, out object? val))
             {
                 return defaultValue;
             }
@@ -209,7 +214,7 @@ namespace PSpecter.PssaCompatibility
             return defaultValue;
         }
 
-        private static bool TryGetValue(Dictionary<string, object> args, string key, out object value)
+        private static bool TryGetValue(Dictionary<string, object> args, string key, out object? value)
         {
             foreach (var kvp in args)
             {
@@ -229,15 +234,15 @@ namespace PSpecter.PssaCompatibility
             var map = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
             foreach (Type editorType in BuiltinEditors.DefaultEditors)
             {
-                if (!EditorInfo.TryGetFromEditorType(editorType, out EditorInfo info))
+                if (!EditorInfo.TryGetFromEditorType(editorType, out EditorInfo? info))
                 {
                     continue;
                 }
 
-                Type configType = EditorInfo.GetConfigurationType(editorType);
+                Type? configType = EditorInfo.GetConfigurationType(editorType);
                 if (configType != null)
                 {
-                    map[info.Name] = configType;
+                    map[info!.Name] = configType;
                 }
             }
             return map;

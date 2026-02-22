@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -12,10 +10,10 @@ namespace PSpecter.Suppression
     {
         public RuleSuppression(
             string ruleName,
-            string ruleSuppressionId,
+            string? ruleSuppressionId,
             int startOffset,
             int endOffset,
-            string justification)
+            string? justification)
         {
             RuleName = ruleName;
             RuleSuppressionId = ruleSuppressionId;
@@ -26,13 +24,13 @@ namespace PSpecter.Suppression
 
         public string RuleName { get; }
 
-        public string RuleSuppressionId { get; }
+        public string? RuleSuppressionId { get; }
 
         public int StartOffset { get; }
 
         public int EndOffset { get; }
 
-        public string Justification { get; }
+        public string? Justification { get; }
     }
 
     public static class SuppressionParser
@@ -62,23 +60,23 @@ namespace PSpecter.Suppression
                     continue;
                 }
 
-                string category = GetStringValue(attrAst.PositionalArguments[0]);
+                string? category = GetStringValue(attrAst.PositionalArguments[0]);
                 if (category is null)
                 {
                     continue;
                 }
 
-                string ruleSuppressionId = attrAst.PositionalArguments.Count >= 2
+                string? ruleSuppressionId = attrAst.PositionalArguments.Count >= 2
                     ? GetStringValue(attrAst.PositionalArguments[1])
                     : null;
 
-                string justification = GetNamedArgumentValue(attrAst, "Justification");
+                string? justification = GetNamedArgumentValue(attrAst, "Justification");
 
-                Ast scopeAst = GetSuppressionScope(attrAst);
-                int startOffset = scopeAst?.Extent.StartOffset ?? 0;
-                int endOffset = scopeAst?.Extent.EndOffset ?? int.MaxValue;
+                Ast? scopeAst = GetSuppressionScope(attrAst);
+                int startOffset = scopeAst?.Extent?.StartOffset ?? 0;
+                int endOffset = scopeAst?.Extent?.EndOffset ?? int.MaxValue;
 
-                string[] ruleNames = ParseRuleNames(category);
+                string[] ruleNames = ParseRuleNames(category!);
                 foreach (string ruleName in ruleNames)
                 {
                     var suppression = new RuleSuppression(
@@ -88,7 +86,7 @@ namespace PSpecter.Suppression
                         endOffset,
                         justification);
 
-                    if (!suppressions.TryGetValue(ruleName, out List<RuleSuppression> list))
+                    if (!suppressions.TryGetValue(ruleName, out List<RuleSuppression>? list))
                     {
                         list = new List<RuleSuppression>();
                         suppressions[ruleName] = list;
@@ -111,7 +109,7 @@ namespace PSpecter.Suppression
                 || string.Equals(typeName, "Diagnostics.CodeAnalysis.SuppressMessage", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string GetStringValue(ExpressionAst expr)
+        private static string? GetStringValue(ExpressionAst expr)
         {
             if (expr is StringConstantExpressionAst strConst)
             {
@@ -121,7 +119,7 @@ namespace PSpecter.Suppression
             return null;
         }
 
-        private static string GetNamedArgumentValue(AttributeAst attr, string argumentName)
+        private static string? GetNamedArgumentValue(AttributeAst attr, string argumentName)
         {
             foreach (NamedAttributeArgumentAst namedArg in attr.NamedArguments)
             {
@@ -137,9 +135,9 @@ namespace PSpecter.Suppression
             return null;
         }
 
-        private static Ast GetSuppressionScope(AttributeAst attrAst)
+        private static Ast? GetSuppressionScope(AttributeAst attrAst)
         {
-            Ast parent = attrAst.Parent;
+            Ast? parent = attrAst.Parent;
 
             if (parent is ParamBlockAst paramBlock)
             {
@@ -169,9 +167,9 @@ namespace PSpecter.Suppression
             return null;
         }
 
-        private static Ast GetContainingScope(Ast ast)
+        private static Ast? GetContainingScope(Ast ast)
         {
-            Ast parent = ast.Parent;
+            Ast? parent = ast.Parent;
             while (parent is not null)
             {
                 if (parent is FunctionDefinitionAst || parent is ScriptBlockAst)
@@ -240,17 +238,22 @@ namespace PSpecter.Suppression
             ScriptDiagnostic diagnostic,
             Dictionary<string, List<RuleSuppression>> suppressions)
         {
+            if (diagnostic.Rule is null)
+            {
+                return false;
+            }
+
             string fullName = diagnostic.Rule.FullName;
             string shortName = diagnostic.Rule.Name;
 
-            List<RuleSuppression> matchingSuppressions = null;
+            List<RuleSuppression>? matchingSuppressions = null;
 
-            if (suppressions.TryGetValue(fullName, out List<RuleSuppression> fullList))
+            if (suppressions.TryGetValue(fullName, out List<RuleSuppression>? fullList))
             {
                 matchingSuppressions = fullList;
             }
 
-            if (suppressions.TryGetValue(shortName, out List<RuleSuppression> shortList))
+            if (suppressions.TryGetValue(shortName, out List<RuleSuppression>? shortList))
             {
                 if (matchingSuppressions is null)
                 {
@@ -264,7 +267,7 @@ namespace PSpecter.Suppression
             }
 
             string pssaName = "PS" + shortName;
-            if (suppressions.TryGetValue(pssaName, out List<RuleSuppression> pssaList))
+            if (suppressions.TryGetValue(pssaName, out List<RuleSuppression>? pssaList))
             {
                 if (matchingSuppressions is null)
                 {

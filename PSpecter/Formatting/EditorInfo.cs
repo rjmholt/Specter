@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -11,9 +9,9 @@ namespace PSpecter.Formatting
     /// </summary>
     public sealed class EditorInfo
     {
-        private static readonly ConcurrentDictionary<Type, EditorInfo> s_cache = new ConcurrentDictionary<Type, EditorInfo>();
+        private static readonly ConcurrentDictionary<Type, EditorInfo?> s_cache = new ConcurrentDictionary<Type, EditorInfo?>();
 
-        private EditorInfo(string name, string description)
+        private EditorInfo(string name, string? description)
         {
             Name = name;
             Description = description;
@@ -21,12 +19,12 @@ namespace PSpecter.Formatting
 
         public string Name { get; }
 
-        public string Description { get; }
+        public string? Description { get; }
 
         /// <summary>
         /// Attempts to read <see cref="EditorAttribute"/> from the given type and build an <see cref="EditorInfo"/>.
         /// </summary>
-        public static bool TryGetFromEditorType(Type editorType, out EditorInfo editorInfo)
+        public static bool TryGetFromEditorType(Type editorType, out EditorInfo? editorInfo)
         {
             if (s_cache.TryGetValue(editorType, out editorInfo))
             {
@@ -34,7 +32,7 @@ namespace PSpecter.Formatting
             }
 
             var attr = editorType.GetCustomAttribute<EditorAttribute>();
-            if (attr == null)
+            if (attr is null)
             {
                 s_cache.TryAdd(editorType, null);
                 editorInfo = null;
@@ -50,7 +48,7 @@ namespace PSpecter.Formatting
         /// Gets the <see cref="IEditorConfiguration"/> type for an editor that implements
         /// <see cref="IConfigurableEditor{T}"/>, or null if the editor is not configurable.
         /// </summary>
-        public static Type GetConfigurationType(Type editorType)
+        public static Type? GetConfigurationType(Type editorType)
         {
             foreach (Type iface in editorType.GetInterfaces())
             {

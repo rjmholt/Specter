@@ -22,6 +22,6 @@ namespace PSpecter.Formatting
             string scriptContent,
             Ast ast,
             IReadOnlyList<Token> tokens,
-            string filePath);
+            string? filePath);
     }
 }

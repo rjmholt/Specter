@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using PSpecter.Formatting;
@@ -12,7 +10,7 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void FromScript_ParsesContent()
         {
-            var buffer = ScriptFormatBuffer.FromScript("Get-Process", null);
+            var buffer = ScriptFormatBuffer.FromScript("Get-Process", null!);
 
             Assert.Equal("Get-Process", buffer.Content);
             Assert.NotNull(buffer.Ast);
@@ -23,7 +21,7 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void ApplyEdits_SingleEdit_ReplacesContent()
         {
-            var buffer = ScriptFormatBuffer.FromScript("Get-Process ", null);
+            var buffer = ScriptFormatBuffer.FromScript("Get-Process ", null!);
 
             bool applied = buffer.ApplyEdits(new[]
             {
@@ -37,7 +35,7 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void ApplyEdits_SingleEdit_UpdatesAst()
         {
-            var buffer = ScriptFormatBuffer.FromScript("Get-Process ", null);
+            var buffer = ScriptFormatBuffer.FromScript("Get-Process ", null!);
 
             buffer.ApplyEdits(new[] { new ScriptEdit(11, 12, string.Empty) });
 
@@ -48,7 +46,7 @@ namespace PSpecter.Test.Formatting
         public void ApplyEdits_MultipleNonOverlapping_AppliesAllCorrectly()
         {
             // "aa  bb  cc" -> "aa bb cc"
-            var buffer = ScriptFormatBuffer.FromScript("$aa  + $bb  + $cc", null);
+            var buffer = ScriptFormatBuffer.FromScript("$aa  + $bb  + $cc", null!);
 
             bool applied = buffer.ApplyEdits(new[]
             {
@@ -63,7 +61,7 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void ApplyEdits_EmptyList_ReturnsFalse()
         {
-            var buffer = ScriptFormatBuffer.FromScript("Get-Process", null);
+            var buffer = ScriptFormatBuffer.FromScript("Get-Process", null!);
 
             bool applied = buffer.ApplyEdits(new List<ScriptEdit>());
 
@@ -74,9 +72,9 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void ApplyEdits_Null_ReturnsFalse()
         {
-            var buffer = ScriptFormatBuffer.FromScript("Get-Process", null);
+            var buffer = ScriptFormatBuffer.FromScript("Get-Process", null!);
 
-            bool applied = buffer.ApplyEdits(null);
+            bool applied = buffer.ApplyEdits(null!);
 
             Assert.False(applied);
         }
@@ -84,7 +82,7 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void ApplyEdits_OverlappingEdits_Throws()
         {
-            var buffer = ScriptFormatBuffer.FromScript("$abcdefghij", null);
+            var buffer = ScriptFormatBuffer.FromScript("$abcdefghij", null!);
 
             Assert.Throws<InvalidOperationException>(() =>
             {
@@ -99,7 +97,7 @@ namespace PSpecter.Test.Formatting
         [Fact]
         public void ApplyEdits_InsertionAtSamePoint_DoesNotOverlap()
         {
-            var buffer = ScriptFormatBuffer.FromScript("$ab", null);
+            var buffer = ScriptFormatBuffer.FromScript("$ab", null!);
 
             // Two adjacent edits (not overlapping since one ends where the other starts)
             bool applied = buffer.ApplyEdits(new[]
@@ -116,7 +114,7 @@ namespace PSpecter.Test.Formatting
         public void RoundTrip_NoEdits_ContentUnchanged()
         {
             const string script = "function Test {\n    Get-Process\n}\n";
-            var buffer = ScriptFormatBuffer.FromScript(script, null);
+            var buffer = ScriptFormatBuffer.FromScript(script, null!);
 
             Assert.Equal(script, buffer.Content);
             Assert.Equal(script, buffer.ToString());

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -20,11 +18,11 @@ namespace PSpecter.Builtin.Editors
     [Editor("UseCorrectCasing", Description = "Normalizes casing for PowerShell keywords, operators, commands, and parameters")]
     public sealed class UseCorrectCasingEditor : IScriptEditor, IConfigurableEditor<UseCorrectCasingEditorConfiguration>
     {
-        private readonly IPowerShellCommandDatabase _commandDb;
+        private readonly IPowerShellCommandDatabase? _commandDb;
 
         public UseCorrectCasingEditor(
             UseCorrectCasingEditorConfiguration configuration,
-            IPowerShellCommandDatabase commandDb)
+            IPowerShellCommandDatabase? commandDb)
         {
             Configuration = configuration ?? new UseCorrectCasingEditorConfiguration();
             _commandDb = commandDb;
@@ -41,7 +39,7 @@ namespace PSpecter.Builtin.Editors
             string scriptContent,
             Ast ast,
             IReadOnlyList<Token> tokens,
-            string filePath)
+            string? filePath)
         {
             if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
@@ -71,6 +69,7 @@ namespace PSpecter.Builtin.Editors
 
         private void AddCommandCasingEdits(Ast ast, List<ScriptEdit> edits)
         {
+            var db = _commandDb!; // Caller ensures _commandDb is not null
             foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
@@ -87,9 +86,14 @@ namespace PSpecter.Builtin.Editors
                     continue;
                 }
 
+                if (cmdAst.CommandElements.Count == 0)
+                {
+                    continue;
+                }
+
                 CommandElementAst nameElement = cmdAst.CommandElements[0];
 
-                string canonicalName = ResolveCanonicalName(commandName);
+                string? canonicalName = ResolveCanonicalName(commandName);
                 if (canonicalName is not null && canonicalName != nameElement.Extent.Text)
                 {
                     string replacement = canonicalName;
@@ -101,7 +105,8 @@ namespace PSpecter.Builtin.Editors
                         replacement = modulePrefix + canonicalName;
 
                         // Also try to correct the module prefix casing
-                        if (_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata cmd)
+                        if (db.TryGetCommand(commandName, platforms: null, out CommandMetadata? cmd)
+                            && cmd is not null
                             && cmd.ModuleName is not null)
                         {
                             string originalModule = nameElement.Extent.Text.Substring(0, slashIndex);
@@ -119,13 +124,13 @@ namespace PSpecter.Builtin.Editors
                         replacement));
                 }
 
-                AddParameterCasingEdits(cmdAst, commandName, edits);
+                AddParameterCasingEdits(cmdAst, commandName, edits, db);
             }
         }
 
-        private void AddParameterCasingEdits(CommandAst cmdAst, string commandName, List<ScriptEdit> edits)
+        private void AddParameterCasingEdits(CommandAst cmdAst, string commandName, List<ScriptEdit> edits, IPowerShellCommandDatabase db)
         {
-            if (!_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata cmd))
+            if (!db.TryGetCommand(commandName, platforms: null, out CommandMetadata? cmd) || cmd is null)
             {
                 return;
             }
@@ -142,8 +147,13 @@ namespace PSpecter.Builtin.Editors
                     continue;
                 }
 
-                string paramName = paramAst.ParameterName;
-                string canonical = FindCanonicalParameterName(cmd, paramName);
+                string? paramName = paramAst.ParameterName;
+                if (paramName is null)
+                {
+                    continue;
+                }
+
+                string? canonical = FindCanonicalParameterName(cmd, paramName);
                 if (canonical is not null && canonical != paramName)
                 {
                     int dashOffset = paramAst.Extent.StartOffset;
@@ -156,13 +166,14 @@ namespace PSpecter.Builtin.Editors
             }
         }
 
-        private string ResolveCanonicalName(string commandName)
+        private string? ResolveCanonicalName(string commandName)
         {
+            var db = _commandDb!; // Caller ensures _commandDb is not null
             // First check if it's an alias, so we preserve the alias form with canonical casing
-            string aliasTarget = _commandDb.GetAliasTarget(commandName);
+            string? aliasTarget = db.GetAliasTarget(commandName);
             if (aliasTarget is not null)
             {
-                IReadOnlyList<string> aliases = _commandDb.GetCommandAliases(aliasTarget);
+                IReadOnlyList<string>? aliases = db.GetCommandAliases(aliasTarget);
                 if (aliases is not null)
                 {
                     foreach (string alias in aliases)
@@ -177,7 +188,7 @@ namespace PSpecter.Builtin.Editors
             }
 
             // Check if it's a canonical command name
-            if (_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata cmd))
+            if (db.TryGetCommand(commandName, platforms: null, out CommandMetadata? cmd) && cmd is not null)
             {
                 return cmd.Name;
             }
@@ -185,13 +196,13 @@ namespace PSpecter.Builtin.Editors
             return null;
         }
 
-        private static string FindCanonicalParameterName(CommandMetadata cmd, string paramName)
+        private static string? FindCanonicalParameterName(CommandMetadata cmd, string paramName)
         {
             foreach (var param in cmd.Parameters)
             {
-                if (string.Equals(param.Name, paramName, StringComparison.OrdinalIgnoreCase))
+                if (param is not null && string.Equals(param.Name, paramName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return param.Name;
+                    return param!.Name;
                 }
             }
 

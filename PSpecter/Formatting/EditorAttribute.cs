@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 
 namespace PSpecter.Formatting
@@ -24,6 +22,6 @@ namespace PSpecter.Formatting
         /// <summary>
         /// A human-readable description of what this editor does.
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

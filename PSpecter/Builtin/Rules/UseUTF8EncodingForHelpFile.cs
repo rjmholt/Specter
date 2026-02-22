@@ -17,19 +17,19 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            if (string.IsNullOrWhiteSpace(fileName) || !File.Exists(fileName))
+            if (string.IsNullOrWhiteSpace(scriptPath) || !File.Exists(scriptPath))
             {
                 yield break;
             }
 
-            if (!IsHelpFile(fileName))
+            if (!IsHelpFile(scriptPath))
             {
                 yield break;
             }
 
-            using (var fileStream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fileStream = File.Open(scriptPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var reader = new StreamReader(fileStream, detectEncodingFromByteOrderMarks: true))
             {
                 reader.ReadToEnd();
@@ -39,7 +39,7 @@ namespace PSpecter.Builtin.Rules
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UseUTF8EncodingForHelpFileError,
-                            Path.GetFileName(fileName),
+                            Path.GetFileName(scriptPath),
                             reader.CurrentEncoding),
                         ast.Extent);
                 }

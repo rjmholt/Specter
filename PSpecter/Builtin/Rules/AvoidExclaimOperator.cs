@@ -22,7 +22,7 @@ namespace PSpecter.Builtin.Rules
         /// <summary>
         /// Analyzes the given ast to find violations.
         /// </summary>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {

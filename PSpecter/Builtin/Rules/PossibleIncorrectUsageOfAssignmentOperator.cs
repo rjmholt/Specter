@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -18,7 +16,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -28,7 +26,7 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(testAst => testAst is WhileStatementAst || testAst is DoWhileStatementAst, searchNestedScriptBlocks: true))
             {
                 var loopAst = (LoopStatementAst)node;
-                ScriptDiagnostic diagnostic = AnalyzeCondition(loopAst.Condition, fileName);
+                ScriptDiagnostic? diagnostic = AnalyzeCondition(loopAst.Condition, scriptPath);
                 if (diagnostic != null)
                 {
                     yield return diagnostic;
@@ -40,7 +38,7 @@ namespace PSpecter.Builtin.Rules
                 var ifAst = (IfStatementAst)node;
                 foreach (var clause in ifAst.Clauses)
                 {
-                    ScriptDiagnostic diagnostic = AnalyzeCondition(clause.Item1, fileName);
+                    ScriptDiagnostic? diagnostic = AnalyzeCondition(clause.Item1, scriptPath);
                     if (diagnostic != null)
                     {
                         yield return diagnostic;
@@ -49,7 +47,7 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private ScriptDiagnostic AnalyzeCondition(PipelineBaseAst condition, string fileName)
+        private ScriptDiagnostic? AnalyzeCondition(PipelineBaseAst condition, string? scriptPath)
         {
             var assignment = condition.Find(
                 testAst => testAst is AssignmentStatementAst,
@@ -77,8 +75,8 @@ namespace PSpecter.Builtin.Rules
                     DiagnosticSeverity.Warning);
             }
 
-            var commandAst = assignment.Right.Find(testAst => testAst is CommandAst, searchNestedScriptBlocks: true);
-            var invokeMemberAst = assignment.Right.Find(testAst => testAst is InvokeMemberExpressionAst, searchNestedScriptBlocks: true);
+            Ast? commandAst = assignment.Right.Find(testAst => testAst is CommandAst, searchNestedScriptBlocks: true);
+            Ast? invokeMemberAst = assignment.Right.Find(testAst => testAst is InvokeMemberExpressionAst, searchNestedScriptBlocks: true);
             bool clangSuppression = condition.Extent.IsWrappedInParentheses();
 
             if (commandAst == null && invokeMemberAst == null && !clangSuppression)

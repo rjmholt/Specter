@@ -1,7 +1,6 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PSpecter.Utils
 {
@@ -16,7 +15,7 @@ namespace PSpecter.Utils
     /// All operations are O(1). Not thread-safe; callers must synchronize if
     /// accessed concurrently.
     /// </remarks>
-    public sealed class SegmentedLruCache<TKey, TValue>
+    public sealed class SegmentedLruCache<TKey, TValue> where TKey : notnull
     {
         private readonly int _probationCapacity;
         private readonly int _protectedCapacity;
@@ -33,7 +32,7 @@ namespace PSpecter.Utils
         public SegmentedLruCache(
             int capacity = 1024,
             double probationRatio = 0.2,
-            IEqualityComparer<TKey> comparer = null)
+            IEqualityComparer<TKey>? comparer = null)
         {
             if (capacity < 2)
             {
@@ -59,15 +58,15 @@ namespace PSpecter.Utils
         /// Attempts to retrieve a cached value. On a hit, the entry is promoted
         /// (probation -> protected on second access, or moved to head of protected).
         /// </summary>
-        public bool TryGet(TKey key, out TValue value)
+        public bool TryGet(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            if (!_index.TryGetValue(key, out LinkedListNode<CacheEntry> node))
+            if (!_index.TryGetValue(key, out LinkedListNode<CacheEntry>? node))
             {
-                value = default;
+                value = default!;
                 return false;
             }
 
-            CacheEntry entry = node.Value;
+            CacheEntry entry = node!.Value;
 
             if (entry.Segment == Segment.Probation)
             {
@@ -92,21 +91,22 @@ namespace PSpecter.Utils
         /// </summary>
         public void Set(TKey key, TValue value)
         {
-            if (_index.TryGetValue(key, out LinkedListNode<CacheEntry> existing))
+            if (_index.TryGetValue(key, out LinkedListNode<CacheEntry>? existing))
             {
-                existing.Value.Value = value;
+                var existingNode = existing!;
+                existingNode.Value.Value = value;
 
-                if (existing.Value.Segment == Segment.Probation)
+                if (existingNode.Value.Segment == Segment.Probation)
                 {
-                    _probation.Remove(existing);
-                    existing.Value.Segment = Segment.Protected;
+                    _probation.Remove(existingNode);
+                    existingNode.Value.Segment = Segment.Protected;
                     EvictFromProtectedIfNeeded();
-                    _protected.AddFirst(existing);
+                    _protected.AddFirst(existingNode);
                 }
                 else
                 {
-                    _protected.Remove(existing);
-                    _protected.AddFirst(existing);
+                    _protected.Remove(existingNode);
+                    _protected.AddFirst(existingNode);
                 }
 
                 return;
@@ -132,7 +132,7 @@ namespace PSpecter.Utils
         {
             while (_probation.Count >= _probationCapacity)
             {
-                LinkedListNode<CacheEntry> victim = _probation.Last;
+                LinkedListNode<CacheEntry> victim = _probation.Last!;
                 _probation.RemoveLast();
                 _index.Remove(victim.Value.Key);
             }
@@ -142,7 +142,7 @@ namespace PSpecter.Utils
         {
             while (_protected.Count >= _protectedCapacity)
             {
-                LinkedListNode<CacheEntry> demoted = _protected.Last;
+                LinkedListNode<CacheEntry> demoted = _protected.Last!;
                 _protected.RemoveLast();
                 demoted.Value.Segment = Segment.Probation;
                 _probation.AddFirst(demoted);

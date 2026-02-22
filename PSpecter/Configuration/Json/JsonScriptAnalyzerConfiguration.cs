@@ -1,6 +1,4 @@
-#nullable disable
-
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -15,7 +13,8 @@ namespace PSpecter.Configuration.Json
 
         public static JsonScriptAnalyzerConfiguration FromString(string jsonString)
         {
-            return JsonConvert.DeserializeObject<JsonScriptAnalyzerConfiguration>(jsonString, s_jsonConfigurationConverter);
+            return JsonConvert.DeserializeObject<JsonScriptAnalyzerConfiguration>(jsonString, s_jsonConfigurationConverter)
+                ?? throw new InvalidOperationException("Failed to deserialize configuration.");
         }
 
         public static JsonScriptAnalyzerConfiguration FromFile(string filePath)
@@ -29,7 +28,8 @@ namespace PSpecter.Configuration.Json
             using (var streamReader = new StreamReader(fileStream))
             using (var jsonReader = new JsonTextReader(streamReader))
             {
-                return serializer.Deserialize<JsonScriptAnalyzerConfiguration>(jsonReader);
+                return serializer.Deserialize<JsonScriptAnalyzerConfiguration>(jsonReader)
+                    ?? throw new InvalidOperationException("Failed to deserialize configuration.");
             }
         }
 
@@ -42,8 +42,15 @@ namespace PSpecter.Configuration.Json
             IReadOnlyDictionary<string, JsonRuleConfiguration> ruleConfigurations)
         {
             _ruleConfigurations = ruleConfigurations;
-            RulePaths = rulePaths;
+            BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
+            RulePaths = rulePaths;
+            var ruleConfigDict = new Dictionary<string, IRuleConfiguration>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in ruleConfigurations)
+            {
+                ruleConfigDict[kvp.Key] = kvp.Value;
+            }
+            RuleConfiguration = ruleConfigDict;
         }
 
         public RuleExecutionMode? RuleExecution { get; }
@@ -64,11 +71,11 @@ namespace PSpecter.Configuration.Json
         {
         }
 
-        public override bool TryConvertObject(Type type, JObject configuration, out IRuleConfiguration result)
+        public override bool TryConvertObject(Type type, JObject configuration, out IRuleConfiguration? result)
         {
             try
             {
-                result = (IRuleConfiguration)configuration.ToObject(type);
+                result = (IRuleConfiguration?)configuration.ToObject(type);
                 return true;
             }
             catch

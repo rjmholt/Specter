@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -24,7 +22,7 @@ namespace PSpecter.Builtin.Rules
         /// <summary>
         /// AnalyzeScript: Analyze the script to check that functions using ShouldContinue have a Force parameter.
         /// </summary>
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -59,9 +57,9 @@ namespace PSpecter.Builtin.Rules
                         continue;
                     }
 
-                    string message = string.IsNullOrWhiteSpace(fileName)
+                    string message = string.IsNullOrWhiteSpace(scriptPath)
                         ? string.Format(CultureInfo.CurrentCulture, Strings.AvoidShouldContinueWithoutForceErrorScriptDefinition, funcAst.Name)
-                        : string.Format(CultureInfo.CurrentCulture, Strings.AvoidShouldContinueWithoutForceError, funcAst.Name, System.IO.Path.GetFileName(fileName));
+                        : string.Format(CultureInfo.CurrentCulture, Strings.AvoidShouldContinueWithoutForceError, funcAst.Name, System.IO.Path.GetFileName(scriptPath));
 
                     yield return CreateDiagnostic(message, imeAst);
                 }
@@ -79,7 +77,7 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                string typeName = paramAst.StaticType?.FullName;
+                string? typeName = paramAst.StaticType?.FullName;
 
                 if (typeName != null
                     && (string.Equals(typeName, "System.Boolean", StringComparison.OrdinalIgnoreCase)

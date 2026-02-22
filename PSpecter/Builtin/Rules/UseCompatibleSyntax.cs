@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -39,7 +37,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -52,7 +50,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 yield break;
             }
 
-            var visitor = new SyntaxCompatibilityVisitor(this, fileName, targetVersions);
+            var visitor = new SyntaxCompatibilityVisitor(this, scriptPath ?? string.Empty, targetVersions);
             ast.Visit(visitor);
             foreach (ScriptDiagnostic diagnostic in visitor.GetDiagnostics())
             {
@@ -70,7 +68,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             var targetVersions = new HashSet<Version>();
             foreach (string versionStr in versionSettings)
             {
-                if (!Version.TryParse(versionStr, out Version version))
+                if (!Version.TryParse(versionStr, out Version? version))
                 {
                     continue;
                 }
@@ -285,7 +283,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 string syntaxName,
                 string syntaxExample,
                 string unsupportedVersions,
-                Correction correction = null)
+                Correction? correction = null)
             {
                 string message = string.Format(
                     CultureInfo.CurrentCulture,

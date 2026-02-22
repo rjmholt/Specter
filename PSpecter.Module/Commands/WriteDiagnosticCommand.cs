@@ -1,12 +1,7 @@
-#nullable disable
-
-﻿using PSpecter.Rules;
-using System;
+using PSpecter.Rules;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
-using System.Reflection;
-using SMA = System.Management.Automation;
 
 namespace PSpecter.Module.Commands
 {
@@ -14,13 +9,13 @@ namespace PSpecter.Module.Commands
     [OutputType(typeof(ScriptDiagnostic))]
     public class WriteDiagnosticCommand : PSCmdlet
     {
-        private RuleInfo _rule;
+        private RuleInfo? _rule;
 
         [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
-        public IScriptExtent[] Extent { get; set; }
+        public IScriptExtent[] Extent { get; set; } = null!;
 
         [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
-        public string[] Message { get; set; }
+        public string[] Message { get; set; } = null!;
 
         [Parameter]
         public DiagnosticSeverity? Severity { get; set; }
@@ -38,18 +33,18 @@ namespace PSpecter.Module.Commands
             }
         }
 
-        private RuleInfo GetRule()
+        private RuleInfo? GetRule()
         {
             Debugger debugger = Runspace.DefaultRunspace.Debugger;
 
             foreach (CallStackFrame frame in debugger.GetCallStack())
             {
-                if (!(frame.InvocationInfo.MyCommand is FunctionInfo function))
+                if (frame.InvocationInfo.MyCommand is not FunctionInfo function)
                 {
                     continue;
                 }
 
-                if (RuleInfo.TryGetFromFunctionInfo(function, out RuleInfo ruleInfo))
+                if (RuleInfo.TryGetFromFunctionInfo(function, out RuleInfo? ruleInfo))
                 {
                     return ruleInfo;
                 }

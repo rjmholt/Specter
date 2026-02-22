@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,7 +18,7 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast == null)
             {
@@ -41,7 +39,7 @@ namespace PSpecter.Builtin.Rules
             foreach (Ast node in ast.FindAll(testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcDef = (FunctionDefinitionAst)node;
-                IEnumerable<ParameterAst> parameters = null;
+                IEnumerable<ParameterAst>? parameters = null;
 
                 if (funcDef.Parameters != null)
                 {
@@ -104,7 +102,7 @@ namespace PSpecter.Builtin.Rules
                 return false;
             }
 
-            var psCredentialType = parameter.Attributes.FirstOrDefault(attr =>
+            AttributeBaseAst? psCredentialType = parameter.Attributes.FirstOrDefault(attr =>
                 (attr.TypeName is ArrayTypeName arrayType && arrayType.ElementType.GetReflectionType() == typeof(PSCredential))
                 || attr.TypeName.GetReflectionType() == typeof(PSCredential));
 
@@ -118,7 +116,7 @@ namespace PSpecter.Builtin.Rules
                 return false;
             }
 
-            var credentialAttribute = parameter.Attributes.FirstOrDefault(attr =>
+            AttributeBaseAst? credentialAttribute = parameter.Attributes.FirstOrDefault(attr =>
                 attr.TypeName.GetReflectionType() == typeof(CredentialAttribute)
                 || attr.TypeName.FullName.Equals("System.Management.Automation.Credential", StringComparison.OrdinalIgnoreCase));
 

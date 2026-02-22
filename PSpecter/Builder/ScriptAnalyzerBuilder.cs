@@ -1,6 +1,4 @@
-#nullable disable
-
-﻿using PSpecter.Builtin;
+using PSpecter.Builtin;
 using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
@@ -14,9 +12,9 @@ namespace PSpecter.Builder
     {
         private readonly List<IRuleProviderFactory> _ruleProviderFactories;
 
-        private IRuleExecutorFactory _ruleExecutorFactory;
+        private IRuleExecutorFactory? _ruleExecutorFactory;
 
-        private RuleComponentProvider _ruleComponentProvider;
+        private RuleComponentProvider? _ruleComponentProvider;
 
         public ScriptAnalyzerBuilder()
         {
@@ -50,7 +48,7 @@ namespace PSpecter.Builder
         }
 
         public ScriptAnalyzerBuilder AddBuiltinRules()
-            => AddBuiltinRules(Default.RuleConfiguration);
+            => AddBuiltinRules((IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
 
         public ScriptAnalyzerBuilder AddBuiltinRules(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
         {
@@ -60,7 +58,7 @@ namespace PSpecter.Builder
         }
 
         public ScriptAnalyzerBuilder AddRules(Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
-            => AddRules(Default.RuleConfiguration, configureRuleProviderFactory);
+            => AddRules((IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration, configureRuleProviderFactory);
 
         public ScriptAnalyzerBuilder AddRules(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection, Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
         {
@@ -71,7 +69,7 @@ namespace PSpecter.Builder
         }
 
         public ScriptAnalyzerBuilder AddRulesFromAssembly(Assembly ruleAssembly)
-            => AddRulesFromAssembly(Default.RuleConfiguration, ruleAssembly);
+            => AddRulesFromAssembly((IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration, ruleAssembly);
 
         public ScriptAnalyzerBuilder AddRulesFromAssembly(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection, Assembly ruleAssembly)
         {
@@ -89,7 +87,7 @@ namespace PSpecter.Builder
 
         public ScriptAnalyzer Build()
         {
-            return ScriptAnalyzer.Create(_ruleComponentProvider, _ruleExecutorFactory, _ruleProviderFactories);
+            return ScriptAnalyzer.Create(_ruleComponentProvider!, _ruleExecutorFactory!, _ruleProviderFactories);
         }
     }
 }

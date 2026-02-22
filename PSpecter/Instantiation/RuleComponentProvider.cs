@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using PSpecter.CommandDatabase;
@@ -9,19 +7,19 @@ namespace PSpecter.Builder
 {
     public abstract class RuleComponentProvider
     {
-        public bool TryGetComponentInstance<TComponent>(out TComponent component)
+        public bool TryGetComponentInstance<TComponent>(out TComponent? component)
         {
-            if (!TryGetComponentInstance(typeof(TComponent), out object componentObj))
+            if (!TryGetComponentInstance(typeof(TComponent), out object? componentObj))
             {
-                component = default(TComponent);
+                component = default;
                 return false;
             }
 
-            component = (TComponent)componentObj;
+            component = (TComponent)componentObj!;
             return true;
         }
 
-        public abstract bool TryGetComponentInstance(Type componentType, out object component);
+        public abstract bool TryGetComponentInstance(Type componentType, out object? component);
     }
 
     internal class SimpleRuleComponentProvider : RuleComponentProvider
@@ -38,19 +36,20 @@ namespace PSpecter.Builder
             _singletonComponents = singletonComponents;
         }
 
-        public override bool TryGetComponentInstance(Type componentType, out object component)
+        public override bool TryGetComponentInstance(Type componentType, out object? component)
         {
             if (_singletonComponents.TryGetValue(componentType, out component))
             {
                 return true;
             }
 
-            if (_componentRegistrations.TryGetValue(componentType, out Func<object> componentFactory))
+            if (_componentRegistrations.TryGetValue(componentType, out Func<object>? componentFactory))
             {
                 component = componentFactory();
                 return true;
             }
 
+            component = null;
             return false;
         }
     }
@@ -75,7 +74,7 @@ namespace PSpecter.Builder
 
         public RuleComponentProviderBuilder AddSingleton<T>(T instance)
         {
-            _singletonComponents[typeof(T)] = instance;
+            _singletonComponents[typeof(T)] = instance!;
             return this;
         }
 
@@ -87,12 +86,14 @@ namespace PSpecter.Builder
 
         public RuleComponentProviderBuilder AddSingleton<TRegistered, TInstance>(TInstance instance)
         {
+            if (instance is null) { throw new ArgumentNullException(nameof(instance)); }
             _singletonComponents[typeof(TRegistered)] = instance;
             return this;
         }
 
         public RuleComponentProviderBuilder AddSingleton(Type registeredType, object instance)
         {
+            if (instance is null) { throw new ArgumentNullException(nameof(instance)); }
             if (!registeredType.IsAssignableFrom(instance.GetType()))
             {
                 throw new ArgumentException($"Cannot register object '{instance}' of type '{instance.GetType()}' for type '{registeredType}'");
@@ -134,7 +135,7 @@ namespace PSpecter.Builder
         /// </summary>
         public RuleComponentProviderBuilder UseSqliteDatabase()
             => AddSingleton<IPowerShellCommandDatabase>(
-                BuiltinCommandDatabase.CreateWithDatabase(BuiltinCommandDatabase.FindDefaultDatabasePath()));
+                BuiltinCommandDatabase.CreateWithDatabase(BuiltinCommandDatabase.FindDefaultDatabasePath() ?? throw new InvalidOperationException("Default database path could not be resolved.")));
 
         /// <summary>
         /// Use a SQLite database at the specified path.

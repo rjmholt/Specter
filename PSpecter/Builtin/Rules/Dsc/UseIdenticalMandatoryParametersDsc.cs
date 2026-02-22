@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,9 +18,9 @@ namespace PSpecter.Builtin.Rules.Dsc
         {
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(scriptPath))
             {
                 yield break;
             }
@@ -33,7 +31,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                 yield break;
             }
 
-            string mofPath = GetMofFilePath(fileName);
+            string? mofPath = GetMofFilePath(scriptPath!);
             if (mofPath is null)
             {
                 yield break;
@@ -70,10 +68,16 @@ namespace PSpecter.Builtin.Rules.Dsc
             }
         }
 
-        private static string GetMofFilePath(string filePath)
+        private static string? GetMofFilePath(string filePath)
         {
+            string? directoryName = Path.GetDirectoryName(filePath);
+            if (directoryName is null)
+            {
+                return null;
+            }
+
             string mofPath = Path.Combine(
-                Path.GetDirectoryName(filePath),
+                directoryName,
                 Path.GetFileNameWithoutExtension(filePath)) + ".schema.mof";
 
             return File.Exists(mofPath) ? mofPath : null;
@@ -81,7 +85,7 @@ namespace PSpecter.Builtin.Rules.Dsc
 
         private static IEnumerable<ParameterAst> GetMandatoryParameters(FunctionDefinitionAst func)
         {
-            IReadOnlyList<ParameterAst> parameters = null;
+            IReadOnlyList<ParameterAst>? parameters = null;
 
             if (func.Body?.ParamBlock?.Parameters is not null)
             {
@@ -179,7 +183,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                 return func.Extent;
             }
 
-            string fullScript = func.Extent.StartScriptPosition.GetFullScript();
+            string? fullScript = func.Extent.StartScriptPosition.GetFullScript();
             if (fullScript is null)
             {
                 return func.Extent;

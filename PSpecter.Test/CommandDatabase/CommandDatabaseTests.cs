@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using Xunit;
@@ -73,7 +71,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -107,19 +105,19 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-ChildItem'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM Alias WHERE Name = 'gci'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM Alias WHERE Name = 'dir'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM Parameter WHERE Name = 'Path'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM OutputType WHERE TypeName = 'System.IO.FileInfo'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -142,10 +140,10 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-ChildItem'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM CommandPlatform WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Get-ChildItem')";
-            Assert.Equal(2L, (long)cmd.ExecuteScalar());
+            Assert.Equal(2L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -165,7 +163,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Rollback'";
-            Assert.Equal(0L, (long)cmd.ExecuteScalar());
+            Assert.Equal(0L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -188,7 +186,7 @@ namespace PSpecter.Test.CommandDatabase
                 SELECT m.Name FROM Module m
                 INNER JOIN Command c ON c.ModuleId = m.Id
                 WHERE c.Name = 'Test-NoModule'";
-            Assert.Equal("", (string)cmd.ExecuteScalar());
+            Assert.Equal("", (string)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -211,12 +209,12 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-NoModule'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = @"
                 SELECT COUNT(*) FROM CommandPlatform
                 WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Test-NoModule')";
-            Assert.Equal(2L, (long)cmd.ExecuteScalar());
+            Assert.Equal(2L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -229,7 +227,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT Version FROM SchemaVersion";
-            Assert.Equal(42L, (long)cmd.ExecuteScalar());
+            Assert.Equal(42L, (long)cmd.ExecuteScalar()!);
         }
 
         private static SqliteConnection CreatePopulatedConnection()
@@ -262,50 +260,50 @@ namespace PSpecter.Test.CommandDatabase
         [Fact]
         public void TryGetCommand_FindsByCanonicalName()
         {
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata cmd));
-            Assert.Equal("Get-ChildItem", cmd.Name);
-            Assert.Equal("Cmdlet", cmd.CommandType);
-            Assert.Equal("Microsoft.PowerShell.Management", cmd.ModuleName);
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out CommandMetadata? cmd));
+            Assert.Equal("Get-ChildItem", cmd!.Name);
+            Assert.Equal("Cmdlet", cmd!.CommandType);
+            Assert.Equal("Microsoft.PowerShell.Management", cmd!.ModuleName);
         }
 
         [Fact]
         public void TryGetCommand_FindsByAlias()
         {
-            Assert.True(_db.TryGetCommand("gci", null, out CommandMetadata cmd));
-            Assert.Equal("Get-ChildItem", cmd.Name);
-            Assert.Contains("gci", cmd.Aliases);
+            Assert.True(_db.TryGetCommand("gci", null!, out CommandMetadata? cmd));
+            Assert.Equal("Get-ChildItem", cmd!.Name);
+            Assert.Contains("gci", cmd!.Aliases);
         }
 
         [Fact]
         public void TryGetCommand_ReturnsFalseForMissing()
         {
-            Assert.False(_db.TryGetCommand("Not-A-Command", null, out _));
+            Assert.False(_db.TryGetCommand("Not-A-Command", null!, out _));
         }
 
         [Fact]
         public void TryGetCommand_CaseInsensitive()
         {
-            Assert.True(_db.TryGetCommand("get-childitem", null, out CommandMetadata cmd));
-            Assert.Equal("Get-ChildItem", cmd.Name);
+            Assert.True(_db.TryGetCommand("get-childitem", null!, out CommandMetadata? cmd));
+            Assert.Equal("Get-ChildItem", cmd!.Name);
         }
 
         [Fact]
         public void TryGetCommand_ReturnsParameters()
         {
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata cmd));
-            Assert.True(cmd.Parameters.Count > 0);
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out CommandMetadata? cmd));
+            Assert.True(cmd!.Parameters.Count > 0);
 
-            ParameterMetadata pathParam = null;
-            foreach (var p in cmd.Parameters)
+            ParameterMetadata? pathParam = null;
+            foreach (var p in cmd!.Parameters)
             {
                 if (p.Name == "Path") { pathParam = p; break; }
             }
 
             Assert.NotNull(pathParam);
-            Assert.Equal("System.String[]", pathParam.Type);
-            Assert.True(pathParam.ParameterSets.Count > 0);
+            Assert.Equal("System.String[]", pathParam!.Type);
+            Assert.True(pathParam!.ParameterSets.Count > 0);
 
-            var setInfo = pathParam.ParameterSets[0];
+            var setInfo = pathParam!.ParameterSets[0];
             Assert.Equal("Items", setInfo.SetName);
             Assert.Equal(0, setInfo.Position);
             Assert.False(setInfo.IsMandatory);
@@ -315,8 +313,8 @@ namespace PSpecter.Test.CommandDatabase
         [Fact]
         public void TryGetCommand_ReturnsOutputTypes()
         {
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata cmd));
-            Assert.Contains("System.IO.FileInfo", cmd.OutputTypes);
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out CommandMetadata? cmd));
+            Assert.Contains("System.IO.FileInfo", cmd!.OutputTypes);
         }
 
         [Fact]
@@ -354,7 +352,7 @@ namespace PSpecter.Test.CommandDatabase
         [Fact]
         public void GetAliasTarget_ReturnsTargetForAlias()
         {
-            Assert.Equal("Get-ChildItem", _db.GetAliasTarget("gci"));
+            Assert.Equal("Get-ChildItem", _db.GetAliasTarget("gci")!);
         }
 
         [Fact]
@@ -372,58 +370,58 @@ namespace PSpecter.Test.CommandDatabase
         [Fact]
         public void GetCommandAliases_Delegates()
         {
-            IReadOnlyList<string> aliases = _db.GetCommandAliases("Get-ChildItem");
+            IReadOnlyList<string>? aliases = _db.GetCommandAliases("Get-ChildItem");
             Assert.NotNull(aliases);
-            Assert.Contains("gci", aliases);
-            Assert.Contains("dir", aliases);
+            Assert.Contains("gci", aliases!);
+            Assert.Contains("dir", aliases!);
         }
 
         [Fact]
         public void GetAllNamesForCommand_Delegates()
         {
-            IReadOnlyList<string> names = _db.GetAllNamesForCommand("Get-ChildItem");
+            IReadOnlyList<string>? names = _db.GetAllNamesForCommand("Get-ChildItem");
             Assert.NotNull(names);
-            Assert.Contains("Get-ChildItem", names);
-            Assert.Contains("gci", names);
+            Assert.Contains("Get-ChildItem", names!);
+            Assert.Contains("gci", names!);
         }
 
         [Fact]
         public void CommandExistsOnPlatform_Works()
         {
-            Assert.True(_db.CommandExistsOnPlatform("Get-ChildItem", null));
-            Assert.False(_db.CommandExistsOnPlatform("Not-Real", null));
+            Assert.True(_db.CommandExistsOnPlatform("Get-ChildItem", null!));
+            Assert.False(_db.CommandExistsOnPlatform("Not-Real", null!));
         }
 
         [Fact]
         public void CachingReturnsConsistentResults()
         {
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata first));
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata second));
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out CommandMetadata? first));
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out CommandMetadata? second));
 
-            Assert.Equal(first.Name, second.Name);
-            Assert.Equal(first.CommandType, second.CommandType);
+            Assert.Equal(first!.Name, second!.Name);
+            Assert.Equal(first!.CommandType, second!.CommandType);
         }
 
         [Fact]
         public void InvalidateCache_ForcesReload()
         {
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out _));
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out _));
             _db.InvalidateCache();
-            Assert.True(_db.TryGetCommand("Get-ChildItem", null, out _));
+            Assert.True(_db.TryGetCommand("Get-ChildItem", null!, out _));
         }
 
         [Fact]
         public void TryGetCommand_NullModuleName_ReturnsEmptyModuleName()
         {
-            Assert.True(_db.TryGetCommand("NoModule-Cmd", null, out CommandMetadata cmd));
-            Assert.Equal("", cmd.ModuleName);
+            Assert.True(_db.TryGetCommand("NoModule-Cmd", null!, out CommandMetadata? cmd));
+            Assert.Equal("", cmd!.ModuleName);
         }
 
         [Fact]
         public void TryGetCommand_NullModuleName_FindsByAlias()
         {
-            Assert.True(_db.TryGetCommand("nmc", null, out CommandMetadata cmd));
-            Assert.Equal("NoModule-Cmd", cmd.Name);
+            Assert.True(_db.TryGetCommand("nmc", null!, out CommandMetadata? cmd));
+            Assert.Equal("NoModule-Cmd", cmd!.Name);
         }
 
         [Fact]

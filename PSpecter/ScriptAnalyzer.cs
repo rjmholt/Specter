@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builder;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
@@ -53,7 +51,7 @@ namespace PSpecter
         public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScript(Ast scriptAst, Token[] scriptTokens) =>
             AnalyzeScript(scriptAst, scriptTokens, scriptPath: null);
 
-        public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScript(Ast scriptAst, Token[] scriptTokens, string scriptPath)
+        public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScript(Ast scriptAst, Token[] scriptTokens, string? scriptPath)
         {
             IRuleExecutor ruleExecutor = _executorFactory.CreateRuleExecutor(scriptAst, scriptTokens, scriptPath);
 

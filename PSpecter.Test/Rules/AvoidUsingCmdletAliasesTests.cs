@@ -33,7 +33,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingCmdletAliases", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingCmdletAliases", oneViolation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, oneViolation.Severity);
             Assert.Contains("cls", oneViolation.Message);
             Assert.Contains("Clear-Host", oneViolation.Message);
@@ -51,7 +51,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidUsingCmdletAliases", oneViolation.Rule.Name);
+            Assert.Equal("AvoidUsingCmdletAliases", oneViolation.Rule!.Name);
             Assert.Contains("iex", oneViolation.Message);
             Assert.Contains("Invoke-Expression", oneViolation.Message);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
@@ -237,7 +237,7 @@ DIR";
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             Assert.Equal(3, violations.Count);
-            Assert.All(violations, v => Assert.Equal("AvoidUsingCmdletAliases", v.Rule.Name));
+            Assert.All(violations, v => Assert.Equal("AvoidUsingCmdletAliases", v.Rule!.Name));
         }
 
         [Fact]
@@ -248,7 +248,7 @@ DIR";
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Correction correction = Assert.Single(oneViolation.Corrections);
+            Correction correction = Assert.Single(oneViolation.Corrections!);
 
             Assert.Equal("Clear-Host", correction.CorrectionText);
             Assert.Contains("Replace cls with Clear-Host", correction.Description);

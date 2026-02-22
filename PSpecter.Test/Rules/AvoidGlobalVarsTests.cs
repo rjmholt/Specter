@@ -29,7 +29,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic oneViolation = Assert.Single(violations);
-            Assert.Equal("AvoidGlobalVars", oneViolation.Rule.Name);
+            Assert.Equal("AvoidGlobalVars", oneViolation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, oneViolation.Severity);
             Assert.Equal(1, oneViolation.ScriptExtent.StartLineNumber);
             Assert.Equal(1, oneViolation.ScriptExtent.EndLineNumber);

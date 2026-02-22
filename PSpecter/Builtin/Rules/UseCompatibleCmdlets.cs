@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,7 +14,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     public record UseCompatibleCmdletsConfiguration : IRuleConfiguration
     {
         public string[] Compatibility { get; init; } = Array.Empty<string>();
-        public string Reference { get; init; }
+        public string? Reference { get; init; }
         public CommonConfiguration Common { get; init; } = new CommonConfiguration(enabled: false);
     }
 
@@ -39,7 +37,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             _commandDb = commandDb;
         }
 
-        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
             if (ast is null)
             {
@@ -55,7 +53,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             var targetPlatforms = new List<(string Label, HashSet<PlatformInfo> Platforms)>();
             foreach (string platformStr in compatibility)
             {
-                if (TryParsePlatformString(platformStr, out string edition, out string version, out string os))
+                if (TryParsePlatformString(platformStr, out string? edition, out string? version, out string? os)
+                    && edition is not null && version is not null && os is not null)
                 {
                     var platform = new PlatformInfo(edition, version, os);
                     targetPlatforms.Add((platformStr, new HashSet<PlatformInfo> { platform }));
@@ -67,7 +66,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 yield break;
             }
 
-            string referenceStr = Configuration.Reference;
+            string? referenceStr = Configuration.Reference;
             if (string.IsNullOrEmpty(referenceStr))
             {
                 referenceStr = DefaultReference;
@@ -78,12 +77,13 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 }
             }
 
-            if (!TryParsePlatformString(referenceStr, out string refEdition, out string refVersion, out string refOS))
+            if (!TryParsePlatformString(referenceStr!, out string? refEdition, out string? refVersion, out string? refOS)
+                || refEdition is null || refVersion is null || refOS is null)
             {
                 yield break;
             }
 
-            var referencePlatforms = new HashSet<PlatformInfo> { new PlatformInfo(refEdition, refVersion, refOS) };
+            var referencePlatforms = new HashSet<PlatformInfo> { new PlatformInfo(refEdition!, refVersion!, refOS!) };
 
             foreach (Ast foundAst in ast.FindAll(node => node is CommandAst, searchNestedScriptBlocks: true))
             {
@@ -102,7 +102,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
                     if (existsOnReference && !existsOnTarget)
                     {
-                        if (!TryParsePlatformString(label, out string tEdition, out string tVersion, out string tOS))
+                        if (!TryParsePlatformString(label, out string? tEdition, out string? tVersion, out string? tOS))
                         {
                             continue;
                         }
@@ -111,9 +111,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                             CultureInfo.CurrentCulture,
                             Strings.UseCompatibleCmdletsError,
                             commandName,
-                            tEdition,
-                            tVersion,
-                            tOS);
+                            tEdition!,
+                            tVersion!,
+                            tOS!);
 
                         yield return CreateDiagnostic(message, cmdAst);
                     }
@@ -121,7 +121,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             }
         }
 
-        private static bool TryParsePlatformString(string platformString, out string edition, out string version, out string os)
+        private static bool TryParsePlatformString(string platformString, out string? edition, out string? version, out string? os)
         {
             return LegacySettingsImporter.TryParsePlatformFromFileName(platformString, out edition, out version, out os);
         }

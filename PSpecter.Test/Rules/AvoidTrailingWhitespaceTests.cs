@@ -29,7 +29,7 @@ namespace PSpecter.Test.Rules
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("AvoidTrailingWhitespace", violation.Rule.Name);
+            Assert.Equal("AvoidTrailingWhitespace", violation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Information, violation.Severity);
         }
 

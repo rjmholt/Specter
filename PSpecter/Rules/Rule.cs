@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Configuration;
 using PSpecter.Formatting;
 using System.Collections.Generic;
@@ -36,10 +34,10 @@ namespace PSpecter.Rules
         protected ScriptDiagnostic CreateDiagnostic(string message, IScriptExtent extent, DiagnosticSeverity severity)
             => CreateDiagnostic(message, extent, severity, corrections: null);
 
-        protected ScriptDiagnostic CreateDiagnostic(string message, IScriptExtent extent, IReadOnlyList<Correction> corrections)
+        protected ScriptDiagnostic CreateDiagnostic(string message, IScriptExtent extent, IReadOnlyList<Correction>? corrections)
             => CreateDiagnostic(message, extent, RuleInfo.DefaultSeverity, corrections);
 
-        protected ScriptDiagnostic CreateDiagnostic(string message, IScriptExtent extent, DiagnosticSeverity severity, IReadOnlyList<Correction> corrections)
+        protected ScriptDiagnostic CreateDiagnostic(string message, IScriptExtent extent, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
         {
             return new ScriptDiagnostic(RuleInfo, message, extent, severity, corrections);
         }
@@ -56,7 +54,7 @@ namespace PSpecter.Rules
         {
         }
 
-        public abstract IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string scriptPath);
+        public abstract IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath);
 
         protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast)
             => CreateDiagnostic(message, ast, RuleInfo.DefaultSeverity);
@@ -64,10 +62,10 @@ namespace PSpecter.Rules
         protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast, DiagnosticSeverity severity)
             => CreateDiagnostic(message, ast, severity, corrections: null);
 
-        protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast, IReadOnlyList<Correction> corrections)
+        protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast, IReadOnlyList<Correction>? corrections)
             => CreateDiagnostic(message, ast, RuleInfo.DefaultSeverity, corrections);
 
-        protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast, DiagnosticSeverity severity, IReadOnlyList<Correction> corrections)
+        protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
         {
             return new ScriptAstDiagnostic(RuleInfo, message, ast, severity, corrections);
         }
@@ -78,10 +76,10 @@ namespace PSpecter.Rules
         protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token, DiagnosticSeverity severity)
             => CreateDiagnostic(message, token, severity, corrections: null);
 
-        protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token, IReadOnlyList<Correction> corrections)
+        protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token, IReadOnlyList<Correction>? corrections)
             => CreateDiagnostic(message, token, RuleInfo.DefaultSeverity, corrections);
 
-        protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token, DiagnosticSeverity severity, IReadOnlyList<Correction> corrections)
+        protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
         {
             return new ScriptTokenDiagnostic(RuleInfo, message, token, severity, corrections);
         }

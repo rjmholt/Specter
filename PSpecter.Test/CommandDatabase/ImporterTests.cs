@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.Sqlite;
@@ -22,10 +20,10 @@ namespace PSpecter.Test.CommandDatabase
             string fileName, string expectedEdition, string expectedVersion, string expectedOs)
         {
             Assert.True(LegacySettingsImporter.TryParsePlatformFromFileName(
-                fileName, out string edition, out string version, out string os));
-            Assert.Equal(expectedEdition, edition);
-            Assert.Equal(expectedVersion, version);
-            Assert.Equal(expectedOs, os);
+                fileName, out string? edition, out string? version, out string? os));
+            Assert.Equal(expectedEdition, edition!);
+            Assert.Equal(expectedVersion, version!);
+            Assert.Equal(expectedOs, os!);
         }
 
         [Theory]
@@ -64,13 +62,13 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Thing'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Set-Thing'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM Module WHERE Name = 'TestModule'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -100,10 +98,10 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Cross'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT COUNT(*) FROM CommandPlatform WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Get-Cross')";
-            Assert.Equal(2L, (long)cmd.ExecuteScalar());
+            Assert.Equal(2L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -266,15 +264,15 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT Id FROM Command WHERE Name = 'Get-Widget'";
-            long commandId = (long)cmd.ExecuteScalar();
+            long commandId = (long)cmd.ExecuteScalar()!;
             Assert.True(commandId > 0);
 
             cmd.CommandText = "SELECT COUNT(*) FROM Parameter WHERE CommandId = @cid";
             cmd.Parameters.AddWithValue("@cid", commandId);
-            Assert.Equal(2L, (long)cmd.ExecuteScalar());
+            Assert.Equal(2L, (long)cmd.ExecuteScalar()!);
 
             cmd.Parameters.Clear();
             cmd.CommandText = @"
@@ -294,13 +292,13 @@ namespace PSpecter.Test.CommandDatabase
 
             cmd.Parameters.Clear();
             cmd.CommandText = "SELECT CommandId FROM Alias WHERE Name = 'gw'";
-            long aliasTarget = (long)cmd.ExecuteScalar();
+            long aliasTarget = (long)cmd.ExecuteScalar()!;
             Assert.Equal(commandId, aliasTarget);
 
             cmd.Parameters.Clear();
             cmd.CommandText = "SELECT TypeName FROM OutputType WHERE CommandId = @cid";
             cmd.Parameters.AddWithValue("@cid", commandId);
-            Assert.Equal("System.String", (string)cmd.ExecuteScalar());
+            Assert.Equal("System.String", (string)cmd.ExecuteScalar()!);
         }
 
         [Fact]
@@ -346,7 +344,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT CommandType FROM Command WHERE Name = 'Invoke-MyFunc'";
-            Assert.Equal("Function", (string)cmd.ExecuteScalar());
+            Assert.Equal("Function", (string)cmd.ExecuteScalar()!);
 
             cmd.CommandText = @"
                 SELECT psm.Position
@@ -380,7 +378,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Minimal'";
-            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
         }
 
         [Fact]

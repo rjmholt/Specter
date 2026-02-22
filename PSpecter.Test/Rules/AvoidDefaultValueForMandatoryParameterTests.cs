@@ -34,7 +34,7 @@ function Test-Function {
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("AvoidDefaultValueForMandatoryParameter", violation.Rule.Name);
+            Assert.Equal("AvoidDefaultValueForMandatoryParameter", violation.Rule!.Name);
         }
 
         [Fact]

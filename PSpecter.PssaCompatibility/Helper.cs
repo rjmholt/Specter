@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Management.Automation.Language;
@@ -20,7 +18,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
         /// Safely evaluates a PowerShell expression AST to a .NET value,
         /// provided the expression is statically evaluable (constants, arrays, hashtables, $true/$false/$null).
         /// </summary>
-        public static object GetSafeValueFromExpressionAst(ExpressionAst exprAst)
+        public static object? GetSafeValueFromExpressionAst(ExpressionAst exprAst)
         {
             if (exprAst == null)
             {
@@ -30,7 +28,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer
             return s_parser.ConvertAstValue(exprAst);
         }
 
-        internal static Hashtable GetSafeValueFromHashtableAst(HashtableAst hashtableAst)
+        internal static Hashtable? GetSafeValueFromHashtableAst(HashtableAst hashtableAst)
         {
             return s_parser.ConvertAstValue(hashtableAst);
         }

@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Builder;
 using PSpecter.Builtin.Editors;
 using PSpecter.Builtin.Rules;
@@ -100,7 +98,7 @@ namespace PSpecter.Builtin
             return config;
         }
 
-        public static IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase)
+        public static IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; } = new Dictionary<string, IRuleConfiguration?>(StringComparer.OrdinalIgnoreCase)
         {
             { "PS/AlignAssignmentStatement", DisabledEditorConfig<AlignAssignmentStatementEditorConfiguration>() },
             { "PS/AvoidDefaultValueForMandatoryParameter", null },

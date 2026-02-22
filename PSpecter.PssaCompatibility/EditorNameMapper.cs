@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 
@@ -38,12 +36,10 @@ namespace PSpecter.PssaCompatibility
             {
                 ["PSUseConsistentIndentation"] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    // PSSA uses "Kind" with values "space"/"tab"; engine uses bool "UseTabs"
-                    // This is handled as a special case in FormatterSettingsConverter, not a simple rename
                 },
             };
 
-        public static bool TryGetEditorName(string pssaRuleName, out string editorName)
+        public static bool TryGetEditorName(string pssaRuleName, out string? editorName)
         {
             return s_pssaToEditorName.TryGetValue(pssaRuleName, out editorName);
         }
@@ -56,8 +52,9 @@ namespace PSpecter.PssaCompatibility
         public static bool TryGetPropertyName(string pssaRuleName, string pssaPropertyName, out string editorPropertyName)
         {
             if (s_propertyMappings.TryGetValue(pssaRuleName, out var propMap)
-                && propMap.TryGetValue(pssaPropertyName, out editorPropertyName))
+                && propMap.TryGetValue(pssaPropertyName, out string? mapped))
             {
+                editorPropertyName = mapped;
                 return true;
             }
 

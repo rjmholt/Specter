@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PSpecter\PSpecter.csproj" />
+    <ProjectReference Include="..\PSpecter.PssaCompatibility\PSpecter.PssaCompatibility.csproj" />
   </ItemGroup>
 
 </Project>

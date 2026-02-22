@@ -33,7 +33,7 @@ function Test-Function {
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
-            Assert.Equal("AvoidDefaultValueSwitchParameter", violation.Rule.Name);
+            Assert.Equal("AvoidDefaultValueSwitchParameter", violation.Rule!.Name);
             Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
         }
 

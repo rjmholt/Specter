@@ -60,7 +60,7 @@ namespace PSpecter.Test.Formatting
 
         private sealed class NoOpEditor : IScriptEditor
         {
-            public IReadOnlyList<ScriptEdit> GetEdits(string scriptContent, Ast ast, IReadOnlyList<Token> tokens, string filePath)
+            public IReadOnlyList<ScriptEdit> GetEdits(string scriptContent, Ast ast, IReadOnlyList<Token> tokens, string? filePath)
             {
                 return new List<ScriptEdit>();
             }
@@ -68,7 +68,7 @@ namespace PSpecter.Test.Formatting
 
         private sealed class TrailingSpaceRemover : IScriptEditor
         {
-            public IReadOnlyList<ScriptEdit> GetEdits(string scriptContent, Ast ast, IReadOnlyList<Token> tokens, string filePath)
+            public IReadOnlyList<ScriptEdit> GetEdits(string scriptContent, Ast ast, IReadOnlyList<Token> tokens, string? filePath)
             {
                 var edits = new List<ScriptEdit>();
                 string[] lines = scriptContent.Split('\n');
@@ -93,7 +93,7 @@ namespace PSpecter.Test.Formatting
 
         private sealed class TabToSpaceReplacer : IScriptEditor
         {
-            public IReadOnlyList<ScriptEdit> GetEdits(string scriptContent, Ast ast, IReadOnlyList<Token> tokens, string filePath)
+            public IReadOnlyList<ScriptEdit> GetEdits(string scriptContent, Ast ast, IReadOnlyList<Token> tokens, string? filePath)
             {
                 var edits = new List<ScriptEdit>();
 

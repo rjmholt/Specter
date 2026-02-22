@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +16,7 @@ namespace PSpecter.PssaCompatibility.Commands
     {
         private const string DefaultSettingsPreset = "CodeFormatting";
 
-        private ScriptFormatter _formatter;
+        private ScriptFormatter? _formatter;
 
         [Parameter(
             Mandatory = true,
@@ -26,7 +24,7 @@ namespace PSpecter.PssaCompatibility.Commands
             ValueFromPipeline = true,
             ValueFromPipelineByPropertyName = true)]
         [ValidateNotNull]
-        public string ScriptDefinition { get; set; }
+        public string ScriptDefinition { get; set; } = string.Empty;
 
         [Parameter(
             Mandatory = false,
@@ -41,11 +39,11 @@ namespace PSpecter.PssaCompatibility.Commands
             ValueFromPipelineByPropertyName = true)]
         [ValidateNotNull]
         [ValidateCount(4, 4)]
-        public int[] Range { get; set; }
+        public int[]? Range { get; set; }
 
         protected override void BeginProcessing()
         {
-            IReadOnlyDictionary<string, IEditorConfiguration> configs;
+            IReadOnlyDictionary<string, IEditorConfiguration>? configs;
 
             try
             {
@@ -82,11 +80,16 @@ namespace PSpecter.PssaCompatibility.Commands
 
         protected override void ProcessRecord()
         {
+            if (_formatter is null)
+            {
+                return;
+            }
+
             string formatted = _formatter.Format(ScriptDefinition);
             WriteObject(formatted);
         }
 
-        private IReadOnlyDictionary<string, IEditorConfiguration> ResolveConfiguration()
+        private IReadOnlyDictionary<string, IEditorConfiguration>? ResolveConfiguration()
         {
             object settingsInput = Settings;
 
@@ -102,7 +105,7 @@ namespace PSpecter.PssaCompatibility.Commands
                     return preset;
                 }
 
-                string resolvedPath = ResolveSettingsPath(settingsString);
+                string? resolvedPath = ResolveSettingsPath(settingsString);
                 if (resolvedPath != null)
                 {
                     var settings = new Microsoft.Windows.PowerShell.ScriptAnalyzer.Settings(resolvedPath);
@@ -127,7 +130,7 @@ namespace PSpecter.PssaCompatibility.Commands
                 settingsInput?.GetType().Name ?? "null"));
         }
 
-        private string ResolveSettingsPath(string path)
+        private string? ResolveSettingsPath(string path)
         {
             try
             {
@@ -139,7 +142,6 @@ namespace PSpecter.PssaCompatibility.Commands
             }
             catch
             {
-                // Fall through
             }
 
             return null;

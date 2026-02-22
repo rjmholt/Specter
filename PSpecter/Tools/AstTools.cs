@@ -1,5 +1,3 @@
-#nullable disable
-
 using PSpecter.Configuration.Psd;
 using System;
 using System.Collections.Generic;
@@ -13,7 +11,7 @@ namespace PSpecter.Tools
     {
         private readonly static PsdDataParser s_psdDataParser = new PsdDataParser();
 
-        public static object GetSafeValueFromAst(ExpressionAst ast)
+        public static object? GetSafeValueFromAst(ExpressionAst ast)
         {
             return s_psdDataParser.ConvertAstValue(ast);
         }
@@ -24,7 +22,7 @@ namespace PSpecter.Tools
         /// <c>LanguagePrimitives.IsTrue()</c> for the value types we can
         /// statically extract from AST nodes.
         /// </summary>
-        public static bool IsTrue(object value) => value switch
+        public static bool IsTrue(object? value) => value switch
         {
             null => false,
             bool b => b,
@@ -39,7 +37,7 @@ namespace PSpecter.Tools
 
         public static bool TryGetCmdletBindingAttributeAst(
             IEnumerable<AttributeAst> attributes,
-            out AttributeAst cmdletBindingAttributeAst)
+            out AttributeAst? cmdletBindingAttributeAst)
         {
             foreach (var attributeAst in attributes)
             {
@@ -61,9 +59,10 @@ namespace PSpecter.Tools
 
         public static bool TryGetShouldProcessAttributeArgumentAst(
             IEnumerable<AttributeAst> attributes,
-            out NamedAttributeArgumentAst shouldProcessArgument)
+            out NamedAttributeArgumentAst? shouldProcessArgument)
         {
-            if (!TryGetCmdletBindingAttributeAst(attributes, out AttributeAst cmdletBindingAttributeAst)
+            if (!TryGetCmdletBindingAttributeAst(attributes, out AttributeAst? cmdletBindingAttributeAst)
+                || cmdletBindingAttributeAst is null
                 || cmdletBindingAttributeAst.NamedArguments == null
                 || cmdletBindingAttributeAst.NamedArguments.Count == 0)
             {
@@ -71,7 +70,7 @@ namespace PSpecter.Tools
                 return false;
             }
 
-            foreach (NamedAttributeArgumentAst namedAttributeAst in cmdletBindingAttributeAst.NamedArguments)
+            foreach (NamedAttributeArgumentAst namedAttributeAst in cmdletBindingAttributeAst!.NamedArguments)
             {
                 if (namedAttributeAst.ArgumentName.Equals("SupportsShouldProcess", StringComparison.OrdinalIgnoreCase))
                 {
