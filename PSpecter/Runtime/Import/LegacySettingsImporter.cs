@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace PSpecter.Runtime.Import
 {
@@ -24,7 +24,7 @@ namespace PSpecter.Runtime.Import
             }
 
             using var writer = new CommandDatabaseWriter(connection);
-            writer.BeginTransaction();
+            using var tx = writer.BeginTransaction();
 
             foreach (string filePath in Directory.GetFiles(settingsDirectory, "*.json"))
             {
@@ -34,84 +34,75 @@ namespace PSpecter.Runtime.Import
                     continue;
                 }
 
-                long platformId = writer.EnsurePlatform(edition, version, os);
+                var platform = new PlatformInfo(edition, version, os);
                 string json = File.ReadAllText(filePath);
-                ImportJson(writer, json, platformId);
+                var commands = ParseJson(json);
+                writer.ImportCommands(commands, platform, tx);
             }
 
-            writer.CommitTransaction();
+            tx.Commit();
         }
 
         /// <summary>
         /// Imports a single legacy settings JSON string for a given platform.
         /// </summary>
-        public static void ImportJson(CommandDatabaseWriter writer, string json, long platformId)
+        public static void ImportJson(CommandDatabaseWriter writer, string json, PlatformInfo platform, DatabaseTransactionScope tx)
         {
-            JObject root = JObject.Parse(json);
-            JArray modules = (JArray)root["Modules"];
-            if (modules is null) return;
-
-            foreach (JObject module in modules)
-            {
-                string moduleName = (string)module["Name"];
-                string moduleVersion = (string)module["Version"];
-
-                long moduleId = writer.EnsureModule(moduleName, moduleVersion);
-
-                ImportCommands(writer, module, moduleId, platformId);
-                ImportAliases(writer, module, moduleId, platformId);
-            }
+            var commands = ParseJson(json);
+            writer.ImportCommands(commands, platform, tx);
         }
 
-        private static void ImportCommands(CommandDatabaseWriter writer, JObject module, long moduleId, long platformId)
+        /// <summary>
+        /// Parses a legacy settings JSON string into a list of <see cref="CommandMetadata"/>.
+        /// </summary>
+        internal static IReadOnlyList<CommandMetadata> ParseJson(string json)
         {
-            JArray commands = (JArray)module["ExportedCommands"];
-            if (commands is null) return;
+            var root = JsonConvert.DeserializeObject<LegacySettingsRoot>(json);
+            if (root?.Modules is null)
+                return Array.Empty<CommandMetadata>();
 
-            foreach (JObject command in commands)
+            var result = new List<CommandMetadata>();
+
+            foreach (LegacyModule module in root.Modules)
             {
-                string name = (string)command["Name"];
-                string commandType = (string)command["CommandType"] ?? "Cmdlet";
-
-                long? existingId = writer.FindCommand(moduleId, name);
-                long commandId;
-                if (existingId.HasValue)
+                if (module.ExportedCommands is not null)
                 {
-                    commandId = existingId.Value;
-                }
-                else
-                {
-                    commandId = writer.InsertCommand(moduleId, name, commandType, defaultParameterSet: null);
+                    foreach (LegacyCommand cmd in module.ExportedCommands)
+                    {
+                        result.Add(new CommandMetadata(
+                            name: cmd.Name,
+                            commandType: cmd.CommandType ?? "Cmdlet",
+                            moduleName: module.Name,
+                            defaultParameterSet: null,
+                            parameterSetNames: null,
+                            aliases: null,
+                            parameters: null,
+                            outputTypes: null));
+                    }
                 }
 
-                writer.LinkCommandPlatform(commandId, platformId);
+                // Legacy format only has alias names with no target mapping.
+                // Record them as stand-alone "Alias" command entries.
+                if (module.ExportedAliases is not null)
+                {
+                    foreach (string aliasName in module.ExportedAliases)
+                    {
+                        if (string.IsNullOrWhiteSpace(aliasName)) continue;
+
+                        result.Add(new CommandMetadata(
+                            name: aliasName,
+                            commandType: "Alias",
+                            moduleName: module.Name,
+                            defaultParameterSet: null,
+                            parameterSetNames: null,
+                            aliases: null,
+                            parameters: null,
+                            outputTypes: null));
+                    }
+                }
             }
-        }
 
-        private static void ImportAliases(CommandDatabaseWriter writer, JObject module, long moduleId, long platformId)
-        {
-            JArray aliases = (JArray)module["ExportedAliases"];
-            if (aliases is null) return;
-
-            // Legacy format only has alias names, no target mapping.
-            // We create alias entries linked to a placeholder command (the module itself).
-            // These can be enriched later from richer data sources.
-            foreach (JToken aliasToken in aliases)
-            {
-                string aliasName = aliasToken.ToString();
-                if (string.IsNullOrWhiteSpace(aliasName)) continue;
-
-                // Try to find a matching command in the same module by looking at all commands.
-                // Since legacy format doesn't have the mapping, we just record the alias
-                // without a command link -- we use a sentinel "alias" command entry.
-                long? sentinelId = writer.FindCommand(moduleId, aliasName);
-                if (!sentinelId.HasValue)
-                {
-                    sentinelId = writer.InsertCommand(moduleId, aliasName, "Alias", defaultParameterSet: null);
-                }
-
-                writer.LinkCommandPlatform(sentinelId.Value, platformId);
-            }
+            return result;
         }
 
         /// <summary>
@@ -123,9 +114,6 @@ namespace PSpecter.Runtime.Import
             version = null;
             os = null;
 
-            // Format: {edition}-{version}-{os}
-            // version may contain dots and hyphens (e.g. "5.1.14393.206")
-            // OS is always the last segment
             int firstDash = fileName.IndexOf('-');
             if (firstDash < 0) return false;
 
@@ -136,15 +124,10 @@ namespace PSpecter.Runtime.Import
             version = fileName.Substring(firstDash + 1, lastDash - firstDash - 1);
             os = fileName.Substring(lastDash + 1);
 
-            // Normalize edition
             if (string.Equals(edition, "core", StringComparison.OrdinalIgnoreCase))
-            {
                 edition = "Core";
-            }
             else if (string.Equals(edition, "desktop", StringComparison.OrdinalIgnoreCase))
-            {
                 edition = "Desktop";
-            }
 
             return !string.IsNullOrEmpty(edition) && !string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(os);
         }

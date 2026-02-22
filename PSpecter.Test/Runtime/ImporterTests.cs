@@ -54,10 +54,10 @@ namespace PSpecter.Test.Runtime
 
             using var conn = CreateConnection();
             using var writer = new CommandDatabaseWriter(conn);
-            writer.BeginTransaction();
-            long platformId = writer.EnsurePlatform("Core", "7.0.0", "windows");
-            LegacySettingsImporter.ImportJson(writer, json, platformId);
-            writer.CommitTransaction();
+            using var tx = writer.BeginTransaction();
+            var platform = new PlatformInfo("Core", "7.0.0", "windows");
+            LegacySettingsImporter.ImportJson(writer, json, platform, tx);
+            tx.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Thing'";
@@ -89,12 +89,12 @@ namespace PSpecter.Test.Runtime
 
             using var conn = CreateConnection();
             using var writer = new CommandDatabaseWriter(conn);
-            writer.BeginTransaction();
-            long winId = writer.EnsurePlatform("Core", "7.0.0", "windows");
-            long macId = writer.EnsurePlatform("Core", "7.0.0", "macos");
-            LegacySettingsImporter.ImportJson(writer, json, winId);
-            LegacySettingsImporter.ImportJson(writer, json, macId);
-            writer.CommitTransaction();
+            using var tx = writer.BeginTransaction();
+            var winPlatform = new PlatformInfo("Core", "7.0.0", "windows");
+            var macPlatform = new PlatformInfo("Core", "7.0.0", "macos");
+            LegacySettingsImporter.ImportJson(writer, json, winPlatform, tx);
+            LegacySettingsImporter.ImportJson(writer, json, macPlatform, tx);
+            tx.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Cross'";
@@ -102,6 +102,30 @@ namespace PSpecter.Test.Runtime
 
             cmd.CommandText = "SELECT COUNT(*) FROM CommandPlatform WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Get-Cross')";
             Assert.Equal(2L, (long)cmd.ExecuteScalar());
+        }
+
+        [Fact]
+        public void ParseJson_ProducesCommandMetadata()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": ""Mod"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [
+                            { ""Name"": ""Get-X"", ""CommandType"": ""Cmdlet"" }
+                        ],
+                        ""ExportedAliases"": [""gx""]
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Equal(2, commands.Count);
+            Assert.Equal("Get-X", commands[0].Name);
+            Assert.Equal("Cmdlet", commands[0].CommandType);
+            Assert.Equal("gx", commands[1].Name);
+            Assert.Equal("Alias", commands[1].CommandType);
         }
 
         private static SqliteConnection CreateConnection()
@@ -174,26 +198,22 @@ namespace PSpecter.Test.Runtime
 
             using var conn = CreateConnection();
             using var writer = new CommandDatabaseWriter(conn);
-            writer.BeginTransaction();
-            CompatibilityProfileImporter.ImportJson(writer, json);
-            writer.CommitTransaction();
+            using var tx = writer.BeginTransaction();
+            CompatibilityProfileImporter.ImportJson(writer, json, tx);
+            tx.Commit();
 
-            // Verify platform
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
             Assert.Equal(1L, (long)cmd.ExecuteScalar());
 
-            // Verify command
             cmd.CommandText = "SELECT Id FROM Command WHERE Name = 'Get-Widget'";
             long commandId = (long)cmd.ExecuteScalar();
             Assert.True(commandId > 0);
 
-            // Verify parameters
             cmd.CommandText = "SELECT COUNT(*) FROM Parameter WHERE CommandId = @cid";
             cmd.Parameters.AddWithValue("@cid", commandId);
             Assert.Equal(2L, (long)cmd.ExecuteScalar());
 
-            // Verify parameter set membership
             cmd.Parameters.Clear();
             cmd.CommandText = @"
                 SELECT psm.SetName, psm.IsMandatory, psm.Position, psm.ValueFromPipelineByPropertyName
@@ -205,18 +225,16 @@ namespace PSpecter.Test.Runtime
             {
                 Assert.True(reader.Read());
                 Assert.Equal("Default", reader.GetString(0));
-                Assert.Equal(1L, reader.GetInt64(1)); // IsMandatory
-                Assert.Equal(0L, reader.GetInt64(2)); // Position
-                Assert.Equal(1L, reader.GetInt64(3)); // ValueFromPipelineByPropertyName
+                Assert.Equal(1L, reader.GetInt64(1));
+                Assert.Equal(0L, reader.GetInt64(2));
+                Assert.Equal(1L, reader.GetInt64(3));
             }
 
-            // Verify alias
             cmd.Parameters.Clear();
             cmd.CommandText = "SELECT CommandId FROM Alias WHERE Name = 'gw'";
             long aliasTarget = (long)cmd.ExecuteScalar();
             Assert.Equal(commandId, aliasTarget);
 
-            // Verify output type
             cmd.Parameters.Clear();
             cmd.CommandText = "SELECT TypeName FROM OutputType WHERE CommandId = @cid";
             cmd.Parameters.AddWithValue("@cid", commandId);
@@ -261,15 +279,14 @@ namespace PSpecter.Test.Runtime
 
             using var conn = CreateConnection();
             using var writer = new CommandDatabaseWriter(conn);
-            writer.BeginTransaction();
-            CompatibilityProfileImporter.ImportJson(writer, json);
-            writer.CommitTransaction();
+            using var tx = writer.BeginTransaction();
+            CompatibilityProfileImporter.ImportJson(writer, json, tx);
+            tx.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT CommandType FROM Command WHERE Name = 'Invoke-MyFunc'";
             Assert.Equal("Function", (string)cmd.ExecuteScalar());
 
-            // Position = int.MinValue should be stored as null
             cmd.CommandText = @"
                 SELECT psm.Position
                 FROM ParameterSetMembership psm
@@ -297,13 +314,34 @@ namespace PSpecter.Test.Runtime
 
             using var conn = CreateConnection();
             using var writer = new CommandDatabaseWriter(conn);
-            writer.BeginTransaction();
-            CompatibilityProfileImporter.ImportJson(writer, json);
-            writer.CommitTransaction();
+            using var tx = writer.BeginTransaction();
+            CompatibilityProfileImporter.ImportJson(writer, json, tx);
+            tx.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Minimal'";
             Assert.Equal(1L, (long)cmd.ExecuteScalar());
+        }
+
+        [Fact]
+        public void ParseJson_ExtractsPlatformInfo()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": {
+                        ""Version"": { ""Major"": 7, ""Minor"": 4, ""Patch"": 7 },
+                        ""Edition"": ""Core""
+                    },
+                    ""OperatingSystem"": { ""Family"": ""Linux"" }
+                },
+                ""Runtime"": { ""Modules"": {} }
+            }";
+
+            var (platform, commands) = CompatibilityProfileImporter.ParseJson(json);
+            Assert.Equal("Core", platform.Edition);
+            Assert.Equal("7.4.7", platform.Version);
+            Assert.Equal("linux", platform.OS);
+            Assert.Empty(commands);
         }
 
         private static SqliteConnection CreateConnection()

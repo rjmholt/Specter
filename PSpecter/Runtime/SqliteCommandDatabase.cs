@@ -32,10 +32,6 @@ namespace PSpecter.Runtime
                 comparer: new CacheKeyComparer());
         }
 
-        /// <summary>
-        /// Looks up a command by canonical name or alias, optionally filtered to
-        /// a set of platforms. Returns true if found.
-        /// </summary>
         public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
         {
             var key = new CacheKey(nameOrAlias, platforms);
@@ -50,15 +46,10 @@ namespace PSpecter.Runtime
             return command is not null;
         }
 
-        /// <summary>
-        /// Checks whether a command (name or alias) exists for the given platforms.
-        /// </summary>
         public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
         {
             return TryGetCommand(nameOrAlias, platforms, out _);
         }
-
-        // --- Legacy IPowerShellCommandDatabase members ---
 
         public string GetAliasTarget(string alias)
         {
@@ -110,29 +101,25 @@ namespace PSpecter.Runtime
             return BuildCommandMetadata(commandId.Value, platforms);
         }
 
-        /// <summary>
-        /// Finds a command ID by looking first in the Command table, then the Alias table.
-        /// If platforms is non-empty, restricts to commands available on those platforms.
-        /// </summary>
         private long? FindCommandId(string nameOrAlias, HashSet<PlatformInfo> platforms)
         {
             string platformFilter = BuildPlatformFilter(platforms, out List<SqliteParameter> platParams);
 
-            // Try direct command name first
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
                 if (platformFilter is null)
                 {
-                    cmd.CommandText = "SELECT Id FROM Command WHERE Name = @name COLLATE NOCASE LIMIT 1";
+                    cmd.CommandText =
+                        $"SELECT {Db.Command.Id} FROM {Db.Command.Table} " +
+                        $"WHERE {Db.Command.Name} = @name COLLATE NOCASE LIMIT 1";
                 }
                 else
                 {
-                    cmd.CommandText = $@"
-                        SELECT c.Id FROM Command c
-                        INNER JOIN CommandPlatform cp ON cp.CommandId = c.Id
-                        INNER JOIN Platform p ON p.Id = cp.PlatformId
-                        WHERE c.Name = @name COLLATE NOCASE AND ({platformFilter})
-                        LIMIT 1";
+                    cmd.CommandText =
+                        $"SELECT c.{Db.Command.Id} FROM {Db.Command.Table} c " +
+                        $"INNER JOIN {Db.CommandPlatform.Table} cp ON cp.{Db.CommandPlatform.CommandId} = c.{Db.Command.Id} " +
+                        $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = cp.{Db.CommandPlatform.PlatformId} " +
+                        $"WHERE c.{Db.Command.Name} = @name COLLATE NOCASE AND ({platformFilter}) LIMIT 1";
                     foreach (var p in platParams) cmd.Parameters.Add(p);
                 }
                 cmd.Parameters.AddWithValue("@name", nameOrAlias);
@@ -144,21 +131,21 @@ namespace PSpecter.Runtime
                 }
             }
 
-            // Try alias lookup
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
                 if (platformFilter is null)
                 {
-                    cmd.CommandText = "SELECT CommandId FROM Alias WHERE Name = @name COLLATE NOCASE LIMIT 1";
+                    cmd.CommandText =
+                        $"SELECT {Db.Alias.CommandId} FROM {Db.Alias.Table} " +
+                        $"WHERE {Db.Alias.Name} = @name COLLATE NOCASE LIMIT 1";
                 }
                 else
                 {
-                    cmd.CommandText = $@"
-                        SELECT a.CommandId FROM Alias a
-                        INNER JOIN AliasPlatform ap ON ap.AliasId = a.Id
-                        INNER JOIN Platform p ON p.Id = ap.PlatformId
-                        WHERE a.Name = @name COLLATE NOCASE AND ({platformFilter})
-                        LIMIT 1";
+                    cmd.CommandText =
+                        $"SELECT a.{Db.Alias.CommandId} FROM {Db.Alias.Table} a " +
+                        $"INNER JOIN {Db.AliasPlatform.Table} ap ON ap.{Db.AliasPlatform.AliasId} = a.{Db.Alias.Id} " +
+                        $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = ap.{Db.AliasPlatform.PlatformId} " +
+                        $"WHERE a.{Db.Alias.Name} = @name COLLATE NOCASE AND ({platformFilter}) LIMIT 1";
                     foreach (var p in platParams) cmd.Parameters.Add(p);
                 }
                 cmd.Parameters.AddWithValue("@name", nameOrAlias);
@@ -182,11 +169,11 @@ namespace PSpecter.Runtime
 
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
-                cmd.CommandText = @"
-                    SELECT c.Name, c.CommandType, c.DefaultParameterSet, m.Name
-                    FROM Command c
-                    LEFT JOIN Module m ON m.Id = c.ModuleId
-                    WHERE c.Id = @id";
+                cmd.CommandText =
+                    $"SELECT c.{Db.Command.Name}, c.{Db.Command.CommandType}, c.{Db.Command.DefaultParameterSet}, m.{Db.Module.Name} " +
+                    $"FROM {Db.Command.Table} c " +
+                    $"LEFT JOIN {Db.Module.Table} m ON m.{Db.Module.Id} = c.{Db.Command.ModuleId} " +
+                    $"WHERE c.{Db.Command.Id} = @id";
                 cmd.Parameters.AddWithValue("@id", commandId);
 
                 using SqliteDataReader reader = cmd.ExecuteReader();
@@ -223,15 +210,17 @@ namespace PSpecter.Runtime
 
             if (platformFilter is null)
             {
-                cmd.CommandText = "SELECT Name FROM Alias WHERE CommandId = @cid";
+                cmd.CommandText =
+                    $"SELECT {Db.Alias.Name} FROM {Db.Alias.Table} " +
+                    $"WHERE {Db.Alias.CommandId} = @cid";
             }
             else
             {
-                cmd.CommandText = $@"
-                    SELECT DISTINCT a.Name FROM Alias a
-                    INNER JOIN AliasPlatform ap ON ap.AliasId = a.Id
-                    INNER JOIN Platform p ON p.Id = ap.PlatformId
-                    WHERE a.CommandId = @cid AND ({platformFilter})";
+                cmd.CommandText =
+                    $"SELECT DISTINCT a.{Db.Alias.Name} FROM {Db.Alias.Table} a " +
+                    $"INNER JOIN {Db.AliasPlatform.Table} ap ON ap.{Db.AliasPlatform.AliasId} = a.{Db.Alias.Id} " +
+                    $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = ap.{Db.AliasPlatform.PlatformId} " +
+                    $"WHERE a.{Db.Alias.CommandId} = @cid AND ({platformFilter})";
                 foreach (var p in platParams) cmd.Parameters.Add(p);
             }
             cmd.Parameters.AddWithValue("@cid", commandId);
@@ -250,12 +239,12 @@ namespace PSpecter.Runtime
             var names = new List<string>();
 
             using SqliteCommand cmd = _connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT DISTINCT psm.SetName
-                FROM ParameterSetMembership psm
-                INNER JOIN Parameter par ON par.Id = psm.ParameterId
-                WHERE par.CommandId = @cid
-                ORDER BY psm.SetName";
+            cmd.CommandText =
+                $"SELECT DISTINCT psm.{Db.ParameterSetMembership.SetName} " +
+                $"FROM {Db.ParameterSetMembership.Table} psm " +
+                $"INNER JOIN {Db.Parameter.Table} par ON par.{Db.Parameter.Id} = psm.{Db.ParameterSetMembership.ParameterId} " +
+                $"WHERE par.{Db.Parameter.CommandId} = @cid " +
+                $"ORDER BY psm.{Db.ParameterSetMembership.SetName}";
             cmd.Parameters.AddWithValue("@cid", commandId);
 
             using SqliteDataReader reader = cmd.ExecuteReader();
@@ -278,16 +267,18 @@ namespace PSpecter.Runtime
             {
                 if (platformFilter is null)
                 {
-                    cmd.CommandText = "SELECT Id, Name, Type, IsDynamic FROM Parameter WHERE CommandId = @cid";
+                    cmd.CommandText =
+                        $"SELECT {Db.Parameter.Id}, {Db.Parameter.Name}, {Db.Parameter.Type}, {Db.Parameter.IsDynamic} " +
+                        $"FROM {Db.Parameter.Table} WHERE {Db.Parameter.CommandId} = @cid";
                 }
                 else
                 {
-                    cmd.CommandText = $@"
-                        SELECT DISTINCT par.Id, par.Name, par.Type, par.IsDynamic
-                        FROM Parameter par
-                        INNER JOIN ParameterPlatform pp ON pp.ParameterId = par.Id
-                        INNER JOIN Platform p ON p.Id = pp.PlatformId
-                        WHERE par.CommandId = @cid AND ({platformFilter})";
+                    cmd.CommandText =
+                        $"SELECT DISTINCT par.{Db.Parameter.Id}, par.{Db.Parameter.Name}, par.{Db.Parameter.Type}, par.{Db.Parameter.IsDynamic} " +
+                        $"FROM {Db.Parameter.Table} par " +
+                        $"INNER JOIN {Db.ParameterPlatform.Table} pp ON pp.{Db.ParameterPlatform.ParameterId} = par.{Db.Parameter.Id} " +
+                        $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = pp.{Db.ParameterPlatform.PlatformId} " +
+                        $"WHERE par.{Db.Parameter.CommandId} = @cid AND ({platformFilter})";
                     foreach (var p in platParams) cmd.Parameters.Add(p);
                 }
                 cmd.Parameters.AddWithValue("@cid", commandId);
@@ -318,10 +309,12 @@ namespace PSpecter.Runtime
             var sets = new List<ParameterSetInfo>();
 
             using SqliteCommand cmd = _connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT SetName, Position, IsMandatory, ValueFromPipeline, ValueFromPipelineByPropertyName
-                FROM ParameterSetMembership
-                WHERE ParameterId = @pid";
+            cmd.CommandText =
+                $"SELECT {Db.ParameterSetMembership.SetName}, {Db.ParameterSetMembership.Position}, " +
+                $"{Db.ParameterSetMembership.IsMandatory}, {Db.ParameterSetMembership.ValueFromPipeline}, " +
+                $"{Db.ParameterSetMembership.ValueFromPipelineByPropertyName} " +
+                $"FROM {Db.ParameterSetMembership.Table} " +
+                $"WHERE {Db.ParameterSetMembership.ParameterId} = @pid";
             cmd.Parameters.AddWithValue("@pid", parameterId);
 
             using SqliteDataReader reader = cmd.ExecuteReader();
@@ -343,7 +336,9 @@ namespace PSpecter.Runtime
             var types = new List<string>();
 
             using SqliteCommand cmd = _connection.CreateCommand();
-            cmd.CommandText = "SELECT TypeName FROM OutputType WHERE CommandId = @cid";
+            cmd.CommandText =
+                $"SELECT {Db.OutputType.TypeName} FROM {Db.OutputType.Table} " +
+                $"WHERE {Db.OutputType.CommandId} = @cid";
             cmd.Parameters.AddWithValue("@cid", commandId);
 
             using SqliteDataReader reader = cmd.ExecuteReader();
@@ -355,10 +350,6 @@ namespace PSpecter.Runtime
             return types;
         }
 
-        /// <summary>
-        /// Builds a SQL filter expression like "(p.Edition = @e0 AND p.Version = @v0 AND p.OS = @o0) OR ..."
-        /// for a set of platform filters. Returns null if no filter is needed.
-        /// </summary>
         private static string BuildPlatformFilter(HashSet<PlatformInfo> platforms, out List<SqliteParameter> parameters)
         {
             parameters = new List<SqliteParameter>();
@@ -373,7 +364,10 @@ namespace PSpecter.Runtime
             foreach (PlatformInfo plat in platforms)
             {
                 string suffix = i.ToString();
-                clauses.Add($"(p.Edition = @e{suffix} AND p.Version = @v{suffix} AND p.OS = @o{suffix})");
+                clauses.Add(
+                    $"(p.{Db.Platform.Edition} = @e{suffix} AND " +
+                    $"p.{Db.Platform.Version} = @v{suffix} AND " +
+                    $"p.{Db.Platform.OS} = @o{suffix})");
                 parameters.Add(new SqliteParameter($"@e{suffix}", plat.Edition));
                 parameters.Add(new SqliteParameter($"@v{suffix}", plat.Version));
                 parameters.Add(new SqliteParameter($"@o{suffix}", plat.OS));

@@ -5,7 +5,9 @@ using System.Management.Automation;
 using Microsoft.Data.Sqlite;
 using PSpecter.Runtime;
 using PSpecter.Runtime.Import;
-using ParameterMetadata2 = System.Management.Automation.ParameterMetadata;
+using PsCommandMetadata = PSpecter.Runtime.CommandMetadata;
+using PsParameterMetadata = PSpecter.Runtime.ParameterMetadata;
+using SmaParameterMetadata = System.Management.Automation.ParameterMetadata;
 
 namespace PSpecter.Commands
 {
@@ -90,130 +92,111 @@ namespace PSpecter.Commands
 
             WriteVerbose($"Platform: {edition}/{version}/{os}");
 
-            using var writer = new CommandDatabaseWriter(connection);
-            writer.BeginTransaction();
+            var platform = new PlatformInfo(edition, version, os);
+            var commands = new List<PsCommandMetadata>();
 
-            long platformId = writer.EnsurePlatform(edition, version, os);
-
-            var commands = InvokeCommand.InvokeScript(
+            var psCommands = InvokeCommand.InvokeScript(
                 "Get-Command -CommandType Cmdlet,Function -ErrorAction SilentlyContinue");
 
-            int commandCount = 0;
-            foreach (PSObject cmdObj in commands)
+            foreach (PSObject cmdObj in psCommands)
             {
                 if (cmdObj.BaseObject is CommandInfo cmdInfo)
                 {
-                    ImportCommandInfo(writer, cmdInfo, platformId);
-                    commandCount++;
+                    PsCommandMetadata meta = ConvertCommandInfo(cmdInfo);
+                    if (meta is not null)
+                        commands.Add(meta);
                 }
             }
 
-            ImportAliases(writer, platformId);
+            // Collect aliases separately and add them as commands with alias info
+            CollectAliases(commands);
 
-            writer.CommitTransaction();
-            WriteVerbose($"Imported {commandCount} commands.");
+            using var writer = new CommandDatabaseWriter(connection);
+            using var tx = writer.BeginTransaction();
+            writer.ImportCommands(commands, platform, tx);
+            tx.Commit();
+
+            WriteVerbose($"Imported {commands.Count} commands.");
         }
 
-        private void ImportCommandInfo(CommandDatabaseWriter writer, CommandInfo cmdInfo, long platformId)
+        private PsCommandMetadata ConvertCommandInfo(CommandInfo cmdInfo)
         {
             string moduleName = cmdInfo.ModuleName;
             if (string.IsNullOrEmpty(moduleName))
-            {
                 moduleName = "(none)";
-            }
-
-            string moduleVersion = cmdInfo.Module?.Version?.ToString();
-            long moduleId = writer.EnsureModule(moduleName, moduleVersion);
 
             string commandType = cmdInfo.CommandType.ToString();
             string defaultParamSet = null;
 
             if (cmdInfo is CmdletInfo cmdletInfo)
-            {
                 defaultParamSet = cmdletInfo.DefaultParameterSet;
-            }
             else if (cmdInfo is FunctionInfo funcInfo)
-            {
                 defaultParamSet = funcInfo.DefaultParameterSet;
-            }
 
-            long? existingId = writer.FindCommand(moduleId, cmdInfo.Name);
-            long commandId;
-            if (existingId.HasValue)
-            {
-                commandId = existingId.Value;
-            }
-            else
-            {
-                commandId = writer.InsertCommand(moduleId, cmdInfo.Name, commandType, defaultParamSet);
-            }
-
-            writer.LinkCommandPlatform(commandId, platformId);
-
+            var parameters = new List<PsParameterMetadata>();
             try
             {
-                foreach (var paramEntry in cmdInfo.Parameters)
+                if (cmdInfo.Parameters is not null)
                 {
-                    string paramName = paramEntry.Key;
-                    ParameterMetadata2 paramMeta = paramEntry.Value;
+                    foreach (var paramEntry in cmdInfo.Parameters)
+                    {
+                        SmaParameterMetadata paramMeta = paramEntry.Value;
+                        var sets = new List<ParameterSetInfo>();
 
-                    long? existingParam = writer.FindParameter(commandId, paramName);
-                    long paramId;
-                    if (existingParam.HasValue)
-                    {
-                        paramId = existingParam.Value;
-                    }
-                    else
-                    {
-                        paramId = writer.InsertParameter(
-                            commandId,
-                            paramName,
+                        foreach (var setEntry in paramMeta.ParameterSets)
+                        {
+                            ParameterSetMetadata setMeta = setEntry.Value;
+                            int? position = setMeta.Position == int.MinValue ? null : setMeta.Position;
+                            sets.Add(new ParameterSetInfo(
+                                setEntry.Key,
+                                position,
+                                setMeta.IsMandatory,
+                                setMeta.ValueFromPipeline,
+                                setMeta.ValueFromPipelineByPropertyName));
+                        }
+
+                        parameters.Add(new PsParameterMetadata(
+                            paramEntry.Key,
                             paramMeta.ParameterType?.FullName,
-                            paramMeta.IsDynamic);
-                    }
-
-                    writer.LinkParameterPlatform(paramId, platformId);
-
-                    foreach (var setEntry in paramMeta.ParameterSets)
-                    {
-                        ParameterSetMetadata setMeta = setEntry.Value;
-                        writer.InsertParameterSetMembership(
-                            paramId,
-                            setEntry.Key,
-                            setMeta.Position == int.MinValue ? (int?)null : setMeta.Position,
-                            setMeta.IsMandatory,
-                            setMeta.ValueFromPipeline,
-                            setMeta.ValueFromPipelineByPropertyName);
+                            paramMeta.IsDynamic,
+                            sets));
                     }
                 }
             }
             catch (RuntimeException)
             {
-                // Some commands throw when accessing Parameters (e.g. Get-WmiObject without WMI)
             }
 
+            var outputTypes = new List<string>();
             try
             {
                 foreach (var outputType in cmdInfo.OutputType)
                 {
                     string typeName = outputType.Type?.FullName ?? outputType.Name;
                     if (!string.IsNullOrWhiteSpace(typeName))
-                    {
-                        writer.InsertOutputType(commandId, typeName);
-                    }
+                        outputTypes.Add(typeName);
                 }
             }
             catch (RuntimeException)
             {
             }
+
+            return new PsCommandMetadata(
+                cmdInfo.Name,
+                commandType,
+                moduleName,
+                defaultParamSet,
+                parameterSetNames: null,
+                aliases: null,
+                parameters: parameters,
+                outputTypes: outputTypes);
         }
 
-        private void ImportAliases(CommandDatabaseWriter writer, long platformId)
+        private void CollectAliases(List<PsCommandMetadata> commands)
         {
             var aliases = InvokeCommand.InvokeScript(
                 "Get-Alias -ErrorAction SilentlyContinue");
 
-            int aliasCount = 0;
             foreach (PSObject aliasObj in aliases)
             {
                 if (aliasObj.BaseObject is not AliasInfo aliasInfo) continue;
@@ -221,32 +204,20 @@ namespace PSpecter.Commands
                 string targetName = aliasInfo.Definition;
                 if (string.IsNullOrEmpty(targetName)) continue;
 
-                // Find the target command's module and ID
                 string moduleName = aliasInfo.Module?.Name;
                 if (string.IsNullOrEmpty(moduleName))
-                {
                     moduleName = "(none)";
-                }
 
-                long moduleId = writer.EnsureModule(moduleName, aliasInfo.Module?.Version?.ToString());
-
-                // Try to find the target command already inserted
-                long? targetCmdId = writer.FindCommand(moduleId, targetName);
-                if (!targetCmdId.HasValue)
-                {
-                    // The target command might be in a different module; try a broader search
-                    // by inserting a placeholder "Alias" command entry
-                    targetCmdId = writer.InsertCommand(moduleId, targetName, "Alias", null);
-                    writer.LinkCommandPlatform(targetCmdId.Value, platformId);
-                }
-
-                long? existingAlias = writer.FindAlias(aliasInfo.Name, targetCmdId.Value);
-                long aliasId = existingAlias ?? writer.InsertAlias(aliasInfo.Name, targetCmdId.Value);
-                writer.LinkAliasPlatform(aliasId, platformId);
-                aliasCount++;
+                commands.Add(new PsCommandMetadata(
+                    name: targetName,
+                    commandType: "Alias",
+                    moduleName: moduleName,
+                    defaultParameterSet: null,
+                    parameterSetNames: null,
+                    aliases: new[] { aliasInfo.Name },
+                    parameters: null,
+                    outputTypes: null));
             }
-
-            WriteVerbose($"Imported {aliasCount} aliases.");
         }
 
         private void ImportLegacyJson(SqliteConnection connection)
@@ -264,23 +235,20 @@ namespace PSpecter.Commands
                 string json = File.ReadAllText(path);
                 string fileName = Path.GetFileNameWithoutExtension(path);
 
-                using var writer = new CommandDatabaseWriter(connection);
-                writer.BeginTransaction();
-
-                if (LegacySettingsImporter.TryParsePlatformFromFileName(
+                if (!LegacySettingsImporter.TryParsePlatformFromFileName(
                     fileName, out string edition, out string version, out string os))
                 {
-                    long platformId = writer.EnsurePlatform(edition, version, os);
-                    LegacySettingsImporter.ImportJson(writer, json, platformId);
-                }
-                else
-                {
                     WriteWarning($"Could not parse platform from filename '{fileName}'. Using defaults.");
-                    long platformId = writer.EnsurePlatform("Core", "0.0.0", "unknown");
-                    LegacySettingsImporter.ImportJson(writer, json, platformId);
+                    edition = "Core";
+                    version = "0.0.0";
+                    os = "unknown";
                 }
 
-                writer.CommitTransaction();
+                var platform = new PlatformInfo(edition, version, os);
+                using var writer = new CommandDatabaseWriter(connection);
+                using var tx = writer.BeginTransaction();
+                LegacySettingsImporter.ImportJson(writer, json, platform, tx);
+                tx.Commit();
             }
             else
             {
@@ -306,9 +274,9 @@ namespace PSpecter.Commands
                 WriteVerbose($"Importing compatibility profile from file: {path}");
                 string json = File.ReadAllText(path);
                 using var writer = new CommandDatabaseWriter(connection);
-                writer.BeginTransaction();
-                CompatibilityProfileImporter.ImportJson(writer, json);
-                writer.CommitTransaction();
+                using var tx = writer.BeginTransaction();
+                CompatibilityProfileImporter.ImportJson(writer, json, tx);
+                tx.Commit();
             }
             else
             {
@@ -327,15 +295,13 @@ namespace PSpecter.Commands
                 return GetUnresolvedProviderPathFromPSPath(DatabasePath);
             }
 
-            // Default to the module's data directory
             string moduleBase = MyInvocation.MyCommand.Module?.ModuleBase;
             if (moduleBase is not null)
             {
-                return System.IO.Path.Combine(moduleBase, "Data", "pspecter.db");
+                return Path.Combine(moduleBase, "Data", "pspecter.db");
             }
 
-            // Fallback: current directory
-            return System.IO.Path.Combine(SessionState.Path.CurrentFileSystemLocation.Path, "pspecter.db");
+            return Path.Combine(SessionState.Path.CurrentFileSystemLocation.Path, "pspecter.db");
         }
 
         private string GetSessionEdition()

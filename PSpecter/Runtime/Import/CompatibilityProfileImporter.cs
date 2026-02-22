@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace PSpecter.Runtime.Import
 {
     /// <summary>
     /// Imports command metadata from PSCompatibilityCollector JSON profile files.
-    /// These profiles contain rich parameter/parameter-set/alias/output-type data
-    /// along with platform identification.
+    /// Deserializes into typed DTOs and converts to <see cref="CommandMetadata"/>
+    /// for the coarse-grained writer API.
     /// </summary>
     public static class CompatibilityProfileImporter
     {
@@ -24,305 +24,208 @@ namespace PSpecter.Runtime.Import
             }
 
             using var writer = new CommandDatabaseWriter(connection);
-            writer.BeginTransaction();
+            using var tx = writer.BeginTransaction();
 
             foreach (string filePath in Directory.GetFiles(profileDirectory, "*.json"))
             {
                 string json = File.ReadAllText(filePath);
-                ImportJson(writer, json);
+                var (platform, commands) = ParseJson(json);
+                writer.ImportCommands(commands, platform, tx);
             }
 
-            writer.CommitTransaction();
+            tx.Commit();
         }
 
         /// <summary>
         /// Imports a single compatibility profile JSON string.
         /// </summary>
-        public static void ImportJson(CommandDatabaseWriter writer, string json)
+        public static void ImportJson(CommandDatabaseWriter writer, string json, DatabaseTransactionScope tx)
         {
-            JObject root = JObject.Parse(json);
-
-            long platformId = ExtractAndEnsurePlatform(writer, root);
-
-            JObject runtime = (JObject)root["Runtime"];
-            if (runtime is null) return;
-
-            JObject modules = (JObject)runtime["Modules"];
-            if (modules is null) return;
-
-            foreach (var moduleEntry in modules)
-            {
-                string moduleName = moduleEntry.Key;
-                JObject versions = (JObject)moduleEntry.Value;
-                if (versions is null) continue;
-
-                foreach (var versionEntry in versions)
-                {
-                    string moduleVersion = versionEntry.Key;
-                    JObject moduleData = (JObject)versionEntry.Value;
-                    if (moduleData is null) continue;
-
-                    long moduleId = writer.EnsureModule(moduleName, moduleVersion);
-
-                    ImportCmdlets(writer, moduleData, moduleId, platformId);
-                    ImportFunctions(writer, moduleData, moduleId, platformId);
-                    ImportModuleAliases(writer, moduleData, moduleId, platformId);
-                }
-            }
+            var (platform, commands) = ParseJson(json);
+            writer.ImportCommands(commands, platform, tx);
         }
 
-        private static long ExtractAndEnsurePlatform(CommandDatabaseWriter writer, JObject root)
+        /// <summary>
+        /// Parses a compatibility profile JSON string into platform info and command metadata.
+        /// </summary>
+        internal static (PlatformInfo Platform, IReadOnlyList<CommandMetadata> Commands) ParseJson(string json)
         {
-            JObject platform = (JObject)root["Platform"];
+            var root = JsonConvert.DeserializeObject<CompatProfileRoot>(json);
+
+            PlatformInfo platform = ExtractPlatform(root);
+
+            var commands = new List<CommandMetadata>();
+
+            if (root?.Runtime?.Modules is null)
+                return (platform, commands);
+
+            foreach (var moduleEntry in root.Runtime.Modules)
+            {
+                string moduleName = moduleEntry.Key;
+                if (moduleEntry.Value is null) continue;
+
+                foreach (var versionEntry in moduleEntry.Value)
+                {
+                    CompatModuleVersion moduleData = versionEntry.Value;
+                    if (moduleData is null) continue;
+
+                    // Collect alias mappings for this module version
+                    var aliasMap = moduleData.Aliases ?? new Dictionary<string, string>();
+
+                    // Build reverse lookup: command name -> list of aliases
+                    var commandAliases = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var kvp in aliasMap)
+                    {
+                        if (string.IsNullOrWhiteSpace(kvp.Key) || string.IsNullOrWhiteSpace(kvp.Value))
+                            continue;
+
+                        if (!commandAliases.TryGetValue(kvp.Value, out var list))
+                        {
+                            list = new List<string>();
+                            commandAliases[kvp.Value] = list;
+                        }
+                        list.Add(kvp.Key);
+                    }
+
+                    if (moduleData.Cmdlets is not null)
+                    {
+                        foreach (var cmdEntry in moduleData.Cmdlets)
+                        {
+                            commands.Add(ConvertCommand(cmdEntry.Key, "Cmdlet", cmdEntry.Value, moduleName, commandAliases));
+                        }
+                    }
+
+                    if (moduleData.Functions is not null)
+                    {
+                        foreach (var funcEntry in moduleData.Functions)
+                        {
+                            commands.Add(ConvertCommand(funcEntry.Key, "Function", funcEntry.Value, moduleName, commandAliases));
+                        }
+                    }
+
+                    // Any aliases whose targets were not found as commands: record as stand-alone entries
+                    foreach (var aliasKvp in aliasMap)
+                    {
+                        if (string.IsNullOrWhiteSpace(aliasKvp.Key)) continue;
+                        string targetName = aliasKvp.Value;
+
+                        bool alreadyHandled = false;
+                        if (moduleData.Cmdlets is not null && moduleData.Cmdlets.ContainsKey(targetName))
+                            alreadyHandled = true;
+                        if (!alreadyHandled && moduleData.Functions is not null && moduleData.Functions.ContainsKey(targetName))
+                            alreadyHandled = true;
+
+                        if (!alreadyHandled)
+                        {
+                            commands.Add(new CommandMetadata(
+                                name: targetName ?? aliasKvp.Key,
+                                commandType: "Alias",
+                                moduleName: moduleName,
+                                defaultParameterSet: null,
+                                parameterSetNames: null,
+                                aliases: new[] { aliasKvp.Key },
+                                parameters: null,
+                                outputTypes: null));
+                        }
+                    }
+                }
+            }
+
+            return (platform, commands);
+        }
+
+        private static CommandMetadata ConvertCommand(
+            string commandName,
+            string commandType,
+            CompatCommandData data,
+            string moduleName,
+            Dictionary<string, List<string>> aliasLookup)
+        {
+            var parameters = new List<ParameterMetadata>();
+            if (data?.Parameters is not null)
+            {
+                foreach (var paramEntry in data.Parameters)
+                {
+                    CompatParameterData paramData = paramEntry.Value;
+                    if (paramData is null) continue;
+
+                    var sets = new List<ParameterSetInfo>();
+                    if (paramData.ParameterSets is not null)
+                    {
+                        foreach (var setEntry in paramData.ParameterSets)
+                        {
+                            CompatParameterSetData setData = setEntry.Value;
+                            if (setData is null) continue;
+
+                            int? position = setData.Position;
+                            if (position == int.MinValue)
+                                position = null;
+
+                            bool isMandatory = false;
+                            bool valueFromPipeline = false;
+                            bool valueFromPipelineByPropertyName = false;
+
+                            if (setData.Flags is not null)
+                            {
+                                foreach (string flag in setData.Flags)
+                                {
+                                    if (string.Equals(flag, "Mandatory", StringComparison.OrdinalIgnoreCase))
+                                        isMandatory = true;
+                                    else if (string.Equals(flag, "ValueFromPipeline", StringComparison.OrdinalIgnoreCase))
+                                        valueFromPipeline = true;
+                                    else if (string.Equals(flag, "ValueFromPipelineByPropertyName", StringComparison.OrdinalIgnoreCase))
+                                        valueFromPipelineByPropertyName = true;
+                                }
+                            }
+
+                            sets.Add(new ParameterSetInfo(
+                                setEntry.Key, position, isMandatory, valueFromPipeline, valueFromPipelineByPropertyName));
+                        }
+                    }
+
+                    parameters.Add(new ParameterMetadata(paramEntry.Key, paramData.Type, paramData.Dynamic, sets));
+                }
+            }
+
+            List<string> aliases = null;
+            if (aliasLookup.TryGetValue(commandName, out var aliasList))
+            {
+                aliases = aliasList;
+            }
+
+            return new CommandMetadata(
+                name: commandName,
+                commandType: commandType,
+                moduleName: moduleName,
+                defaultParameterSet: data?.DefaultParameterSet,
+                parameterSetNames: data?.ParameterSets,
+                aliases: aliases,
+                parameters: parameters,
+                outputTypes: data?.OutputType);
+        }
+
+        private static PlatformInfo ExtractPlatform(CompatProfileRoot root)
+        {
             string edition = "Core";
             string version = "0.0.0";
             string os = "windows";
 
-            if (platform is not null)
+            if (root?.Platform is not null)
             {
-                JObject ps = (JObject)platform["PowerShell"];
-                if (ps is not null)
+                if (root.Platform.PowerShell is not null)
                 {
-                    edition = (string)ps["Edition"] ?? "Core";
-                    JToken versionToken = ps["Version"];
-                    if (versionToken is not null)
-                    {
-                        version = ExtractVersionString(versionToken);
-                    }
+                    edition = NormalizeEdition(root.Platform.PowerShell.Edition);
+                    if (!string.IsNullOrEmpty(root.Platform.PowerShell.Version))
+                        version = root.Platform.PowerShell.Version;
                 }
 
-                JObject osData = (JObject)platform["OperatingSystem"];
-                if (osData is not null)
+                if (root.Platform.OperatingSystem is not null)
                 {
-                    os = NormalizeOsFamily((string)osData["Family"]);
+                    os = NormalizeOsFamily(root.Platform.OperatingSystem.Family);
                 }
             }
 
-            return writer.EnsurePlatform(NormalizeEdition(edition), version, os);
-        }
-
-        private static void ImportCmdlets(CommandDatabaseWriter writer, JObject moduleData, long moduleId, long platformId)
-        {
-            JObject cmdlets = (JObject)moduleData["Cmdlets"];
-            if (cmdlets is null) return;
-
-            foreach (var entry in cmdlets)
-            {
-                ImportCommand(writer, entry.Key, "Cmdlet", (JObject)entry.Value, moduleId, platformId);
-            }
-        }
-
-        private static void ImportFunctions(CommandDatabaseWriter writer, JObject moduleData, long moduleId, long platformId)
-        {
-            JObject functions = (JObject)moduleData["Functions"];
-            if (functions is null) return;
-
-            foreach (var entry in functions)
-            {
-                ImportCommand(writer, entry.Key, "Function", (JObject)entry.Value, moduleId, platformId);
-            }
-        }
-
-        private static void ImportCommand(
-            CommandDatabaseWriter writer,
-            string commandName,
-            string commandType,
-            JObject commandData,
-            long moduleId,
-            long platformId)
-        {
-            string defaultParameterSet = (string)commandData["DefaultParameterSet"];
-
-            long? existingId = writer.FindCommand(moduleId, commandName);
-            long commandId;
-            if (existingId.HasValue)
-            {
-                commandId = existingId.Value;
-            }
-            else
-            {
-                commandId = writer.InsertCommand(moduleId, commandName, commandType, defaultParameterSet);
-            }
-
-            writer.LinkCommandPlatform(commandId, platformId);
-
-            ImportParameters(writer, commandData, commandId, platformId);
-            ImportOutputTypes(writer, commandData, commandId);
-        }
-
-        private static void ImportParameters(CommandDatabaseWriter writer, JObject commandData, long commandId, long platformId)
-        {
-            JObject parameters = (JObject)commandData["Parameters"];
-            if (parameters is null) return;
-
-            foreach (var paramEntry in parameters)
-            {
-                string paramName = paramEntry.Key;
-                JObject paramData = (JObject)paramEntry.Value;
-                if (paramData is null) continue;
-
-                string paramType = (string)paramData["Type"];
-                bool isDynamic = (bool?)paramData["Dynamic"] ?? false;
-
-                long? existingParamId = writer.FindParameter(commandId, paramName);
-                long paramId;
-                if (existingParamId.HasValue)
-                {
-                    paramId = existingParamId.Value;
-                }
-                else
-                {
-                    paramId = writer.InsertParameter(commandId, paramName, paramType, isDynamic);
-                }
-
-                writer.LinkParameterPlatform(paramId, platformId);
-
-                ImportParameterSets(writer, paramData, paramId);
-            }
-        }
-
-        private static void ImportParameterSets(CommandDatabaseWriter writer, JObject paramData, long paramId)
-        {
-            JObject parameterSets = (JObject)paramData["ParameterSets"];
-            if (parameterSets is null) return;
-
-            foreach (var setEntry in parameterSets)
-            {
-                string setName = setEntry.Key;
-                JObject setData = (JObject)setEntry.Value;
-                if (setData is null) continue;
-
-                int? position = null;
-                JToken posToken = setData["Position"];
-                if (posToken is not null && posToken.Type == JTokenType.Integer)
-                {
-                    int pos = (int)posToken;
-                    if (pos != int.MinValue)
-                    {
-                        position = pos;
-                    }
-                }
-
-                bool isMandatory = false;
-                bool valueFromPipeline = false;
-                bool valueFromPipelineByPropertyName = false;
-
-                JArray flags = (JArray)setData["Flags"];
-                if (flags is not null)
-                {
-                    foreach (JToken flag in flags)
-                    {
-                        string flagStr = flag.ToString();
-                        if (string.Equals(flagStr, "Mandatory", StringComparison.OrdinalIgnoreCase))
-                            isMandatory = true;
-                        else if (string.Equals(flagStr, "ValueFromPipeline", StringComparison.OrdinalIgnoreCase))
-                            valueFromPipeline = true;
-                        else if (string.Equals(flagStr, "ValueFromPipelineByPropertyName", StringComparison.OrdinalIgnoreCase))
-                            valueFromPipelineByPropertyName = true;
-                    }
-                }
-
-                writer.InsertParameterSetMembership(paramId, setName, position,
-                    isMandatory, valueFromPipeline, valueFromPipelineByPropertyName);
-            }
-        }
-
-        private static void ImportOutputTypes(CommandDatabaseWriter writer, JObject commandData, long commandId)
-        {
-            JArray outputTypes = (JArray)commandData["OutputType"];
-            if (outputTypes is null) return;
-
-            foreach (JToken typeToken in outputTypes)
-            {
-                string typeName = typeToken.ToString();
-                if (!string.IsNullOrWhiteSpace(typeName))
-                {
-                    writer.InsertOutputType(commandId, typeName);
-                }
-            }
-        }
-
-        private static void ImportModuleAliases(CommandDatabaseWriter writer, JObject moduleData, long moduleId, long platformId)
-        {
-            JObject aliases = (JObject)moduleData["Aliases"];
-            if (aliases is null) return;
-
-            foreach (var aliasEntry in aliases)
-            {
-                string aliasName = aliasEntry.Key;
-                string targetCommand = (string)aliasEntry.Value;
-
-                if (string.IsNullOrWhiteSpace(aliasName)) continue;
-
-                // Find the target command in the same module
-                long? targetId = null;
-                if (!string.IsNullOrWhiteSpace(targetCommand))
-                {
-                    targetId = writer.FindCommand(moduleId, targetCommand);
-                }
-
-                long commandId;
-                if (targetId.HasValue)
-                {
-                    commandId = targetId.Value;
-                }
-                else
-                {
-                    // Target command not in this module; create a placeholder command entry
-                    long? existing = writer.FindCommand(moduleId, aliasName);
-                    if (existing.HasValue)
-                    {
-                        commandId = existing.Value;
-                    }
-                    else
-                    {
-                        commandId = writer.InsertCommand(moduleId, targetCommand ?? aliasName, "Alias", null);
-                    }
-                    writer.LinkCommandPlatform(commandId, platformId);
-                }
-
-                long? existingAlias = writer.FindAlias(aliasName, commandId);
-                long aliasId;
-                if (existingAlias.HasValue)
-                {
-                    aliasId = existingAlias.Value;
-                }
-                else
-                {
-                    aliasId = writer.InsertAlias(aliasName, commandId);
-                }
-                writer.LinkAliasPlatform(aliasId, platformId);
-            }
-        }
-
-        private static string ExtractVersionString(JToken versionToken)
-        {
-            if (versionToken.Type == JTokenType.String)
-            {
-                return (string)versionToken;
-            }
-
-            if (versionToken.Type == JTokenType.Object)
-            {
-                JObject vObj = (JObject)versionToken;
-                int major = (int?)vObj["Major"] ?? 0;
-                int minor = (int?)vObj["Minor"] ?? 0;
-                int patch = (int?)vObj["Patch"] ?? (int?)vObj["Build"] ?? 0;
-                JToken label = vObj["Label"] ?? vObj["PreReleaseLabel"];
-
-                string ver = $"{major}.{minor}.{patch}";
-                if (label is not null)
-                {
-                    string labelStr = label.ToString();
-                    if (!string.IsNullOrWhiteSpace(labelStr))
-                    {
-                        ver += $"-{labelStr}";
-                    }
-                }
-                return ver;
-            }
-
-            return versionToken.ToString();
+            return new PlatformInfo(edition, version, os);
         }
 
         private static string NormalizeEdition(string edition)

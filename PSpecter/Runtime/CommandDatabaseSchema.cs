@@ -4,8 +4,7 @@ namespace PSpecter.Runtime
 {
     /// <summary>
     /// Defines the SQLite schema for the PSpecter command database.
-    /// All tables are platform-tagged so that a single database file can
-    /// hold metadata for multiple PowerShell editions/versions/OSes.
+    /// All table and column names are sourced from <see cref="Db"/> constants.
     /// </summary>
     internal static class CommandDatabaseSchema
     {
@@ -14,106 +13,105 @@ namespace PSpecter.Runtime
         public static void CreateTables(SqliteConnection connection)
         {
             using SqliteCommand cmd = connection.CreateCommand();
-            cmd.CommandText = CreateTablesSql;
+            cmd.CommandText = BuildCreateTablesSql();
             cmd.ExecuteNonQuery();
         }
 
-        private const string CreateTablesSql = @"
-PRAGMA journal_mode = WAL;
+        private static string BuildCreateTablesSql() =>
+            "PRAGMA journal_mode = WAL;\n" +
 
-CREATE TABLE IF NOT EXISTS SchemaVersion (
-    Version INTEGER NOT NULL
-);
+            $"CREATE TABLE IF NOT EXISTS {Db.SchemaVersionTable.Table} (" +
+            $"  {Db.SchemaVersionTable.Version} INTEGER NOT NULL" +
+            $");\n" +
 
-CREATE TABLE IF NOT EXISTS Platform (
-    Id      INTEGER PRIMARY KEY AUTOINCREMENT,
-    Edition TEXT    NOT NULL,  -- 'Core' or 'Desktop'
-    Version TEXT    NOT NULL,  -- e.g. '7.4.7'
-    OS      TEXT    NOT NULL,  -- 'windows', 'macos', 'linux'
-    UNIQUE(Edition, Version, OS)
-);
+            $"CREATE TABLE IF NOT EXISTS {Db.Platform.Table} (" +
+            $"  {Db.Platform.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.Platform.Edition} TEXT NOT NULL," +
+            $"  {Db.Platform.Version} TEXT NOT NULL," +
+            $"  {Db.Platform.OS} TEXT NOT NULL," +
+            $"  UNIQUE({Db.Platform.Edition}, {Db.Platform.Version}, {Db.Platform.OS})" +
+            $");\n" +
 
-CREATE TABLE IF NOT EXISTS Module (
-    Id      INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name    TEXT    NOT NULL,
-    Version TEXT,
-    UNIQUE(Name, Version)
-);
+            $"CREATE TABLE IF NOT EXISTS {Db.Module.Table} (" +
+            $"  {Db.Module.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.Module.Name} TEXT NOT NULL," +
+            $"  {Db.Module.Version} TEXT," +
+            $"  UNIQUE({Db.Module.Name}, {Db.Module.Version})" +
+            $");\n" +
 
-CREATE TABLE IF NOT EXISTS Command (
-    Id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    ModuleId            INTEGER REFERENCES Module(Id),
-    Name                TEXT    NOT NULL,
-    CommandType         TEXT    NOT NULL,  -- 'Cmdlet', 'Function', 'Alias', etc.
-    DefaultParameterSet TEXT
-);
-CREATE INDEX IF NOT EXISTS IX_Command_Name ON Command(Name COLLATE NOCASE);
+            $"CREATE TABLE IF NOT EXISTS {Db.Command.Table} (" +
+            $"  {Db.Command.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.Command.ModuleId} INTEGER REFERENCES {Db.Module.Table}({Db.Module.Id})," +
+            $"  {Db.Command.Name} TEXT NOT NULL," +
+            $"  {Db.Command.CommandType} TEXT NOT NULL," +
+            $"  {Db.Command.DefaultParameterSet} TEXT" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_Command_Name ON {Db.Command.Table}({Db.Command.Name} COLLATE NOCASE);\n" +
 
-CREATE TABLE IF NOT EXISTS CommandPlatform (
-    CommandId  INTEGER NOT NULL REFERENCES Command(Id),
-    PlatformId INTEGER NOT NULL REFERENCES Platform(Id),
-    PRIMARY KEY (CommandId, PlatformId)
-);
+            $"CREATE TABLE IF NOT EXISTS {Db.CommandPlatform.Table} (" +
+            $"  {Db.CommandPlatform.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})," +
+            $"  {Db.CommandPlatform.PlatformId} INTEGER NOT NULL REFERENCES {Db.Platform.Table}({Db.Platform.Id})," +
+            $"  PRIMARY KEY ({Db.CommandPlatform.CommandId}, {Db.CommandPlatform.PlatformId})" +
+            $");\n" +
 
-CREATE TABLE IF NOT EXISTS Parameter (
-    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    CommandId INTEGER NOT NULL REFERENCES Command(Id),
-    Name      TEXT    NOT NULL,
-    Type      TEXT,
-    IsDynamic INTEGER NOT NULL DEFAULT 0
-);
-CREATE INDEX IF NOT EXISTS IX_Parameter_CommandId ON Parameter(CommandId);
+            $"CREATE TABLE IF NOT EXISTS {Db.Parameter.Table} (" +
+            $"  {Db.Parameter.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.Parameter.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})," +
+            $"  {Db.Parameter.Name} TEXT NOT NULL," +
+            $"  {Db.Parameter.Type} TEXT," +
+            $"  {Db.Parameter.IsDynamic} INTEGER NOT NULL DEFAULT 0" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_Parameter_CommandId ON {Db.Parameter.Table}({Db.Parameter.CommandId});\n" +
 
-CREATE TABLE IF NOT EXISTS ParameterPlatform (
-    ParameterId INTEGER NOT NULL REFERENCES Parameter(Id),
-    PlatformId  INTEGER NOT NULL REFERENCES Platform(Id),
-    PRIMARY KEY (ParameterId, PlatformId)
-);
+            $"CREATE TABLE IF NOT EXISTS {Db.ParameterPlatform.Table} (" +
+            $"  {Db.ParameterPlatform.ParameterId} INTEGER NOT NULL REFERENCES {Db.Parameter.Table}({Db.Parameter.Id})," +
+            $"  {Db.ParameterPlatform.PlatformId} INTEGER NOT NULL REFERENCES {Db.Platform.Table}({Db.Platform.Id})," +
+            $"  PRIMARY KEY ({Db.ParameterPlatform.ParameterId}, {Db.ParameterPlatform.PlatformId})" +
+            $");\n" +
 
-CREATE TABLE IF NOT EXISTS ParameterSetMembership (
-    ParameterId                    INTEGER NOT NULL REFERENCES Parameter(Id),
-    SetName                        TEXT    NOT NULL,
-    Position                       INTEGER,
-    IsMandatory                    INTEGER NOT NULL DEFAULT 0,
-    ValueFromPipeline              INTEGER NOT NULL DEFAULT 0,
-    ValueFromPipelineByPropertyName INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (ParameterId, SetName)
-);
-CREATE INDEX IF NOT EXISTS IX_PSM_ParameterId ON ParameterSetMembership(ParameterId);
+            $"CREATE TABLE IF NOT EXISTS {Db.ParameterSetMembership.Table} (" +
+            $"  {Db.ParameterSetMembership.ParameterId} INTEGER NOT NULL REFERENCES {Db.Parameter.Table}({Db.Parameter.Id})," +
+            $"  {Db.ParameterSetMembership.SetName} TEXT NOT NULL," +
+            $"  {Db.ParameterSetMembership.Position} INTEGER," +
+            $"  {Db.ParameterSetMembership.IsMandatory} INTEGER NOT NULL DEFAULT 0," +
+            $"  {Db.ParameterSetMembership.ValueFromPipeline} INTEGER NOT NULL DEFAULT 0," +
+            $"  {Db.ParameterSetMembership.ValueFromPipelineByPropertyName} INTEGER NOT NULL DEFAULT 0," +
+            $"  PRIMARY KEY ({Db.ParameterSetMembership.ParameterId}, {Db.ParameterSetMembership.SetName})" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_PSM_ParameterId ON {Db.ParameterSetMembership.Table}({Db.ParameterSetMembership.ParameterId});\n" +
 
-CREATE TABLE IF NOT EXISTS Alias (
-    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name      TEXT    NOT NULL,
-    CommandId INTEGER NOT NULL REFERENCES Command(Id)
-);
-CREATE INDEX IF NOT EXISTS IX_Alias_Name ON Alias(Name COLLATE NOCASE);
-CREATE INDEX IF NOT EXISTS IX_Alias_CommandId ON Alias(CommandId);
+            $"CREATE TABLE IF NOT EXISTS {Db.Alias.Table} (" +
+            $"  {Db.Alias.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.Alias.Name} TEXT NOT NULL," +
+            $"  {Db.Alias.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_Alias_Name ON {Db.Alias.Table}({Db.Alias.Name} COLLATE NOCASE);\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_Alias_CommandId ON {Db.Alias.Table}({Db.Alias.CommandId});\n" +
 
-CREATE TABLE IF NOT EXISTS AliasPlatform (
-    AliasId    INTEGER NOT NULL REFERENCES Alias(Id),
-    PlatformId INTEGER NOT NULL REFERENCES Platform(Id),
-    PRIMARY KEY (AliasId, PlatformId)
-);
+            $"CREATE TABLE IF NOT EXISTS {Db.AliasPlatform.Table} (" +
+            $"  {Db.AliasPlatform.AliasId} INTEGER NOT NULL REFERENCES {Db.Alias.Table}({Db.Alias.Id})," +
+            $"  {Db.AliasPlatform.PlatformId} INTEGER NOT NULL REFERENCES {Db.Platform.Table}({Db.Platform.Id})," +
+            $"  PRIMARY KEY ({Db.AliasPlatform.AliasId}, {Db.AliasPlatform.PlatformId})" +
+            $");\n" +
 
-CREATE TABLE IF NOT EXISTS OutputType (
-    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    CommandId INTEGER NOT NULL REFERENCES Command(Id),
-    TypeName  TEXT    NOT NULL
-);
-CREATE INDEX IF NOT EXISTS IX_OutputType_CommandId ON OutputType(CommandId);
+            $"CREATE TABLE IF NOT EXISTS {Db.OutputType.Table} (" +
+            $"  {Db.OutputType.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.OutputType.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})," +
+            $"  {Db.OutputType.TypeName} TEXT NOT NULL" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_OutputType_CommandId ON {Db.OutputType.Table}({Db.OutputType.CommandId});\n" +
 
-CREATE TABLE IF NOT EXISTS TypeAccelerator (
-    Id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name     TEXT NOT NULL,
-    FullName TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS IX_TypeAccelerator_Name ON TypeAccelerator(Name COLLATE NOCASE);
+            $"CREATE TABLE IF NOT EXISTS {Db.TypeAccelerator.Table} (" +
+            $"  {Db.TypeAccelerator.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.TypeAccelerator.Name} TEXT NOT NULL," +
+            $"  {Db.TypeAccelerator.FullName} TEXT NOT NULL" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_TypeAccelerator_Name ON {Db.TypeAccelerator.Table}({Db.TypeAccelerator.Name} COLLATE NOCASE);\n" +
 
-CREATE TABLE IF NOT EXISTS TypeAcceleratorPlatform (
-    TypeAcceleratorId INTEGER NOT NULL REFERENCES TypeAccelerator(Id),
-    PlatformId        INTEGER NOT NULL REFERENCES Platform(Id),
-    PRIMARY KEY (TypeAcceleratorId, PlatformId)
-);
-";
+            $"CREATE TABLE IF NOT EXISTS {Db.TypeAcceleratorPlatform.Table} (" +
+            $"  {Db.TypeAcceleratorPlatform.TypeAcceleratorId} INTEGER NOT NULL REFERENCES {Db.TypeAccelerator.Table}({Db.TypeAccelerator.Id})," +
+            $"  {Db.TypeAcceleratorPlatform.PlatformId} INTEGER NOT NULL REFERENCES {Db.Platform.Table}({Db.Platform.Id})," +
+            $"  PRIMARY KEY ({Db.TypeAcceleratorPlatform.TypeAcceleratorId}, {Db.TypeAcceleratorPlatform.PlatformId})" +
+            $");\n";
     }
 }

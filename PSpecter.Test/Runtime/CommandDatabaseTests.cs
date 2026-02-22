@@ -53,98 +53,133 @@ namespace PSpecter.Test.Runtime
     public class CommandDatabaseWriterTests
     {
         [Fact]
-        public void EnsurePlatform_InsertsAndRetrieves()
+        public void ImportCommands_InsertsAndDeduplicatesPlatforms()
         {
             using var connection = CreatePopulatedConnection();
             using var writer = new CommandDatabaseWriter(connection);
+            using var tx = writer.BeginTransaction();
 
-            long id1 = writer.EnsurePlatform("Core", "7.4.7", "windows");
-            long id2 = writer.EnsurePlatform("Core", "7.4.7", "windows");
+            var platform = new PlatformInfo("Core", "7.4.7", "windows");
+            var commands = new[]
+            {
+                new CommandMetadata("Get-Foo", "Cmdlet", "TestModule", null, null, null, null, null),
+            };
 
-            Assert.Equal(id1, id2);
-        }
-
-        [Fact]
-        public void InsertCommand_And_FindCommand()
-        {
-            using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-
-            long modId = writer.EnsureModule("Microsoft.PowerShell.Management", "7.4.7");
-            long cmdId = writer.InsertCommand(modId, "Get-ChildItem", "Cmdlet", null);
-
-            long? found = writer.FindCommand(modId, "Get-ChildItem");
-            Assert.NotNull(found);
-            Assert.Equal(cmdId, found.Value);
-        }
-
-        [Fact]
-        public void InsertParameter_And_ParameterSetMembership()
-        {
-            using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-
-            long modId = writer.EnsureModule("TestModule", null);
-            long cmdId = writer.InsertCommand(modId, "Test-Cmd", "Cmdlet", "Default");
-            long paramId = writer.InsertParameter(cmdId, "Path", "System.String", false);
-
-            writer.InsertParameterSetMembership(paramId, "Default", position: 0, isMandatory: true,
-                valueFromPipeline: false, valueFromPipelineByPropertyName: true);
-            writer.InsertParameterSetMembership(paramId, "LiteralPath", position: null, isMandatory: true,
-                valueFromPipeline: false, valueFromPipelineByPropertyName: false);
-
-            // Verify via direct query
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM ParameterSetMembership WHERE ParameterId = @pid";
-            cmd.Parameters.AddWithValue("@pid", paramId);
-            Assert.Equal(2L, (long)cmd.ExecuteScalar());
-        }
-
-        [Fact]
-        public void InsertAlias_And_FindAlias()
-        {
-            using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-
-            long modId = writer.EnsureModule("Microsoft.PowerShell.Management", null);
-            long cmdId = writer.InsertCommand(modId, "Get-ChildItem", "Cmdlet", null);
-            long aliasId = writer.InsertAlias("gci", cmdId);
-
-            long? found = writer.FindAlias("gci", cmdId);
-            Assert.NotNull(found);
-            Assert.Equal(aliasId, found.Value);
-        }
-
-        [Fact]
-        public void Transaction_CommitsSuccessfully()
-        {
-            using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-
-            writer.BeginTransaction();
-            long modId = writer.EnsureModule("TxModule", "1.0");
-            writer.InsertCommand(modId, "Test-Tx", "Function", null);
-            writer.CommitTransaction();
+            writer.ImportCommands(commands, platform, tx);
+            writer.ImportCommands(commands, platform, tx);
+            tx.Commit();
 
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Tx'";
+            cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
             Assert.Equal(1L, (long)cmd.ExecuteScalar());
         }
 
         [Fact]
-        public void Transaction_RollbackDiscardsChanges()
+        public void ImportCommands_InsertsCommandWithParametersAndAliases()
+        {
+            using var connection = CreatePopulatedConnection();
+            using var writer = new CommandDatabaseWriter(connection);
+            using var tx = writer.BeginTransaction();
+
+            var platform = new PlatformInfo("Core", "7.4.7", "windows");
+            var commands = new[]
+            {
+                new CommandMetadata(
+                    "Get-ChildItem",
+                    "Cmdlet",
+                    "Microsoft.PowerShell.Management",
+                    "Items",
+                    null,
+                    new[] { "gci", "dir" },
+                    new[]
+                    {
+                        new ParameterMetadata("Path", "System.String[]", false, new[]
+                        {
+                            new ParameterSetInfo("Items", 0, false, false, true),
+                        }),
+                    },
+                    new[] { "System.IO.FileInfo" }),
+            };
+
+            writer.ImportCommands(commands, platform, tx);
+            tx.Commit();
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-ChildItem'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+
+            cmd.CommandText = "SELECT COUNT(*) FROM Alias WHERE Name = 'gci'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+
+            cmd.CommandText = "SELECT COUNT(*) FROM Alias WHERE Name = 'dir'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+
+            cmd.CommandText = "SELECT COUNT(*) FROM Parameter WHERE Name = 'Path'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+
+            cmd.CommandText = "SELECT COUNT(*) FROM OutputType WHERE TypeName = 'System.IO.FileInfo'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+        }
+
+        [Fact]
+        public void ImportCommands_DeduplicatesCommandsAcrossPlatforms()
+        {
+            using var connection = CreatePopulatedConnection();
+            using var writer = new CommandDatabaseWriter(connection);
+            using var tx = writer.BeginTransaction();
+
+            var winPlatform = new PlatformInfo("Core", "7.4.7", "windows");
+            var macPlatform = new PlatformInfo("Core", "7.4.7", "macos");
+
+            var commands = new[]
+            {
+                new CommandMetadata("Get-ChildItem", "Cmdlet", "Microsoft.PowerShell.Management", null, null, null, null, null),
+            };
+
+            writer.ImportCommands(commands, winPlatform, tx);
+            writer.ImportCommands(commands, macPlatform, tx);
+            tx.Commit();
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-ChildItem'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+
+            cmd.CommandText = "SELECT COUNT(*) FROM CommandPlatform WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Get-ChildItem')";
+            Assert.Equal(2L, (long)cmd.ExecuteScalar());
+        }
+
+        [Fact]
+        public void Transaction_RollsBackOnDispose()
         {
             using var connection = CreatePopulatedConnection();
             using var writer = new CommandDatabaseWriter(connection);
 
-            writer.BeginTransaction();
-            long modId = writer.EnsureModule("RbModule", "1.0");
-            writer.InsertCommand(modId, "Test-Rb", "Function", null);
-            writer.RollbackTransaction();
+            using (var tx = writer.BeginTransaction())
+            {
+                var platform = new PlatformInfo("Core", "7.0.0", "windows");
+                var commands = new[]
+                {
+                    new CommandMetadata("Test-Rollback", "Function", "TestModule", null, null, null, null, null),
+                };
+                writer.ImportCommands(commands, platform, tx);
+                // no tx.Commit() — should roll back
+            }
 
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Rb'";
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Rollback'";
             Assert.Equal(0L, (long)cmd.ExecuteScalar());
+        }
+
+        [Fact]
+        public void WriteSchemaVersion_Works()
+        {
+            using var connection = CreatePopulatedConnection();
+            using var writer = new CommandDatabaseWriter(connection);
+            writer.WriteSchemaVersion(42);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT Version FROM SchemaVersion";
+            Assert.Equal(42L, (long)cmd.ExecuteScalar());
         }
 
         private static SqliteConnection CreatePopulatedConnection()
@@ -246,7 +281,6 @@ namespace PSpecter.Test.Runtime
                 new PlatformInfo("Core", "7.4.7", "macos")
             };
 
-            // WindowsOnly-Cmd is only on windows
             Assert.True(_db.TryGetCommand("WindowsOnly-Cmd", windowsPlatforms, out _));
             Assert.False(_db.TryGetCommand("WindowsOnly-Cmd", macPlatforms, out _));
         }
@@ -301,9 +335,7 @@ namespace PSpecter.Test.Runtime
         [Fact]
         public void CachingReturnsConsistentResults()
         {
-            // First call populates cache
             Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata first));
-            // Second call hits cache
             Assert.True(_db.TryGetCommand("Get-ChildItem", null, out CommandMetadata second));
 
             Assert.Equal(first.Name, second.Name);
@@ -325,44 +357,52 @@ namespace PSpecter.Test.Runtime
             CommandDatabaseSchema.CreateTables(conn);
 
             using var writer = new CommandDatabaseWriter(conn);
-            writer.BeginTransaction();
-            writer.WriteSchemaVersion(CommandDatabaseSchema.SchemaVersion);
+            using var tx = writer.BeginTransaction();
+            writer.WriteSchemaVersion(CommandDatabaseSchema.SchemaVersion, tx.Transaction);
 
-            long winPlatId = writer.EnsurePlatform("Core", "7.4.7", "windows");
-            long macPlatId = writer.EnsurePlatform("Core", "7.4.7", "macos");
+            var winPlatform = new PlatformInfo("Core", "7.4.7", "windows");
+            var macPlatform = new PlatformInfo("Core", "7.4.7", "macos");
 
             // Get-ChildItem (cross-platform)
-            long mgmtModId = writer.EnsureModule("Microsoft.PowerShell.Management", "7.4.7");
-            long gciCmdId = writer.InsertCommand(mgmtModId, "Get-ChildItem", "Cmdlet", "Items");
-            writer.LinkCommandPlatform(gciCmdId, winPlatId);
-            writer.LinkCommandPlatform(gciCmdId, macPlatId);
+            var crossPlatCommands = new[]
+            {
+                new CommandMetadata(
+                    "Get-ChildItem",
+                    "Cmdlet",
+                    "Microsoft.PowerShell.Management",
+                    "Items",
+                    null,
+                    new[] { "gci", "dir" },
+                    new[]
+                    {
+                        new ParameterMetadata("Path", "System.String[]", false, new[]
+                        {
+                            new ParameterSetInfo("Items", 0, false, false, true),
+                        }),
+                    },
+                    new[] { "System.IO.FileInfo", "System.IO.DirectoryInfo" }),
+            };
 
-            long pathParamId = writer.InsertParameter(gciCmdId, "Path", "System.String[]", false);
-            writer.LinkParameterPlatform(pathParamId, winPlatId);
-            writer.LinkParameterPlatform(pathParamId, macPlatId);
-            writer.InsertParameterSetMembership(pathParamId, "Items", position: 0, isMandatory: false,
-                valueFromPipeline: false, valueFromPipelineByPropertyName: true);
+            writer.ImportCommands(crossPlatCommands, winPlatform, tx);
+            writer.ImportCommands(crossPlatCommands, macPlatform, tx);
 
-            long gciAliasId = writer.InsertAlias("gci", gciCmdId);
-            writer.LinkAliasPlatform(gciAliasId, winPlatId);
-            writer.LinkAliasPlatform(gciAliasId, macPlatId);
+            // WindowsOnly-Cmd
+            var winOnlyCommands = new[]
+            {
+                new CommandMetadata(
+                    "WindowsOnly-Cmd",
+                    "Cmdlet",
+                    "WinModule",
+                    null,
+                    null,
+                    new[] { "wincmd" },
+                    null,
+                    null),
+            };
 
-            long dirAliasId = writer.InsertAlias("dir", gciCmdId);
-            writer.LinkAliasPlatform(dirAliasId, winPlatId);
-            writer.LinkAliasPlatform(dirAliasId, macPlatId);
+            writer.ImportCommands(winOnlyCommands, winPlatform, tx);
 
-            writer.InsertOutputType(gciCmdId, "System.IO.FileInfo");
-            writer.InsertOutputType(gciCmdId, "System.IO.DirectoryInfo");
-
-            // WindowsOnly-Cmd (Windows only)
-            long winModId = writer.EnsureModule("WinModule", "1.0");
-            long winCmdId = writer.InsertCommand(winModId, "WindowsOnly-Cmd", "Cmdlet", null);
-            writer.LinkCommandPlatform(winCmdId, winPlatId);
-
-            long winAliasId = writer.InsertAlias("wincmd", winCmdId);
-            writer.LinkAliasPlatform(winAliasId, winPlatId);
-
-            writer.CommitTransaction();
+            tx.Commit();
         }
     }
 }
