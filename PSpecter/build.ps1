@@ -44,3 +44,19 @@ finally
 }
 
 Copy-Item -Path "$PSScriptRoot/$moduleName.psd1" -Destination $moduleOutPath
+
+# Copy database if present
+$dataDir = "$PSScriptRoot/Data"
+if (Test-Path "$dataDir/pspecter.db") {
+    $moduleDataDir = "$moduleOutPath/Data"
+    if (-not (Test-Path $moduleDataDir)) {
+        New-Item -ItemType Directory -Path $moduleDataDir | Out-Null
+    }
+    Copy-Item -Path "$dataDir/pspecter.db" -Destination $moduleDataDir
+}
+
+# Copy legacy settings for backward compatibility
+$settingsSource = "$PSScriptRoot/../Engine/Settings"
+if (Test-Path $settingsSource) {
+    Copy-Item -Recurse -Path $settingsSource -Destination "$moduleOutPath/Settings" -ErrorAction SilentlyContinue
+}

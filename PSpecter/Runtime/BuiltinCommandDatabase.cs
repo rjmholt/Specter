@@ -3,18 +3,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 
 namespace PSpecter.Runtime
 {
     /// <summary>
-    /// A static command database populated from hardcoded PowerShell alias data.
-    /// Does not require a PowerShell runspace or any runtime execution.
-    /// This can be replaced with a database-backed implementation later.
+    /// The default command database used by rules. When a shipped pspecter.db
+    /// is available, it delegates rich queries to <see cref="SqliteCommandDatabase"/>.
+    /// Hardcoded alias data serves as a last-resort fallback.
     /// </summary>
-    public class BuiltinCommandDatabase : IPowerShellCommandDatabase
+    public class BuiltinCommandDatabase : IPowerShellCommandDatabase, IDisposable
     {
-        public static BuiltinCommandDatabase Instance { get; } = new BuiltinCommandDatabase();
+        private static readonly Lazy<BuiltinCommandDatabase> s_instance =
+            new Lazy<BuiltinCommandDatabase>(() => new BuiltinCommandDatabase());
 
+        public static BuiltinCommandDatabase Instance => s_instance.Value;
+
+        private readonly SqliteCommandDatabase _sqliteDb;
         private readonly Dictionary<string, string> _aliasToCommand;
         private readonly Dictionary<string, List<string>> _commandToAliases;
 
@@ -23,15 +29,123 @@ namespace PSpecter.Runtime
             _aliasToCommand = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _commandToAliases = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             PopulateDefaultAliases();
+
+            string dbPath = FindShippedDatabase();
+            if (dbPath is not null)
+            {
+                try
+                {
+                    _sqliteDb = new SqliteCommandDatabase(dbPath);
+                }
+                catch
+                {
+                    // If the database can't be opened, fall back silently to hardcoded data
+                }
+            }
         }
 
         /// <summary>
-        /// Not supported by the hardcoded builtin database; always returns false.
+        /// Creates a BuiltinCommandDatabase backed by a specific database file.
+        /// Falls back to hardcoded aliases for anything the database doesn't cover.
         /// </summary>
+        public static BuiltinCommandDatabase CreateWithDatabase(string databasePath)
+        {
+            return new BuiltinCommandDatabase(databasePath);
+        }
+
+        private BuiltinCommandDatabase(string databasePath)
+        {
+            _aliasToCommand = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _commandToAliases = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            PopulateDefaultAliases();
+
+            if (databasePath is not null && File.Exists(databasePath))
+            {
+                _sqliteDb = new SqliteCommandDatabase(databasePath);
+            }
+        }
+
+        public bool HasSqliteDatabase => _sqliteDb is not null;
+
         public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
         {
+            if (_sqliteDb is not null)
+            {
+                return _sqliteDb.TryGetCommand(nameOrAlias, platforms, out command);
+            }
+
             command = null;
             return false;
+        }
+
+        public string GetAliasTarget(string alias)
+        {
+            if (_sqliteDb is not null)
+            {
+                string result = _sqliteDb.GetAliasTarget(alias);
+                if (result is not null) return result;
+            }
+
+            return _aliasToCommand.TryGetValue(alias, out string target) ? target : null;
+        }
+
+        public IReadOnlyList<string> GetCommandAliases(string command)
+        {
+            if (_sqliteDb is not null)
+            {
+                IReadOnlyList<string> result = _sqliteDb.GetCommandAliases(command);
+                if (result is not null) return result;
+            }
+
+            return _commandToAliases.TryGetValue(command, out List<string> aliases) ? aliases : null;
+        }
+
+        public IReadOnlyList<string> GetAllNamesForCommand(string command)
+        {
+            if (_sqliteDb is not null)
+            {
+                IReadOnlyList<string> result = _sqliteDb.GetAllNamesForCommand(command);
+                if (result is not null) return result;
+            }
+
+            var names = new List<string> { command };
+            if (_commandToAliases.TryGetValue(command, out List<string> aliases))
+            {
+                names.AddRange(aliases);
+            }
+            return names;
+        }
+
+        public void Dispose()
+        {
+            _sqliteDb?.Dispose();
+        }
+
+        private static string FindShippedDatabase()
+        {
+            try
+            {
+                string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                if (assemblyDir is null) return null;
+
+                // Try Data/pspecter.db relative to assembly
+                string candidate = Path.Combine(assemblyDir, "Data", "pspecter.db");
+                if (File.Exists(candidate)) return candidate;
+
+                // Try one level up (module root)/Data/pspecter.db
+                string parentDir = Path.GetDirectoryName(assemblyDir);
+                if (parentDir is not null)
+                {
+                    candidate = Path.Combine(parentDir, "Data", "pspecter.db");
+                    if (File.Exists(candidate)) return candidate;
+                }
+            }
+            catch
+            {
+                // Assembly location may not be available in some hosting scenarios
+            }
+
+            return null;
         }
 
         private void AddAlias(string alias, string command)
@@ -47,32 +161,6 @@ namespace PSpecter.Runtime
             aliases.Add(alias);
         }
 
-        public string GetAliasTarget(string alias)
-        {
-            return _aliasToCommand.TryGetValue(alias, out string target) ? target : null;
-        }
-
-        public IReadOnlyList<string> GetCommandAliases(string command)
-        {
-            return _commandToAliases.TryGetValue(command, out List<string> aliases) ? aliases : null;
-        }
-
-        public IReadOnlyList<string> GetAllNamesForCommand(string command)
-        {
-            var names = new List<string> { command };
-
-            if (_commandToAliases.TryGetValue(command, out List<string> aliases))
-            {
-                names.AddRange(aliases);
-            }
-
-            return names;
-        }
-
-        /// <summary>
-        /// Default PowerShell aliases shipped with the engine.
-        /// This is the single source of truth for alias data used by rules.
-        /// </summary>
         private void PopulateDefaultAliases()
         {
             AddAlias("?", "Where-Object");
