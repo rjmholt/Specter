@@ -1,7 +1,6 @@
-using System;
+using PSpecter.Logging;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
-using System.Text;
 
 namespace PSpecter.Execution
 {
@@ -12,17 +11,31 @@ namespace PSpecter.Execution
 
     public class SequentialRuleExecutorFactory : IRuleExecutorFactory
     {
+        private readonly IAnalysisLogger _logger;
+
+        public SequentialRuleExecutorFactory(IAnalysisLogger? logger = null)
+        {
+            _logger = logger ?? NullAnalysisLogger.Instance;
+        }
+
         public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            return new SequentialRuleExecutor(ast, tokens, scriptPath);
+            return new SequentialRuleExecutor(ast, tokens, scriptPath, _logger);
         }
     }
 
     public class ParallelLinqRuleExecutorFactory : IRuleExecutorFactory
     {
+        private readonly IAnalysisLogger _logger;
+
+        public ParallelLinqRuleExecutorFactory(IAnalysisLogger? logger = null)
+        {
+            _logger = logger ?? NullAnalysisLogger.Instance;
+        }
+
         public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            return new ParallelLinqRuleExecutor(ast, tokens, scriptPath);
+            return new ParallelLinqRuleExecutor(ast, tokens, scriptPath, _logger);
         }
     }
 }

@@ -1,3 +1,4 @@
+using PSpecter.Execution;
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -69,16 +70,19 @@ namespace PSpecter.Suppression
         public static readonly AnalysisResult Empty = new(
             Array.Empty<ScriptDiagnostic>(),
             Array.Empty<SuppressedDiagnostic>(),
-            Array.Empty<RuleSuppression>());
+            Array.Empty<RuleSuppression>(),
+            Array.Empty<RuleExecutionError>());
 
         public AnalysisResult(
             IReadOnlyList<ScriptDiagnostic> diagnostics,
             IReadOnlyList<SuppressedDiagnostic> suppressedDiagnostics,
-            IReadOnlyList<RuleSuppression> unappliedSuppressions)
+            IReadOnlyList<RuleSuppression> unappliedSuppressions,
+            IReadOnlyList<RuleExecutionError>? ruleErrors = null)
         {
             Diagnostics = diagnostics;
             SuppressedDiagnostics = suppressedDiagnostics;
             UnappliedSuppressions = unappliedSuppressions;
+            RuleErrors = ruleErrors ?? Array.Empty<RuleExecutionError>();
         }
 
         public IReadOnlyList<ScriptDiagnostic> Diagnostics { get; }
@@ -86,6 +90,8 @@ namespace PSpecter.Suppression
         public IReadOnlyList<SuppressedDiagnostic> SuppressedDiagnostics { get; }
 
         public IReadOnlyList<RuleSuppression> UnappliedSuppressions { get; }
+
+        public IReadOnlyList<RuleExecutionError> RuleErrors { get; }
     }
 
     public static class SuppressionParser
@@ -399,14 +405,16 @@ namespace PSpecter.Suppression
 
         public static AnalysisResult ApplySuppressionsWithTracking(
             IReadOnlyCollection<ScriptDiagnostic> diagnostics,
-            Dictionary<string, List<RuleSuppression>> suppressions)
+            Dictionary<string, List<RuleSuppression>> suppressions,
+            IReadOnlyList<RuleExecutionError>? ruleErrors = null)
         {
             if (suppressions.Count == 0)
             {
                 return new AnalysisResult(
                     new List<ScriptDiagnostic>(diagnostics),
                     Array.Empty<SuppressedDiagnostic>(),
-                    Array.Empty<RuleSuppression>());
+                    Array.Empty<RuleSuppression>(),
+                    ruleErrors);
             }
 
             var unsuppressed = new List<ScriptDiagnostic>(diagnostics.Count);
@@ -446,7 +454,7 @@ namespace PSpecter.Suppression
                 }
             }
 
-            return new AnalysisResult(unsuppressed, suppressed, unapplied);
+            return new AnalysisResult(unsuppressed, suppressed, unapplied, ruleErrors);
         }
 
         private static List<RuleSuppression>? FindMatchingSuppressions(

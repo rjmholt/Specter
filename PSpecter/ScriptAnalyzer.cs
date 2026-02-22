@@ -1,6 +1,7 @@
 using PSpecter.Builder;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
+using PSpecter.Logging;
 using PSpecter.Rules;
 using PSpecter.Suppression;
 using System.Collections.Generic;
@@ -13,37 +14,50 @@ namespace PSpecter
         public static ScriptAnalyzer Create(
             RuleComponentProvider ruleComponentProvider,
             IRuleExecutorFactory executorFactory,
-            IReadOnlyList<IRuleProviderFactory> ruleProviderFactories)
+            IReadOnlyList<IRuleProviderFactory> ruleProviderFactories,
+            IAnalysisLogger? logger = null)
         {
+            var resolvedLogger = logger ?? NullAnalysisLogger.Instance;
             var ruleProviders = new List<IRuleProvider>(ruleProviderFactories.Count);
             foreach (IRuleProviderFactory ruleProviderFactory in ruleProviderFactories)
             {
                 ruleProviders.Add(ruleProviderFactory.CreateRuleProvider(ruleComponentProvider));
             }
 
-            return new ScriptAnalyzer(executorFactory, ruleProviders);
+            resolvedLogger.Debug($"Created analyzer with {ruleProviders.Count} rule providers");
+
+            return new ScriptAnalyzer(executorFactory, ruleProviders, resolvedLogger);
         }
 
         private readonly IRuleExecutorFactory _executorFactory;
+        private readonly IAnalysisLogger _logger;
 
         private ScriptAnalyzer(
             IRuleExecutorFactory executorFactory,
-            IReadOnlyList<IRuleProvider> ruleProviders)
+            IReadOnlyList<IRuleProvider> ruleProviders,
+            IAnalysisLogger logger)
         {
             RuleProviders = ruleProviders;
             _executorFactory = executorFactory;
+            _logger = logger;
         }
 
         public IReadOnlyList<IRuleProvider> RuleProviders { get; }
 
         public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScriptPath(string path)
         {
+            _logger.Verbose($"Analyzing file: {path}");
             Ast ast = Parser.ParseFile(path, out Token[] tokens, out ParseError[] parseErrors);
+            if (parseErrors.Length > 0)
+            {
+                _logger.Debug($"Parse errors in '{path}': {parseErrors.Length}");
+            }
             return AnalyzeScript(ast, tokens, path);
         }
 
         public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScriptInput(string input)
         {
+            _logger.Debug("Analyzing script input");
             Ast ast = Parser.ParseInput(input, out Token[] tokens, out ParseError[] parseErrors);
             return AnalyzeScript(ast, tokens, scriptPath: null);
         }
@@ -55,28 +69,44 @@ namespace PSpecter
         {
             IRuleExecutor ruleExecutor = _executorFactory.CreateRuleExecutor(scriptAst, scriptTokens, scriptPath);
 
+            int ruleCount = 0;
             foreach (IRuleProvider ruleProvider in RuleProviders)
             {
                 foreach (ScriptRule rule in ruleProvider.GetScriptRules())
                 {
                     ruleExecutor.AddRule(rule);
+                    ruleCount++;
                 }
             }
 
+            _logger.Debug($"Executed {ruleCount} rules");
+
             IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
 
+            foreach (RuleExecutionError error in ruleExecutor.Errors)
+            {
+                _logger.Warning(error.ToString());
+            }
+
             Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst, scriptTokens);
+            if (suppressions.Count > 0)
+            {
+                _logger.Debug($"Found {suppressions.Count} suppression groups");
+            }
+
             return SuppressionApplier.ApplySuppressions(diagnostics, suppressions);
         }
 
         public AnalysisResult AnalyzeScriptPathFull(string path)
         {
+            _logger.Verbose($"Analyzing file (full): {path}");
             Ast ast = Parser.ParseFile(path, out Token[] tokens, out ParseError[] parseErrors);
             return AnalyzeScriptFull(ast, tokens, path);
         }
 
         public AnalysisResult AnalyzeScriptInputFull(string input)
         {
+            _logger.Debug("Analyzing script input (full)");
             Ast ast = Parser.ParseInput(input, out Token[] tokens, out ParseError[] parseErrors);
             return AnalyzeScriptFull(ast, tokens, scriptPath: null);
         }
@@ -85,18 +115,28 @@ namespace PSpecter
         {
             IRuleExecutor ruleExecutor = _executorFactory.CreateRuleExecutor(scriptAst, scriptTokens, scriptPath);
 
+            int ruleCount = 0;
             foreach (IRuleProvider ruleProvider in RuleProviders)
             {
                 foreach (ScriptRule rule in ruleProvider.GetScriptRules())
                 {
                     ruleExecutor.AddRule(rule);
+                    ruleCount++;
                 }
             }
 
+            _logger.Debug($"Executed {ruleCount} rules");
+
             IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
+            IReadOnlyList<RuleExecutionError> ruleErrors = ruleExecutor.Errors;
+
+            foreach (RuleExecutionError error in ruleErrors)
+            {
+                _logger.Warning(error.ToString());
+            }
 
             Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst, scriptTokens);
-            return SuppressionApplier.ApplySuppressionsWithTracking(diagnostics, suppressions);
+            return SuppressionApplier.ApplySuppressionsWithTracking(diagnostics, suppressions, ruleErrors);
         }
     }
 }

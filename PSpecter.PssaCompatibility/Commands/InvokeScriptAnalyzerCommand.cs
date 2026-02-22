@@ -10,6 +10,7 @@ using PSpecter.Builtin;
 using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Formatting;
+using PSpecter.Logging;
 using PSpecter.Rules;
 using PSpecter.Suppression;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
@@ -401,9 +402,12 @@ namespace PSpecter.PssaCompatibility.Commands
                 }
             }
 
+            var logger = new PowerShellAnalysisLogger(this);
+
             return new ScriptAnalyzerBuilder()
+                .WithLogger(logger)
                 .WithRuleComponentProvider(rcpb => rcpb.UseBuiltinDatabase())
-                .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
+                .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory(logger))
                 .AddBuiltinRules(configDict)
                 .Build();
         }

@@ -2,6 +2,7 @@ using PSpecter.Builtin;
 using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
+using PSpecter.Logging;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -16,9 +17,17 @@ namespace PSpecter.Builder
 
         private RuleComponentProvider? _ruleComponentProvider;
 
+        private IAnalysisLogger? _logger;
+
         public ScriptAnalyzerBuilder()
         {
             _ruleProviderFactories = new List<IRuleProviderFactory>();
+        }
+
+        public ScriptAnalyzerBuilder WithLogger(IAnalysisLogger logger)
+        {
+            _logger = logger;
+            return this;
         }
 
         public ScriptAnalyzerBuilder WithRuleExecutorFactory(IRuleExecutorFactory ruleExecutorFactory)
@@ -87,7 +96,7 @@ namespace PSpecter.Builder
 
         public ScriptAnalyzer Build()
         {
-            return ScriptAnalyzer.Create(_ruleComponentProvider!, _ruleExecutorFactory!, _ruleProviderFactories);
+            return ScriptAnalyzer.Create(_ruleComponentProvider!, _ruleExecutorFactory!, _ruleProviderFactories, _logger);
         }
     }
 }

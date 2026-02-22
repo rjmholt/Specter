@@ -1,38 +1,54 @@
+using PSpecter.Logging;
 using PSpecter.Rules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Language;
 
-namespace PSpecter
+namespace PSpecter.Execution
 {
     public interface IRuleExecutor
     {
         void AddRule(ScriptRule rule);
 
         IReadOnlyCollection<ScriptDiagnostic> CollectDiagnostics();
+
+        IReadOnlyList<RuleExecutionError> Errors { get; }
     }
 
     internal class SequentialRuleExecutor : IRuleExecutor
     {
         private readonly Ast _scriptAst;
-
         private readonly IReadOnlyList<Token> _scriptTokens;
-
         private readonly string? _scriptPath;
-
+        private readonly IAnalysisLogger _logger;
         private readonly List<ScriptDiagnostic> _diagnostics;
+        private readonly List<RuleExecutionError> _errors;
 
-        public SequentialRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
+        public SequentialRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath, IAnalysisLogger logger)
         {
             _scriptAst = ast;
             _scriptTokens = tokens;
             _scriptPath = scriptPath;
+            _logger = logger;
             _diagnostics = new List<ScriptDiagnostic>();
+            _errors = new List<RuleExecutionError>();
         }
+
+        public IReadOnlyList<RuleExecutionError> Errors => _errors;
 
         public void AddRule(ScriptRule rule)
         {
-            _diagnostics.AddRange(rule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
+            try
+            {
+                _diagnostics.AddRange(rule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
+            }
+            catch (Exception ex)
+            {
+                var error = new RuleExecutionError(rule.RuleInfo.Name, ex);
+                _errors.Add(error);
+                _logger.Warning($"Rule '{rule.RuleInfo.Name}' failed during execution: {ex.Message}");
+            }
         }
 
         public IReadOnlyCollection<ScriptDiagnostic> CollectDiagnostics()
@@ -44,23 +60,25 @@ namespace PSpecter
     internal class ParallelLinqRuleExecutor : IRuleExecutor
     {
         private readonly Ast _scriptAst;
-
         private readonly IReadOnlyList<Token> _scriptTokens;
-
         private readonly string? _scriptPath;
-
+        private readonly IAnalysisLogger _logger;
         private readonly List<ScriptRule> _parallelRules;
-
         private readonly List<ScriptRule> _sequentialRules;
+        private readonly List<RuleExecutionError> _errors;
 
-        public ParallelLinqRuleExecutor(Ast scriptAst, IReadOnlyList<Token> scriptTokens, string? scriptPath)
+        public ParallelLinqRuleExecutor(Ast scriptAst, IReadOnlyList<Token> scriptTokens, string? scriptPath, IAnalysisLogger logger)
         {
             _scriptAst = scriptAst;
             _scriptTokens = scriptTokens;
             _scriptPath = scriptPath;
+            _logger = logger;
             _parallelRules = new List<ScriptRule>();
             _sequentialRules = new List<ScriptRule>();
+            _errors = new List<RuleExecutionError>();
         }
+
+        public IReadOnlyList<RuleExecutionError> Errors => _errors;
 
         public void AddRule(ScriptRule rule)
         {
@@ -75,76 +93,48 @@ namespace PSpecter
 
         public IReadOnlyCollection<ScriptDiagnostic> CollectDiagnostics()
         {
+            var parallelErrors = new List<RuleExecutionError>();
             List<ScriptDiagnostic> diagnostics = _parallelRules.AsParallel()
-                .SelectMany(rule => rule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath))
+                .SelectMany(rule => ExecuteRuleSafe(rule, parallelErrors))
                 .ToList();
+
+            lock (_errors)
+            {
+                _errors.AddRange(parallelErrors);
+            }
 
             foreach (ScriptRule sequentialRule in _sequentialRules)
             {
-                diagnostics.AddRange(sequentialRule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
-            }
-
-            return diagnostics;
-        }
-    }
-
-    /*
-    internal class DataflowRuleExecutor : IRuleExecutor
-    {
-        private static readonly ExecutionDataflowBlockOptions s_parallelExecutionOptions = new ExecutionDataflowBlockOptions()
-        {
-            MaxDegreeOfParallelism = DataflowBlockOptions.Unbounded,
-            EnsureOrdered = false,
-        };
-
-        private readonly Ast _scriptAst;
-
-        private readonly IReadOnlyList<Token> _scriptTokens;
-
-        private readonly string _scriptPath;
-
-        private readonly TransformManyBlock<ScriptRule, ScriptDiagnostic> _parallelRulePipeline;
-
-        private readonly List<ScriptRule> _sequentialRules;
-
-        public DataflowRuleExecutor(Ast scriptAst, IReadOnlyList<Token> scriptTokens, string scriptPath)
-        {
-            _scriptAst = scriptAst;
-            _scriptTokens = scriptTokens;
-            _scriptPath = scriptPath;
-            _parallelRulePipeline = new TransformManyBlock<ScriptRule, ScriptDiagnostic>(RunScriptRule, s_parallelExecutionOptions);
-            _sequentialRules = new List<ScriptRule>();
-        }
-
-        public void AddRule(ScriptRule rule)
-        {
-            if (rule.RuleInfo.IsThreadsafe)
-            {
-                _parallelRulePipeline.Post(rule);
-                return;
-            }
-
-            _sequentialRules.Add(rule);
-        }
-
-        public IReadOnlyCollection<ScriptDiagnostic> CollectDiagnostics()
-        {
-            _parallelRulePipeline.Complete();
-            _parallelRulePipeline.TryReceiveAll(out IList<ScriptDiagnostic> parallelDiagnostics);
-
-            var diagnostics = new List<ScriptDiagnostic>(parallelDiagnostics);
-            foreach (ScriptRule rule in _sequentialRules)
-            {
-                diagnostics.AddRange(rule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
+                try
+                {
+                    diagnostics.AddRange(sequentialRule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
+                }
+                catch (Exception ex)
+                {
+                    var error = new RuleExecutionError(sequentialRule.RuleInfo.Name, ex);
+                    _errors.Add(error);
+                    _logger.Warning($"Rule '{sequentialRule.RuleInfo.Name}' failed during execution: {ex.Message}");
+                }
             }
 
             return diagnostics;
         }
 
-        private IEnumerable<ScriptDiagnostic> RunScriptRule(ScriptRule rule)
+        private IEnumerable<ScriptDiagnostic> ExecuteRuleSafe(ScriptRule rule, List<RuleExecutionError> errors)
         {
-            return rule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath);
+            try
+            {
+                return rule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath);
+            }
+            catch (Exception ex)
+            {
+                lock (errors)
+                {
+                    errors.Add(new RuleExecutionError(rule.RuleInfo.Name, ex));
+                }
+                _logger.Warning($"Rule '{rule.RuleInfo.Name}' failed during execution: {ex.Message}");
+                return Array.Empty<ScriptDiagnostic>();
+            }
         }
     }
-    */
 }
