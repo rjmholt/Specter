@@ -248,7 +248,7 @@ namespace PSpecter.Test.CommandDatabase
         {
             _dbPath = System.IO.Path.GetTempFileName();
             PopulateTestDatabase(_dbPath);
-            _db = new SqliteCommandDatabase(_dbPath);
+            _db = SqliteCommandDatabase.Open(_dbPath);
         }
 
         public void Dispose()

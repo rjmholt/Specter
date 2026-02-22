@@ -14,22 +14,34 @@ namespace PSpecter.CommandDatabase.Sqlite
         private readonly SqliteConnection _connection;
         private readonly SegmentedLruCache<CacheKey, CommandMetadata> _cache;
 
-        /// <param name="databasePath">Path to the SQLite .db file.</param>
-        /// <param name="cacheCapacity">Total LRU cache capacity. Default 1024.</param>
-        public SqliteCommandDatabase(string databasePath, int cacheCapacity = 1024)
+        /// <summary>
+        /// Opens a read-only connection to the SQLite command database.
+        /// Ensures the native SQLite library is loaded first, which is
+        /// necessary when running inside a host like PowerShell whose
+        /// deps.json does not include the RID-specific probe paths.
+        /// </summary>
+        public static SqliteCommandDatabase Open(string databasePath, int cacheCapacity = 1024)
         {
             if (databasePath is null)
             {
                 throw new ArgumentNullException(nameof(databasePath));
             }
 
-            _connection = new SqliteConnection(new SqliteConnectionStringBuilder
+            SqliteNativeLibrary.EnsureLoaded();
+
+            var connection = new SqliteConnection(new SqliteConnectionStringBuilder
             {
                 DataSource = databasePath,
                 Mode = SqliteOpenMode.ReadOnly
             }.ToString());
-            _connection.Open();
+            connection.Open();
 
+            return new SqliteCommandDatabase(connection, cacheCapacity);
+        }
+
+        private SqliteCommandDatabase(SqliteConnection connection, int cacheCapacity)
+        {
+            _connection = connection;
             _cache = new SegmentedLruCache<CacheKey, CommandMetadata>(
                 cacheCapacity,
                 comparer: new CacheKeyComparer());

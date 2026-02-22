@@ -8,7 +8,7 @@ using PSpecter.CommandDatabase.Import;
 using PSpecter.CommandDatabase.Sqlite;
 using PsCommandMetadata = PSpecter.CommandDatabase.CommandMetadata;
 using PsParameterMetadata = PSpecter.CommandDatabase.ParameterMetadata;
-using SmaParameterMetadata = System.Management.Automation.ParameterMetadata;
+using SMA = System.Management.Automation;
 
 namespace PSpecter.Commands
 {
@@ -145,7 +145,7 @@ namespace PSpecter.Commands
                 {
                     foreach (var paramEntry in cmdInfo.Parameters)
                     {
-                        SmaParameterMetadata paramMeta = paramEntry.Value;
+                        SMA.ParameterMetadata paramMeta = paramEntry.Value;
                         var sets = new List<ParameterSetInfo>();
 
                         foreach (var setEntry in paramMeta.ParameterSets)

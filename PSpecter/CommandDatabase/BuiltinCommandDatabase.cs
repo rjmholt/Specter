@@ -40,7 +40,7 @@ namespace PSpecter.CommandDatabase
             {
                 try
                 {
-                    _sqliteDb = new SqliteCommandDatabase(dbPath);
+                    _sqliteDb = SqliteCommandDatabase.Open(dbPath);
                 }
                 catch
                 {
@@ -66,7 +66,7 @@ namespace PSpecter.CommandDatabase
 
             if (databasePath is not null && File.Exists(databasePath))
             {
-                _sqliteDb = new SqliteCommandDatabase(databasePath);
+                _sqliteDb = SqliteCommandDatabase.Open(databasePath);
             }
         }
 

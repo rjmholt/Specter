@@ -146,7 +146,7 @@ namespace PSpecter.Builder
                 throw new ArgumentException("Database path must not be null or empty.", nameof(path));
             }
 
-            return AddSingleton<IPowerShellCommandDatabase>(new SqliteCommandDatabase(path));
+            return AddSingleton<IPowerShellCommandDatabase>(SqliteCommandDatabase.Open(path));
         }
 
         public RuleComponentProviderBuilder UseSessionDatabase(CommandInvocationIntrinsics invokeCommand)
