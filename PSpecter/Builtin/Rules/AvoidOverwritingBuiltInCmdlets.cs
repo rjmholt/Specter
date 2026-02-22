@@ -52,6 +52,12 @@ namespace PSpecter.Builtin.Rules
             var cmdletMap = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
             foreach (string version in psVersions)
             {
+                if (version.IndexOfAny(new[] { '/', '\\', ':' }) >= 0
+                    || version.Contains(".."))
+                {
+                    continue;
+                }
+
                 string jsonPath = Path.Combine(settingsPath, version + ".json");
                 if (!File.Exists(jsonPath))
                 {
