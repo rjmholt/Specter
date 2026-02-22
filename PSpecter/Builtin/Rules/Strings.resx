@@ -1134,4 +1134,31 @@
   <data name="AvoidMultipleTypeAttributesName" xml:space="preserve">
     <value>AvoidMultipleTypeAttributes</value>
   </data>
+  <data name="AvoidExclaimOperatorName" xml:space="preserve">
+    <value>AvoidExclaimOperator</value>
+  </data>
+  <data name="AvoidExclaimOperatorCommonName" xml:space="preserve">
+    <value>Avoid exclaim operator</value>
+  </data>
+  <data name="AvoidExclaimOperatorDescription" xml:space="preserve">
+    <value>The negation operator ! should not be used for readability purposes. Use -not instead.</value>
+  </data>
+  <data name="AvoidExclaimOperatorError" xml:space="preserve">
+    <value>Avoid using the ! negation operator</value>
+  </data>
+  <data name="AvoidExclaimOperatorCorrectionDescription" xml:space="preserve">
+    <value>Replace ! with -not</value>
+  </data>
+  <data name="AvoidUsingAllowUnencryptedAuthenticationCommonName" xml:space="preserve">
+    <value>Avoid AllowUnencryptedAuthentication Switch</value>
+  </data>
+  <data name="AvoidUsingAllowUnencryptedAuthenticationDescription" xml:space="preserve">
+    <value>Avoid sending credentials and secrets over unencrypted connections.</value>
+  </data>
+  <data name="AvoidUsingAllowUnencryptedAuthenticationError" xml:space="preserve">
+    <value>The insecure AllowUnencryptedAuthentication switch was used. This should be avoided except for compatibility with legacy systems.</value>
+  </data>
+  <data name="AvoidUsingAllowUnencryptedAuthenticationName" xml:space="preserve">
+    <value>AvoidUsingAllowUnencryptedAuthentication</value>
+  </data>
 </root>
