@@ -28,16 +28,16 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
-$compatModulePath = "$repoRoot/ScriptAnalyzer2/out/PSLint.PssaCompatibility"
+$compatModulePath = "$repoRoot/PSpecter/out/PSpecter.PssaCompatibility"
 
-if ($Build -or -not (Test-Path "$compatModulePath/PSLint.PssaCompatibility.psd1"))
+if ($Build -or -not (Test-Path "$compatModulePath/PSpecter.PssaCompatibility.psd1"))
 {
-    Write-Host "Building PSLint.PssaCompatibility..." -ForegroundColor Cyan
-    & "$repoRoot/PSLint.PssaCompatibility/build.ps1" -Configuration $Configuration -TargetFramework $TargetFramework
+    Write-Host "Building PSpecter.PssaCompatibility..." -ForegroundColor Cyan
+    & "$repoRoot/PSpecter.PssaCompatibility/build.ps1" -Configuration $Configuration -TargetFramework $TargetFramework
     Write-Host ""
 }
 
-if (-not (Test-Path "$compatModulePath/PSLint.PssaCompatibility.psd1"))
+if (-not (Test-Path "$compatModulePath/PSpecter.PssaCompatibility.psd1"))
 {
     throw "Compatibility module not found at $compatModulePath. Run with -Build or run the compat build first."
 }
@@ -46,17 +46,17 @@ if (Get-Module PSScriptAnalyzer -ErrorAction SilentlyContinue)
 {
     Remove-Module PSScriptAnalyzer -Force
 }
-if (Get-Module PSLint.PssaCompatibility -ErrorAction SilentlyContinue)
+if (Get-Module PSpecter.PssaCompatibility -ErrorAction SilentlyContinue)
 {
-    Remove-Module PSLint.PssaCompatibility -Force
+    Remove-Module PSpecter.PssaCompatibility -Force
 }
 
-Import-Module $compatModulePath/PSLint.PssaCompatibility.psd1 -Force
+Import-Module $compatModulePath/PSpecter.PssaCompatibility.psd1 -Force
 
-$importedModule = Get-Module PSLint.PssaCompatibility
+$importedModule = Get-Module PSpecter.PssaCompatibility
 if (-not $importedModule)
 {
-    throw "Failed to import PSLint.PssaCompatibility module"
+    throw "Failed to import PSpecter.PssaCompatibility module"
 }
 
 Write-Host "Module: $($importedModule.Name) v$($importedModule.Version)" -ForegroundColor Green
