@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
+using PSpecter.CommandDatabase.Import.CompatibilityProfile;
+using PSpecter.CommandDatabase.Sqlite;
 
-namespace PSpecter.Runtime.Import
+namespace PSpecter.CommandDatabase.Import
 {
     /// <summary>
     /// Imports command metadata from PSCompatibilityCollector JSON profile files.
@@ -23,26 +25,25 @@ namespace PSpecter.Runtime.Import
                 throw new DirectoryNotFoundException($"Profile directory not found: {profileDirectory}");
             }
 
-            using var writer = new CommandDatabaseWriter(connection);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(connection);
 
             foreach (string filePath in Directory.GetFiles(profileDirectory, "*.json"))
             {
                 string json = File.ReadAllText(filePath);
                 var (platform, commands) = ParseJson(json);
-                writer.ImportCommands(commands, platform, tx);
+                writer.ImportCommands(commands, platform);
             }
 
-            tx.Commit();
+            writer.Commit();
         }
 
         /// <summary>
         /// Imports a single compatibility profile JSON string.
         /// </summary>
-        public static void ImportJson(CommandDatabaseWriter writer, string json, DatabaseTransactionScope tx)
+        public static void ImportJson(CommandDatabaseWriter writer, string json)
         {
             var (platform, commands) = ParseJson(json);
-            writer.ImportCommands(commands, platform, tx);
+            writer.ImportCommands(commands, platform);
         }
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace PSpecter.Runtime.Import
         /// </summary>
         internal static (PlatformInfo Platform, IReadOnlyList<CommandMetadata> Commands) ParseJson(string json)
         {
-            var root = JsonConvert.DeserializeObject<CompatProfileRoot>(json);
+            var root = JsonConvert.DeserializeObject<ProfileRoot>(json);
 
             PlatformInfo platform = ExtractPlatform(root);
 
@@ -66,13 +67,11 @@ namespace PSpecter.Runtime.Import
 
                 foreach (var versionEntry in moduleEntry.Value)
                 {
-                    CompatModuleVersion moduleData = versionEntry.Value;
+                    ModuleVersion moduleData = versionEntry.Value;
                     if (moduleData is null) continue;
 
-                    // Collect alias mappings for this module version
                     var aliasMap = moduleData.Aliases ?? new Dictionary<string, string>();
 
-                    // Build reverse lookup: command name -> list of aliases
                     var commandAliases = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
                     foreach (var kvp in aliasMap)
                     {
@@ -103,7 +102,6 @@ namespace PSpecter.Runtime.Import
                         }
                     }
 
-                    // Any aliases whose targets were not found as commands: record as stand-alone entries
                     foreach (var aliasKvp in aliasMap)
                     {
                         if (string.IsNullOrWhiteSpace(aliasKvp.Key)) continue;
@@ -137,7 +135,7 @@ namespace PSpecter.Runtime.Import
         private static CommandMetadata ConvertCommand(
             string commandName,
             string commandType,
-            CompatCommandData data,
+            CommandData data,
             string moduleName,
             Dictionary<string, List<string>> aliasLookup)
         {
@@ -146,7 +144,7 @@ namespace PSpecter.Runtime.Import
             {
                 foreach (var paramEntry in data.Parameters)
                 {
-                    CompatParameterData paramData = paramEntry.Value;
+                    ParameterData paramData = paramEntry.Value;
                     if (paramData is null) continue;
 
                     var sets = new List<ParameterSetInfo>();
@@ -154,7 +152,7 @@ namespace PSpecter.Runtime.Import
                     {
                         foreach (var setEntry in paramData.ParameterSets)
                         {
-                            CompatParameterSetData setData = setEntry.Value;
+                            ParameterSetData setData = setEntry.Value;
                             if (setData is null) continue;
 
                             int? position = setData.Position;
@@ -204,7 +202,7 @@ namespace PSpecter.Runtime.Import
                 outputTypes: data?.OutputType);
         }
 
-        private static PlatformInfo ExtractPlatform(CompatProfileRoot root)
+        private static PlatformInfo ExtractPlatform(ProfileRoot root)
         {
             string edition = "Core";
             string version = "0.0.0";

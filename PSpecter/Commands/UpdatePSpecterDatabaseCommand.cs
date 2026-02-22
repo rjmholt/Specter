@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using Microsoft.Data.Sqlite;
-using PSpecter.Runtime;
-using PSpecter.Runtime.Import;
-using PsCommandMetadata = PSpecter.Runtime.CommandMetadata;
-using PsParameterMetadata = PSpecter.Runtime.ParameterMetadata;
+using PSpecter.CommandDatabase;
+using PSpecter.CommandDatabase.Import;
+using PSpecter.CommandDatabase.Sqlite;
+using PsCommandMetadata = PSpecter.CommandDatabase.CommandMetadata;
+using PsParameterMetadata = PSpecter.CommandDatabase.ParameterMetadata;
 using SmaParameterMetadata = System.Management.Automation.ParameterMetadata;
 
 namespace PSpecter.Commands
@@ -60,8 +61,9 @@ namespace PSpecter.Commands
             {
                 WriteVerbose("Creating new database schema...");
                 CommandDatabaseSchema.CreateTables(connection);
-                using var writer = new CommandDatabaseWriter(connection);
+                using var writer = CommandDatabaseWriter.Begin(connection);
                 writer.WriteSchemaVersion(CommandDatabaseSchema.SchemaVersion);
+                writer.Commit();
             }
 
             switch (ParameterSetName)
@@ -111,10 +113,9 @@ namespace PSpecter.Commands
             // Collect aliases separately and add them as commands with alias info
             CollectAliases(commands);
 
-            using var writer = new CommandDatabaseWriter(connection);
-            using var tx = writer.BeginTransaction();
-            writer.ImportCommands(commands, platform, tx);
-            tx.Commit();
+            using var writer = CommandDatabaseWriter.Begin(connection);
+            writer.ImportCommands(commands, platform);
+            writer.Commit();
 
             WriteVerbose($"Imported {commands.Count} commands.");
         }
@@ -245,10 +246,9 @@ namespace PSpecter.Commands
                 }
 
                 var platform = new PlatformInfo(edition, version, os);
-                using var writer = new CommandDatabaseWriter(connection);
-                using var tx = writer.BeginTransaction();
-                LegacySettingsImporter.ImportJson(writer, json, platform, tx);
-                tx.Commit();
+                using var writer = CommandDatabaseWriter.Begin(connection);
+                LegacySettingsImporter.ImportJson(writer, json, platform);
+                writer.Commit();
             }
             else
             {
@@ -273,10 +273,9 @@ namespace PSpecter.Commands
             {
                 WriteVerbose($"Importing compatibility profile from file: {path}");
                 string json = File.ReadAllText(path);
-                using var writer = new CommandDatabaseWriter(connection);
-                using var tx = writer.BeginTransaction();
-                CompatibilityProfileImporter.ImportJson(writer, json, tx);
-                tx.Commit();
+                using var writer = CommandDatabaseWriter.Begin(connection);
+                CompatibilityProfileImporter.ImportJson(writer, json);
+                writer.Commit();
             }
             else
             {

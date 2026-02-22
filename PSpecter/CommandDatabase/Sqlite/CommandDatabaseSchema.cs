@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 
-namespace PSpecter.Runtime
+namespace PSpecter.CommandDatabase.Sqlite
 {
     /// <summary>
     /// Defines the SQLite schema for the PSpecter command database.
@@ -8,7 +8,7 @@ namespace PSpecter.Runtime
     /// </summary>
     internal static class CommandDatabaseSchema
     {
-        public const int SchemaVersion = 1;
+        public const int SchemaVersion = 2;
 
         public static void CreateTables(SqliteConnection connection)
         {
@@ -35,7 +35,7 @@ namespace PSpecter.Runtime
             $"CREATE TABLE IF NOT EXISTS {Db.Module.Table} (" +
             $"  {Db.Module.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
             $"  {Db.Module.Name} TEXT NOT NULL," +
-            $"  {Db.Module.Version} TEXT," +
+            $"  {Db.Module.Version} TEXT NOT NULL DEFAULT ''," +
             $"  UNIQUE({Db.Module.Name}, {Db.Module.Version})" +
             $");\n" +
 
@@ -44,7 +44,8 @@ namespace PSpecter.Runtime
             $"  {Db.Command.ModuleId} INTEGER REFERENCES {Db.Module.Table}({Db.Module.Id})," +
             $"  {Db.Command.Name} TEXT NOT NULL," +
             $"  {Db.Command.CommandType} TEXT NOT NULL," +
-            $"  {Db.Command.DefaultParameterSet} TEXT" +
+            $"  {Db.Command.DefaultParameterSet} TEXT," +
+            $"  UNIQUE({Db.Command.ModuleId}, {Db.Command.Name} COLLATE NOCASE)" +
             $");\n" +
             $"CREATE INDEX IF NOT EXISTS IX_Command_Name ON {Db.Command.Table}({Db.Command.Name} COLLATE NOCASE);\n" +
 
@@ -59,7 +60,8 @@ namespace PSpecter.Runtime
             $"  {Db.Parameter.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})," +
             $"  {Db.Parameter.Name} TEXT NOT NULL," +
             $"  {Db.Parameter.Type} TEXT," +
-            $"  {Db.Parameter.IsDynamic} INTEGER NOT NULL DEFAULT 0" +
+            $"  {Db.Parameter.IsDynamic} INTEGER NOT NULL DEFAULT 0," +
+            $"  UNIQUE({Db.Parameter.CommandId}, {Db.Parameter.Name} COLLATE NOCASE)" +
             $");\n" +
             $"CREATE INDEX IF NOT EXISTS IX_Parameter_CommandId ON {Db.Parameter.Table}({Db.Parameter.CommandId});\n" +
 
@@ -83,7 +85,8 @@ namespace PSpecter.Runtime
             $"CREATE TABLE IF NOT EXISTS {Db.Alias.Table} (" +
             $"  {Db.Alias.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
             $"  {Db.Alias.Name} TEXT NOT NULL," +
-            $"  {Db.Alias.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})" +
+            $"  {Db.Alias.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})," +
+            $"  UNIQUE({Db.Alias.Name} COLLATE NOCASE, {Db.Alias.CommandId})" +
             $");\n" +
             $"CREATE INDEX IF NOT EXISTS IX_Alias_Name ON {Db.Alias.Table}({Db.Alias.Name} COLLATE NOCASE);\n" +
             $"CREATE INDEX IF NOT EXISTS IX_Alias_CommandId ON {Db.Alias.Table}({Db.Alias.CommandId});\n" +
@@ -97,7 +100,8 @@ namespace PSpecter.Runtime
             $"CREATE TABLE IF NOT EXISTS {Db.OutputType.Table} (" +
             $"  {Db.OutputType.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
             $"  {Db.OutputType.CommandId} INTEGER NOT NULL REFERENCES {Db.Command.Table}({Db.Command.Id})," +
-            $"  {Db.OutputType.TypeName} TEXT NOT NULL" +
+            $"  {Db.OutputType.TypeName} TEXT NOT NULL," +
+            $"  UNIQUE({Db.OutputType.CommandId}, {Db.OutputType.TypeName})" +
             $");\n" +
             $"CREATE INDEX IF NOT EXISTS IX_OutputType_CommandId ON {Db.OutputType.Table}({Db.OutputType.CommandId});\n" +
 

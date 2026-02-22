@@ -88,16 +88,17 @@ $connection = [Microsoft.Data.Sqlite.SqliteConnection]::new($connStr.ToString())
 $connection.Open()
 
 try {
-    [PSpecter.Runtime.CommandDatabaseSchema]::CreateTables($connection)
+    [PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema]::CreateTables($connection)
 
-    $writer = [PSpecter.Runtime.CommandDatabaseWriter]::new($connection)
+    $writer = [PSpecter.CommandDatabase.Sqlite.CommandDatabaseWriter]::Begin($connection)
     try {
-        $writer.WriteSchemaVersion([PSpecter.Runtime.CommandDatabaseSchema]::SchemaVersion)
+        $writer.WriteSchemaVersion([PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema]::SchemaVersion)
+        $writer.Commit()
     } finally {
         $writer.Dispose()
     }
 
-    [PSpecter.Runtime.Import.LegacySettingsImporter]::ImportDirectory($connection, $SettingsPath)
+    [PSpecter.CommandDatabase.Import.LegacySettingsImporter]::ImportDirectory($connection, $SettingsPath)
 
     # Count what was imported
     $cmd = $connection.CreateCommand()

@@ -4,7 +4,7 @@ using PSpecter.Builtin.Rules;
 using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Formatting;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules;
 using System;
 using System.Collections.Generic;

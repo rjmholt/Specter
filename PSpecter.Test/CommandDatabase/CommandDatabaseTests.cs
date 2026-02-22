@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using Xunit;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
+using PSpecter.CommandDatabase.Sqlite;
 
-namespace PSpecter.Test.Runtime
+namespace PSpecter.Test.CommandDatabase
 {
     public class CommandDatabaseSchemaTests
     {
@@ -56,8 +57,7 @@ namespace PSpecter.Test.Runtime
         public void ImportCommands_InsertsAndDeduplicatesPlatforms()
         {
             using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(connection);
 
             var platform = new PlatformInfo("Core", "7.4.7", "windows");
             var commands = new[]
@@ -65,9 +65,9 @@ namespace PSpecter.Test.Runtime
                 new CommandMetadata("Get-Foo", "Cmdlet", "TestModule", null, null, null, null, null),
             };
 
-            writer.ImportCommands(commands, platform, tx);
-            writer.ImportCommands(commands, platform, tx);
-            tx.Commit();
+            writer.ImportCommands(commands, platform);
+            writer.ImportCommands(commands, platform);
+            writer.Commit();
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
@@ -78,8 +78,7 @@ namespace PSpecter.Test.Runtime
         public void ImportCommands_InsertsCommandWithParametersAndAliases()
         {
             using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(connection);
 
             var platform = new PlatformInfo("Core", "7.4.7", "windows");
             var commands = new[]
@@ -101,8 +100,8 @@ namespace PSpecter.Test.Runtime
                     new[] { "System.IO.FileInfo" }),
             };
 
-            writer.ImportCommands(commands, platform, tx);
-            tx.Commit();
+            writer.ImportCommands(commands, platform);
+            writer.Commit();
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-ChildItem'";
@@ -125,8 +124,7 @@ namespace PSpecter.Test.Runtime
         public void ImportCommands_DeduplicatesCommandsAcrossPlatforms()
         {
             using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(connection);
 
             var winPlatform = new PlatformInfo("Core", "7.4.7", "windows");
             var macPlatform = new PlatformInfo("Core", "7.4.7", "macos");
@@ -136,9 +134,9 @@ namespace PSpecter.Test.Runtime
                 new CommandMetadata("Get-ChildItem", "Cmdlet", "Microsoft.PowerShell.Management", null, null, null, null, null),
             };
 
-            writer.ImportCommands(commands, winPlatform, tx);
-            writer.ImportCommands(commands, macPlatform, tx);
-            tx.Commit();
+            writer.ImportCommands(commands, winPlatform);
+            writer.ImportCommands(commands, macPlatform);
+            writer.Commit();
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-ChildItem'";
@@ -152,17 +150,15 @@ namespace PSpecter.Test.Runtime
         public void Transaction_RollsBackOnDispose()
         {
             using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
 
-            using (var tx = writer.BeginTransaction())
+            using (var writer = CommandDatabaseWriter.Begin(connection))
             {
                 var platform = new PlatformInfo("Core", "7.0.0", "windows");
                 var commands = new[]
                 {
                     new CommandMetadata("Test-Rollback", "Function", "TestModule", null, null, null, null, null),
                 };
-                writer.ImportCommands(commands, platform, tx);
-                // no tx.Commit() — should roll back
+                writer.ImportCommands(commands, platform);
             }
 
             using var cmd = connection.CreateCommand();
@@ -174,8 +170,9 @@ namespace PSpecter.Test.Runtime
         public void WriteSchemaVersion_Works()
         {
             using var connection = CreatePopulatedConnection();
-            using var writer = new CommandDatabaseWriter(connection);
+            using var writer = CommandDatabaseWriter.Begin(connection);
             writer.WriteSchemaVersion(42);
+            writer.Commit();
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT Version FROM SchemaVersion";
@@ -356,14 +353,12 @@ namespace PSpecter.Test.Runtime
             conn.Open();
             CommandDatabaseSchema.CreateTables(conn);
 
-            using var writer = new CommandDatabaseWriter(conn);
-            using var tx = writer.BeginTransaction();
-            writer.WriteSchemaVersion(CommandDatabaseSchema.SchemaVersion, tx.Transaction);
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            writer.WriteSchemaVersion(CommandDatabaseSchema.SchemaVersion);
 
             var winPlatform = new PlatformInfo("Core", "7.4.7", "windows");
             var macPlatform = new PlatformInfo("Core", "7.4.7", "macos");
 
-            // Get-ChildItem (cross-platform)
             var crossPlatCommands = new[]
             {
                 new CommandMetadata(
@@ -383,10 +378,9 @@ namespace PSpecter.Test.Runtime
                     new[] { "System.IO.FileInfo", "System.IO.DirectoryInfo" }),
             };
 
-            writer.ImportCommands(crossPlatCommands, winPlatform, tx);
-            writer.ImportCommands(crossPlatCommands, macPlatform, tx);
+            writer.ImportCommands(crossPlatCommands, winPlatform);
+            writer.ImportCommands(crossPlatCommands, macPlatform);
 
-            // WindowsOnly-Cmd
             var winOnlyCommands = new[]
             {
                 new CommandMetadata(
@@ -400,9 +394,9 @@ namespace PSpecter.Test.Runtime
                     null),
             };
 
-            writer.ImportCommands(winOnlyCommands, winPlatform, tx);
+            writer.ImportCommands(winOnlyCommands, winPlatform);
 
-            tx.Commit();
+            writer.Commit();
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace PSpecter.Runtime
+namespace PSpecter.CommandDatabase
 {
     public sealed class PlatformInfo : IEquatable<PlatformInfo>
     {
@@ -44,5 +44,4 @@ namespace PSpecter.Runtime
 
         public override string ToString() => $"{Edition}/{Version}/{OS}";
     }
-
 }

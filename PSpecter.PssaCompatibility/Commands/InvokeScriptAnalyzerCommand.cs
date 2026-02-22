@@ -11,7 +11,7 @@ using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Formatting;
 using PSpecter.Rules;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic;
 

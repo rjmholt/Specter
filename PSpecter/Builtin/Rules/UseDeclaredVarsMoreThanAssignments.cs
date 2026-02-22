@@ -9,7 +9,7 @@ using System.Linq;
 using PSpecter.Rules;
 using PSpecter;
 using PSpecter.Builtin.Rules;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
 using PSpecter.Tools;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PSpecter.Runtime
+namespace PSpecter.CommandDatabase
 {
     public sealed class CommandMetadata
     {

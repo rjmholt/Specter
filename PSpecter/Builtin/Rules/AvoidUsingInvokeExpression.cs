@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation.Language;
 using PSpecter.Rules;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
 using PSpecter.Tools;
 
 namespace PSpecter.Builtin.Rules

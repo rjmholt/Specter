@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
+using PSpecter.CommandDatabase.Import.LegacySettings;
+using PSpecter.CommandDatabase.Sqlite;
 
-namespace PSpecter.Runtime.Import
+namespace PSpecter.CommandDatabase.Import
 {
     /// <summary>
     /// Imports command metadata from Engine/Settings JSON files (the legacy format
@@ -23,8 +25,7 @@ namespace PSpecter.Runtime.Import
                 throw new DirectoryNotFoundException($"Settings directory not found: {settingsDirectory}");
             }
 
-            using var writer = new CommandDatabaseWriter(connection);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(connection);
 
             foreach (string filePath in Directory.GetFiles(settingsDirectory, "*.json"))
             {
@@ -37,19 +38,19 @@ namespace PSpecter.Runtime.Import
                 var platform = new PlatformInfo(edition, version, os);
                 string json = File.ReadAllText(filePath);
                 var commands = ParseJson(json);
-                writer.ImportCommands(commands, platform, tx);
+                writer.ImportCommands(commands, platform);
             }
 
-            tx.Commit();
+            writer.Commit();
         }
 
         /// <summary>
         /// Imports a single legacy settings JSON string for a given platform.
         /// </summary>
-        public static void ImportJson(CommandDatabaseWriter writer, string json, PlatformInfo platform, DatabaseTransactionScope tx)
+        public static void ImportJson(CommandDatabaseWriter writer, string json, PlatformInfo platform)
         {
             var commands = ParseJson(json);
-            writer.ImportCommands(commands, platform, tx);
+            writer.ImportCommands(commands, platform);
         }
 
         /// <summary>
@@ -57,17 +58,17 @@ namespace PSpecter.Runtime.Import
         /// </summary>
         internal static IReadOnlyList<CommandMetadata> ParseJson(string json)
         {
-            var root = JsonConvert.DeserializeObject<LegacySettingsRoot>(json);
+            var root = JsonConvert.DeserializeObject<SettingsRoot>(json);
             if (root?.Modules is null)
                 return Array.Empty<CommandMetadata>();
 
             var result = new List<CommandMetadata>();
 
-            foreach (LegacyModule module in root.Modules)
+            foreach (Module module in root.Modules)
             {
                 if (module.ExportedCommands is not null)
                 {
-                    foreach (LegacyCommand cmd in module.ExportedCommands)
+                    foreach (Command cmd in module.ExportedCommands)
                     {
                         result.Add(new CommandMetadata(
                             name: cmd.Name,
@@ -81,8 +82,6 @@ namespace PSpecter.Runtime.Import
                     }
                 }
 
-                // Legacy format only has alias names with no target mapping.
-                // Record them as stand-alone "Alias" command entries.
                 if (module.ExportedAliases is not null)
                 {
                     foreach (string aliasName in module.ExportedAliases)

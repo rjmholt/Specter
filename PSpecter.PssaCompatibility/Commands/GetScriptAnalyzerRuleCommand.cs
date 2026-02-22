@@ -7,7 +7,7 @@ using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
 using PSpecter.Rules;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
 using CompatSeverity = Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticSeverity;
 using EngineSeverity = PSpecter.DiagnosticSeverity;
 

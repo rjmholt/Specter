@@ -5,8 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using PSpecter.CommandDatabase.Sqlite;
 
-namespace PSpecter.Runtime
+namespace PSpecter.CommandDatabase
 {
     /// <summary>
     /// The default command database used by rules. When a shipped pspecter.db
@@ -128,11 +129,9 @@ namespace PSpecter.Runtime
                 string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 if (assemblyDir is null) return null;
 
-                // Try Data/pspecter.db relative to assembly
                 string candidate = Path.Combine(assemblyDir, "Data", "pspecter.db");
                 if (File.Exists(candidate)) return candidate;
 
-                // Try one level up (module root)/Data/pspecter.db
                 string parentDir = Path.GetDirectoryName(assemblyDir);
                 if (parentDir is not null)
                 {
@@ -142,7 +141,6 @@ namespace PSpecter.Runtime
             }
             catch
             {
-                // Assembly location may not be available in some hosting scenarios
             }
 
             return null;

@@ -1,4 +1,4 @@
-namespace PSpecter.Runtime
+namespace PSpecter.CommandDatabase.Sqlite
 {
     /// <summary>
     /// Typed constants for every table and column in the command database schema.

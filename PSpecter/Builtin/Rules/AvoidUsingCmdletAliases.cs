@@ -8,7 +8,7 @@ using System.Globalization;
 using PSpecter.Rules;
 using PSpecter;
 using PSpecter.Builtin.Rules;
-using PSpecter.Runtime;
+using PSpecter.CommandDatabase;
 using PSpecter.Tools;
 using System.Linq;
 using PSpecter.Configuration;

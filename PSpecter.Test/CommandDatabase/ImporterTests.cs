@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using Xunit;
-using PSpecter.Runtime;
-using PSpecter.Runtime.Import;
+using PSpecter.CommandDatabase;
+using PSpecter.CommandDatabase.Import;
+using PSpecter.CommandDatabase.Sqlite;
 
-namespace PSpecter.Test.Runtime
+namespace PSpecter.Test.CommandDatabase
 {
     public class LegacySettingsImporterTests
     {
@@ -53,11 +54,10 @@ namespace PSpecter.Test.Runtime
             }";
 
             using var conn = CreateConnection();
-            using var writer = new CommandDatabaseWriter(conn);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(conn);
             var platform = new PlatformInfo("Core", "7.0.0", "windows");
-            LegacySettingsImporter.ImportJson(writer, json, platform, tx);
-            tx.Commit();
+            LegacySettingsImporter.ImportJson(writer, json, platform);
+            writer.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Thing'";
@@ -88,13 +88,12 @@ namespace PSpecter.Test.Runtime
             }";
 
             using var conn = CreateConnection();
-            using var writer = new CommandDatabaseWriter(conn);
-            using var tx = writer.BeginTransaction();
+            using var writer = CommandDatabaseWriter.Begin(conn);
             var winPlatform = new PlatformInfo("Core", "7.0.0", "windows");
             var macPlatform = new PlatformInfo("Core", "7.0.0", "macos");
-            LegacySettingsImporter.ImportJson(writer, json, winPlatform, tx);
-            LegacySettingsImporter.ImportJson(writer, json, macPlatform, tx);
-            tx.Commit();
+            LegacySettingsImporter.ImportJson(writer, json, winPlatform);
+            LegacySettingsImporter.ImportJson(writer, json, macPlatform);
+            writer.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Cross'";
@@ -197,10 +196,9 @@ namespace PSpecter.Test.Runtime
             }";
 
             using var conn = CreateConnection();
-            using var writer = new CommandDatabaseWriter(conn);
-            using var tx = writer.BeginTransaction();
-            CompatibilityProfileImporter.ImportJson(writer, json, tx);
-            tx.Commit();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            CompatibilityProfileImporter.ImportJson(writer, json);
+            writer.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
@@ -278,10 +276,9 @@ namespace PSpecter.Test.Runtime
             }";
 
             using var conn = CreateConnection();
-            using var writer = new CommandDatabaseWriter(conn);
-            using var tx = writer.BeginTransaction();
-            CompatibilityProfileImporter.ImportJson(writer, json, tx);
-            tx.Commit();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            CompatibilityProfileImporter.ImportJson(writer, json);
+            writer.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT CommandType FROM Command WHERE Name = 'Invoke-MyFunc'";
@@ -313,10 +310,9 @@ namespace PSpecter.Test.Runtime
             }";
 
             using var conn = CreateConnection();
-            using var writer = new CommandDatabaseWriter(conn);
-            using var tx = writer.BeginTransaction();
-            CompatibilityProfileImporter.ImportJson(writer, json, tx);
-            tx.Commit();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            CompatibilityProfileImporter.ImportJson(writer, json);
+            writer.Commit();
 
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Minimal'";

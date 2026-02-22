@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using PSpecter.Utils;
 
-namespace PSpecter.Runtime
+namespace PSpecter.CommandDatabase.Sqlite
 {
     /// <summary>
     /// Read-only query layer over the PSpecter SQLite command database.
