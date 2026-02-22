@@ -68,13 +68,15 @@ namespace PSpecter.Builtin.Rules
                     string newName = funcAst.Name.Substring(0, funcAst.Name.Length - noun.Length) + singularNoun;
                     var correction = new Correction(extent, newName, $"Singularized correction of '{extent.Text}'");
 
-                    yield return CreateDiagnostic(
+                    var diagnostic = CreateDiagnostic(
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UseSingularNounsError,
                             funcAst.Name),
                         extent,
                         new[] { correction });
+                    diagnostic.RuleSuppressionId = funcAst.Name;
+                    yield return diagnostic;
                 }
             }
         }

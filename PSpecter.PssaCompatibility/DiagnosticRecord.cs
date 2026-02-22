@@ -1,14 +1,11 @@
 using System.Collections.Generic;
 using System.Management.Automation.Language;
+using PSpecter.Suppression;
 using EngineDiagnostic = PSpecter.ScriptDiagnostic;
 using EngineSeverity = PSpecter.DiagnosticSeverity;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 {
-    /// <summary>
-    /// Compatibility adapter that wraps a ScriptAnalyzer2 ScriptDiagnostic
-    /// to present the original PSScriptAnalyzer DiagnosticRecord surface.
-    /// </summary>
     public class DiagnosticRecord
     {
         public string Message { get; }
@@ -35,7 +32,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
         public IReadOnlyList<CorrectionExtent>? SuggestedCorrections { get; }
 
-        public bool IsSuppressed { get; }
+        public virtual bool IsSuppressed => false;
 
         public DiagnosticRecord(
             string? message,
@@ -63,16 +60,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
             DiagnosticSeverity severity = MapSeverity(diagnostic.Severity);
             string? scriptPath = diagnostic.ScriptExtent?.File;
 
-            IReadOnlyList<CorrectionExtent>? corrections = null;
-            if (diagnostic.Corrections is { Count: > 0 })
-            {
-                var list = new List<CorrectionExtent>(diagnostic.Corrections.Count);
-                foreach (var correction in diagnostic.Corrections)
-                {
-                    list.Add(CorrectionExtent.FromEngineCorrection(correction, scriptPath));
-                }
-                corrections = list;
-            }
+            IReadOnlyList<CorrectionExtent>? corrections = MapCorrections(diagnostic, scriptPath);
 
             return new DiagnosticRecord(
                 diagnostic.Message,
@@ -84,11 +72,36 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
                 suggestedCorrections: corrections);
         }
 
-        /// <summary>
-        /// Maps a ScriptAnalyzer2 rule name to the original PSSA format.
-        /// Engine uses namespace "PS" and name "AvoidFoo" -> PSSA uses "PSAvoidFoo".
-        /// </summary>
-        private static string MapRuleName(EngineDiagnostic diagnostic)
+        internal static SuppressedRecord FromSuppressedDiagnostic(SuppressedDiagnostic suppressed)
+        {
+            EngineDiagnostic diagnostic = suppressed.Diagnostic;
+            string ruleName = MapRuleName(diagnostic);
+            DiagnosticSeverity severity = MapSeverity(diagnostic.Severity);
+            string? scriptPath = diagnostic.ScriptExtent?.File;
+
+            IReadOnlyList<CorrectionExtent>? corrections = MapCorrections(diagnostic, scriptPath);
+
+            var compatSuppressions = new List<CompatRuleSuppression>(suppressed.Suppressions.Count);
+            foreach (RuleSuppression rs in suppressed.Suppressions)
+            {
+                compatSuppressions.Add(new CompatRuleSuppression(
+                    rs.RuleName,
+                    rs.RuleSuppressionId,
+                    rs.Justification));
+            }
+
+            return new SuppressedRecord(
+                diagnostic.Message,
+                diagnostic.ScriptExtent,
+                ruleName,
+                severity,
+                scriptPath,
+                diagnostic.RuleSuppressionId,
+                corrections,
+                compatSuppressions);
+        }
+
+        internal static string MapRuleName(EngineDiagnostic diagnostic)
         {
             if (diagnostic.Rule is null)
             {
@@ -98,9 +111,65 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
             return diagnostic.Rule.Namespace + diagnostic.Rule.Name;
         }
 
+        private static IReadOnlyList<CorrectionExtent>? MapCorrections(EngineDiagnostic diagnostic, string? scriptPath)
+        {
+            if (diagnostic.Corrections is not { Count: > 0 })
+            {
+                return null;
+            }
+
+            var list = new List<CorrectionExtent>(diagnostic.Corrections.Count);
+            foreach (var correction in diagnostic.Corrections)
+            {
+                list.Add(CorrectionExtent.FromEngineCorrection(correction, scriptPath));
+            }
+
+            return list;
+        }
+
         private static DiagnosticSeverity MapSeverity(EngineSeverity engineSeverity)
         {
             return PSpecter.PssaCompatibility.SeverityMapper.ToCompat(engineSeverity);
         }
+    }
+
+    public class SuppressedRecord : DiagnosticRecord
+    {
+        public SuppressedRecord(
+            string? message,
+            IScriptExtent? extent,
+            string? ruleName,
+            DiagnosticSeverity severity,
+            string? scriptPath,
+            string? ruleId,
+            IReadOnlyList<CorrectionExtent>? suggestedCorrections,
+            IReadOnlyList<CompatRuleSuppression> suppression)
+            : base(message, extent, ruleName, severity, scriptPath, ruleId, suggestedCorrections)
+        {
+            Suppression = suppression;
+        }
+
+        public override bool IsSuppressed => true;
+
+        public IReadOnlyList<CompatRuleSuppression> Suppression { get; }
+    }
+
+    public class CompatRuleSuppression
+    {
+        public CompatRuleSuppression(
+            string ruleName,
+            string? ruleSuppressionId,
+            string? justification)
+        {
+            RuleName = ruleName;
+            RuleSuppressionID = ruleSuppressionId;
+            Justification = justification;
+        }
+
+        public string RuleName { get; }
+
+        public string? RuleSuppressionID { get; }
+
+        public string? Justification { get; }
     }
 }

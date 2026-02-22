@@ -11,6 +11,7 @@ using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Formatting;
 using PSpecter.Rules;
+using PSpecter.Suppression;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic;
 
@@ -81,6 +82,9 @@ namespace PSpecter.PssaCompatibility.Commands
         [Parameter]
         public SwitchParameter SuppressedOnly { get; set; }
 
+        [Parameter]
+        public SwitchParameter IncludeSuppressed { get; set; }
+
         protected override void BeginProcessing()
         {
             _scriptAnalyzer = BuildAnalyzer();
@@ -93,7 +97,7 @@ namespace PSpecter.PssaCompatibility.Commands
                 return;
             }
 
-            IReadOnlyCollection<ScriptDiagnostic> diagnostics;
+            AnalysisResult result;
 
             try
             {
@@ -105,11 +109,11 @@ namespace PSpecter.PssaCompatibility.Commands
                         return;
                     }
 
-                    diagnostics = _scriptAnalyzer.AnalyzeScriptPath(resolvedPath);
+                    result = _scriptAnalyzer.AnalyzeScriptPathFull(resolvedPath);
                 }
                 else
                 {
-                    diagnostics = _scriptAnalyzer.AnalyzeScriptInput(ScriptDefinition);
+                    result = _scriptAnalyzer.AnalyzeScriptInputFull(ScriptDefinition);
                 }
             }
             catch (AggregateException ae)
@@ -127,27 +131,97 @@ namespace PSpecter.PssaCompatibility.Commands
 
             HashSet<string>? severityFilter = BuildSeverityFilter();
 
-            foreach (ScriptDiagnostic diagnostic in diagnostics)
+            if (SuppressedOnly.IsPresent)
             {
-                DiagnosticRecord record = DiagnosticRecord.FromEngineDiagnostic(diagnostic);
-
-                if (!PassesIncludeFilter(record.RuleName))
+                foreach (SuppressedDiagnostic suppressed in result.SuppressedDiagnostics)
                 {
-                    continue;
+                    SuppressedRecord record = DiagnosticRecord.FromSuppressedDiagnostic(suppressed);
+                    if (PassesFilters(record, severityFilter))
+                    {
+                        WriteObject(record);
+                    }
                 }
-
-                if (IsExcluded(record.RuleName))
-                {
-                    continue;
-                }
-
-                if (severityFilter != null && !severityFilter.Contains(record.Severity.ToString()))
-                {
-                    continue;
-                }
-
-                WriteObject(record);
             }
+            else
+            {
+                foreach (ScriptDiagnostic diagnostic in result.Diagnostics)
+                {
+                    DiagnosticRecord record = DiagnosticRecord.FromEngineDiagnostic(diagnostic);
+                    if (PassesFilters(record, severityFilter))
+                    {
+                        WriteObject(record);
+                    }
+                }
+
+                if (IncludeSuppressed.IsPresent)
+                {
+                    foreach (SuppressedDiagnostic suppressed in result.SuppressedDiagnostics)
+                    {
+                        SuppressedRecord record = DiagnosticRecord.FromSuppressedDiagnostic(suppressed);
+                        if (PassesFilters(record, severityFilter))
+                        {
+                            WriteObject(record);
+                        }
+                    }
+                }
+            }
+
+            ReportUnappliedSuppressions(result);
+        }
+
+        private void ReportUnappliedSuppressions(AnalysisResult result)
+        {
+            foreach (RuleSuppression unapplied in result.UnappliedSuppressions)
+            {
+                string pssaName = RuleNameMapper.ToPssaRuleName(unapplied.RuleName);
+                if (pssaName.StartsWith("PS", StringComparison.OrdinalIgnoreCase)
+                    && pssaName.Length > 2
+                    && !char.IsUpper(pssaName[2]))
+                {
+                    pssaName = unapplied.RuleName;
+                }
+
+                if (!PassesIncludeFilter(pssaName))
+                {
+                    continue;
+                }
+
+                if (IsExcluded(pssaName))
+                {
+                    continue;
+                }
+
+                var unappliedRecord = new { RuleName = pssaName, RuleSuppressionID = unapplied.RuleSuppressionId };
+
+                var errorRecord = new ErrorRecord(
+                    new ArgumentException(
+                        $"Suppression '{pssaName}' with ID '{unapplied.RuleSuppressionId}' was not applied."),
+                    "suppression message attribute error",
+                    ErrorCategory.InvalidArgument,
+                    unappliedRecord);
+
+                WriteError(errorRecord);
+            }
+        }
+
+        private bool PassesFilters(DiagnosticRecord record, HashSet<string>? severityFilter)
+        {
+            if (!PassesIncludeFilter(record.RuleName))
+            {
+                return false;
+            }
+
+            if (IsExcluded(record.RuleName))
+            {
+                return false;
+            }
+
+            if (severityFilter != null && !severityFilter.Contains(record.Severity.ToString()))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private string? ResolvePath(string inputPath)

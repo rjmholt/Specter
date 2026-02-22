@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Management.Automation.Language;
+using System.Text.RegularExpressions;
 
 namespace PSpecter.Suppression
 {
@@ -13,12 +12,16 @@ namespace PSpecter.Suppression
             string? ruleSuppressionId,
             int startOffset,
             int endOffset,
+            int startLineNumber,
+            int endLineNumber,
             string? justification)
         {
             RuleName = ruleName;
             RuleSuppressionId = ruleSuppressionId;
             StartOffset = startOffset;
             EndOffset = endOffset;
+            StartLineNumber = startLineNumber;
+            EndLineNumber = endLineNumber;
             Justification = justification;
         }
 
@@ -30,16 +33,64 @@ namespace PSpecter.Suppression
 
         public int EndOffset { get; }
 
+        public int StartLineNumber { get; }
+
+        public int EndLineNumber { get; }
+
         public string? Justification { get; }
+    }
+
+    public sealed class SuppressedDiagnostic
+    {
+        public SuppressedDiagnostic(
+            ScriptDiagnostic diagnostic,
+            IReadOnlyList<RuleSuppression> suppressions)
+        {
+            Diagnostic = diagnostic;
+            Suppressions = suppressions;
+        }
+
+        public ScriptDiagnostic Diagnostic { get; }
+
+        public IReadOnlyList<RuleSuppression> Suppressions { get; }
+    }
+
+    public sealed class AnalysisResult
+    {
+        public static readonly AnalysisResult Empty = new(
+            Array.Empty<ScriptDiagnostic>(),
+            Array.Empty<SuppressedDiagnostic>(),
+            Array.Empty<RuleSuppression>());
+
+        public AnalysisResult(
+            IReadOnlyList<ScriptDiagnostic> diagnostics,
+            IReadOnlyList<SuppressedDiagnostic> suppressedDiagnostics,
+            IReadOnlyList<RuleSuppression> unappliedSuppressions)
+        {
+            Diagnostics = diagnostics;
+            SuppressedDiagnostics = suppressedDiagnostics;
+            UnappliedSuppressions = unappliedSuppressions;
+        }
+
+        public IReadOnlyList<ScriptDiagnostic> Diagnostics { get; }
+
+        public IReadOnlyList<SuppressedDiagnostic> SuppressedDiagnostics { get; }
+
+        public IReadOnlyList<RuleSuppression> UnappliedSuppressions { get; }
     }
 
     public static class SuppressionParser
     {
-        public static Dictionary<string, List<RuleSuppression>> GetSuppressions(Ast scriptAst)
+        public static Dictionary<string, List<RuleSuppression>> GetSuppressions(Ast scriptAst, Token[]? tokens = null)
         {
             var suppressions = new Dictionary<string, List<RuleSuppression>>(StringComparer.OrdinalIgnoreCase);
 
             CollectFromAttributes(scriptAst, suppressions);
+
+            if (tokens is not null)
+            {
+                CommentPragmaParser.CollectFromTokens(tokens, suppressions);
+            }
 
             return suppressions;
         }
@@ -71,29 +122,126 @@ namespace PSpecter.Suppression
                     : null;
 
                 string? justification = GetNamedArgumentValue(attrAst, "Justification");
-
-                Ast? scopeAst = GetSuppressionScope(attrAst);
-                int startOffset = scopeAst?.Extent?.StartOffset ?? 0;
-                int endOffset = scopeAst?.Extent?.EndOffset ?? int.MaxValue;
+                string? scope = GetNamedArgumentValue(attrAst, "Scope");
+                string? target = GetNamedArgumentValue(attrAst, "Target");
 
                 string[] ruleNames = ParseRuleNames(category!);
-                foreach (string ruleName in ruleNames)
+
+                if (!string.IsNullOrEmpty(scope) && !string.IsNullOrEmpty(target))
                 {
-                    var suppression = new RuleSuppression(
-                        ruleName,
-                        ruleSuppressionId,
-                        startOffset,
-                        endOffset,
-                        justification);
-
-                    if (!suppressions.TryGetValue(ruleName, out List<RuleSuppression>? list))
-                    {
-                        list = new List<RuleSuppression>();
-                        suppressions[ruleName] = list;
-                    }
-
-                    list.Add(suppression);
+                    CollectScopedSuppressions(ast, ruleNames, ruleSuppressionId, justification, scope!, target!, suppressions);
                 }
+                else
+                {
+                    Ast? scopeAst = GetSuppressionScope(attrAst);
+                    int startOffset = scopeAst?.Extent?.StartOffset ?? 0;
+                    int endOffset = scopeAst?.Extent?.EndOffset ?? int.MaxValue;
+                    int startLine = scopeAst?.Extent?.StartLineNumber ?? 0;
+                    int endLine = scopeAst?.Extent?.EndLineNumber ?? int.MaxValue;
+
+                    AddSuppressions(suppressions, ruleNames, ruleSuppressionId, startOffset, endOffset, startLine, endLine, justification);
+                }
+            }
+        }
+
+        private static void CollectScopedSuppressions(
+            Ast rootAst,
+            string[] ruleNames,
+            string? ruleSuppressionId,
+            string? justification,
+            string scope,
+            string target,
+            Dictionary<string, List<RuleSuppression>> suppressions)
+        {
+            Regex targetRegex = ConvertTargetToRegex(target);
+
+            if (string.Equals(scope, "Function", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (Ast node in rootAst.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+                {
+                    var funcDef = (FunctionDefinitionAst)node;
+                    if (targetRegex.IsMatch(funcDef.Name))
+                    {
+                        AddSuppressions(
+                            suppressions,
+                            ruleNames,
+                            ruleSuppressionId,
+                            funcDef.Extent.StartOffset,
+                            funcDef.Extent.EndOffset,
+                            funcDef.Extent.StartLineNumber,
+                            funcDef.Extent.EndLineNumber,
+                            justification);
+                    }
+                }
+            }
+            else if (string.Equals(scope, "Class", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (Ast node in rootAst.FindAll(a => a is TypeDefinitionAst, searchNestedScriptBlocks: true))
+                {
+                    var typeDef = (TypeDefinitionAst)node;
+                    if (targetRegex.IsMatch(typeDef.Name))
+                    {
+                        AddSuppressions(
+                            suppressions,
+                            ruleNames,
+                            ruleSuppressionId,
+                            typeDef.Extent.StartOffset,
+                            typeDef.Extent.EndOffset,
+                            typeDef.Extent.StartLineNumber,
+                            typeDef.Extent.EndLineNumber,
+                            justification);
+                    }
+                }
+            }
+        }
+
+        internal static Regex ConvertTargetToRegex(string target)
+        {
+            if (target.Contains("*") || target.Contains("?"))
+            {
+                string pattern = "^" + Regex.Escape(target).Replace("\\*", ".*").Replace("\\?", ".") + "$";
+                return new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            }
+
+            try
+            {
+                return new Regex(target, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            }
+            catch (ArgumentException)
+            {
+                return new Regex("^" + Regex.Escape(target) + "$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            }
+        }
+
+        private static void AddSuppressions(
+            Dictionary<string, List<RuleSuppression>> suppressions,
+            string[] ruleNames,
+            string? ruleSuppressionId,
+            int startOffset,
+            int endOffset,
+            int startLineNumber,
+            int endLineNumber,
+            string? justification)
+        {
+            string canonicalName = ruleNames.Length > 0 ? ruleNames[0] : string.Empty;
+            var suppression = new RuleSuppression(
+                canonicalName,
+                ruleSuppressionId,
+                startOffset,
+                endOffset,
+                startLineNumber,
+                endLineNumber,
+                justification);
+
+            foreach (string ruleName in ruleNames)
+            {
+                if (!suppressions.TryGetValue(ruleName, out List<RuleSuppression>? list))
+                {
+                    list = new List<RuleSuppression>();
+                    suppressions[ruleName] = list;
+                }
+
+                list.Add(suppression);
             }
         }
 
@@ -109,7 +257,7 @@ namespace PSpecter.Suppression
                 || string.Equals(typeName, "Diagnostics.CodeAnalysis.SuppressMessage", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string? GetStringValue(ExpressionAst expr)
+        internal static string? GetStringValue(ExpressionAst expr)
         {
             if (expr is StringConstantExpressionAst strConst)
             {
@@ -119,7 +267,7 @@ namespace PSpecter.Suppression
             return null;
         }
 
-        private static string? GetNamedArgumentValue(AttributeAst attr, string argumentName)
+        internal static string? GetNamedArgumentValue(AttributeAst attr, string argumentName)
         {
             foreach (NamedAttributeArgumentAst namedArg in attr.NamedArguments)
             {
@@ -141,7 +289,13 @@ namespace PSpecter.Suppression
 
             if (parent is ParamBlockAst paramBlock)
             {
-                return paramBlock.Parent;
+                Ast? scopeAst = paramBlock.Parent;
+                if (scopeAst is ScriptBlockAst && scopeAst.Parent is FunctionDefinitionAst containingFunc)
+                {
+                    return containingFunc;
+                }
+
+                return scopeAst;
             }
 
             if (parent is ParameterAst paramAst)
@@ -183,7 +337,7 @@ namespace PSpecter.Suppression
             return null;
         }
 
-        private static string[] ParseRuleNames(string category)
+        internal static string[] ParseRuleNames(string category)
         {
             if (string.IsNullOrWhiteSpace(category))
             {
@@ -223,7 +377,7 @@ namespace PSpecter.Suppression
 
             foreach (ScriptDiagnostic diagnostic in diagnostics)
             {
-                if (IsSuppressed(diagnostic, suppressions))
+                if (FindMatchingSuppressions(diagnostic, suppressions) is not null)
                 {
                     continue;
                 }
@@ -234,82 +388,160 @@ namespace PSpecter.Suppression
             return result;
         }
 
-        private static bool IsSuppressed(
+        public static AnalysisResult ApplySuppressionsWithTracking(
+            IReadOnlyCollection<ScriptDiagnostic> diagnostics,
+            Dictionary<string, List<RuleSuppression>> suppressions)
+        {
+            if (suppressions.Count == 0)
+            {
+                return new AnalysisResult(
+                    new List<ScriptDiagnostic>(diagnostics),
+                    Array.Empty<SuppressedDiagnostic>(),
+                    Array.Empty<RuleSuppression>());
+            }
+
+            var unsuppressed = new List<ScriptDiagnostic>(diagnostics.Count);
+            var suppressed = new List<SuppressedDiagnostic>();
+            var appliedSuppressions = new HashSet<RuleSuppression>();
+
+            foreach (ScriptDiagnostic diagnostic in diagnostics)
+            {
+                List<RuleSuppression>? matched = FindMatchingSuppressions(diagnostic, suppressions);
+                if (matched is not null)
+                {
+                    suppressed.Add(new SuppressedDiagnostic(diagnostic, matched));
+                    foreach (RuleSuppression s in matched)
+                    {
+                        appliedSuppressions.Add(s);
+                    }
+                }
+                else
+                {
+                    unsuppressed.Add(diagnostic);
+                }
+            }
+
+            var unapplied = new List<RuleSuppression>();
+            var seenUnapplied = new HashSet<RuleSuppression>(ReferenceEqualityComparer.Instance);
+            foreach (List<RuleSuppression> suppressionList in suppressions.Values)
+            {
+                foreach (RuleSuppression suppression in suppressionList)
+                {
+                    if (suppression.RuleSuppressionId is not null
+                        && !string.IsNullOrEmpty(suppression.RuleSuppressionId)
+                        && !appliedSuppressions.Contains(suppression)
+                        && seenUnapplied.Add(suppression))
+                    {
+                        unapplied.Add(suppression);
+                    }
+                }
+            }
+
+            return new AnalysisResult(unsuppressed, suppressed, unapplied);
+        }
+
+        private static List<RuleSuppression>? FindMatchingSuppressions(
             ScriptDiagnostic diagnostic,
             Dictionary<string, List<RuleSuppression>> suppressions)
         {
             if (diagnostic.Rule is null)
             {
-                return false;
+                return null;
             }
 
             string fullName = diagnostic.Rule.FullName;
             string shortName = diagnostic.Rule.Name;
 
-            List<RuleSuppression>? matchingSuppressions = null;
+            List<RuleSuppression>? candidateSuppressions = null;
 
             if (suppressions.TryGetValue(fullName, out List<RuleSuppression>? fullList))
             {
-                matchingSuppressions = fullList;
+                candidateSuppressions = fullList;
             }
 
             if (suppressions.TryGetValue(shortName, out List<RuleSuppression>? shortList))
             {
-                if (matchingSuppressions is null)
+                if (candidateSuppressions is null)
                 {
-                    matchingSuppressions = shortList;
+                    candidateSuppressions = shortList;
                 }
                 else
                 {
-                    matchingSuppressions = new List<RuleSuppression>(matchingSuppressions);
-                    matchingSuppressions.AddRange(shortList);
+                    candidateSuppressions = new List<RuleSuppression>(candidateSuppressions);
+                    candidateSuppressions.AddRange(shortList);
                 }
             }
 
             string pssaName = "PS" + shortName;
             if (suppressions.TryGetValue(pssaName, out List<RuleSuppression>? pssaList))
             {
-                if (matchingSuppressions is null)
+                if (candidateSuppressions is null)
                 {
-                    matchingSuppressions = pssaList;
+                    candidateSuppressions = pssaList;
                 }
                 else
                 {
-                    matchingSuppressions = new List<RuleSuppression>(matchingSuppressions);
-                    matchingSuppressions.AddRange(pssaList);
+                    candidateSuppressions = new List<RuleSuppression>(candidateSuppressions);
+                    candidateSuppressions.AddRange(pssaList);
                 }
             }
 
-            if (matchingSuppressions is null)
+            if (candidateSuppressions is null)
             {
-                return false;
+                return null;
             }
 
-            int diagStart = diagnostic.ScriptExtent.StartOffset;
-            int diagEnd = diagnostic.ScriptExtent.EndOffset;
+            int diagStartOffset = diagnostic.ScriptExtent.StartOffset;
+            int diagEndOffset = diagnostic.ScriptExtent.EndOffset;
+            int diagStartLine = diagnostic.ScriptExtent.StartLineNumber;
+            int diagEndLine = diagnostic.ScriptExtent.EndLineNumber;
 
-            foreach (RuleSuppression suppression in matchingSuppressions)
+            List<RuleSuppression>? matched = null;
+            HashSet<RuleSuppression>? seen = null;
+
+            foreach (RuleSuppression suppression in candidateSuppressions)
             {
-                if (diagStart >= suppression.StartOffset && diagEnd <= suppression.EndOffset)
+                bool inScope;
+                if (diagStartOffset == 0 && diagEndOffset == 0 && diagStartLine > 0)
                 {
-                    if (suppression.RuleSuppressionId is not null)
+                    inScope = diagStartLine >= suppression.StartLineNumber
+                        && diagEndLine <= suppression.EndLineNumber;
+                }
+                else
+                {
+                    inScope = diagStartOffset >= suppression.StartOffset
+                        && diagEndOffset <= suppression.EndOffset;
+                }
+
+                if (inScope)
+                {
+                    bool isMatch;
+                    if (suppression.RuleSuppressionId is not null
+                        && !string.IsNullOrEmpty(suppression.RuleSuppressionId))
                     {
-                        if (string.Equals(
+                        isMatch = string.Equals(
                             suppression.RuleSuppressionId,
                             diagnostic.RuleSuppressionId,
-                            StringComparison.OrdinalIgnoreCase))
-                        {
-                            return true;
-                        }
+                            StringComparison.OrdinalIgnoreCase);
                     }
                     else
                     {
-                        return true;
+                        isMatch = true;
+                    }
+
+                    if (isMatch)
+                    {
+                        seen ??= new HashSet<RuleSuppression>(ReferenceEqualityComparer.Instance);
+                        if (seen.Add(suppression))
+                        {
+                            matched ??= new List<RuleSuppression>();
+                            matched.Add(suppression);
+                        }
                     }
                 }
             }
 
-            return false;
+            return matched;
         }
     }
 }

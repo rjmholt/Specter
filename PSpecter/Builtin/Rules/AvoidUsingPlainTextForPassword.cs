@@ -41,10 +41,12 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                yield return CreateDiagnostic(
+                var diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingPlainTextForPasswordError, paramAst.Name),
                     paramAst.Extent,
                     GetCorrections(paramAst));
+                diagnostic.RuleSuppressionId = paramAst.Name.VariablePath.UserPath;
+                yield return diagnostic;
             }
         }
 

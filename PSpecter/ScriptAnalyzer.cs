@@ -65,8 +65,38 @@ namespace PSpecter
 
             IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
 
-            Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst);
+            Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst, scriptTokens);
             return SuppressionApplier.ApplySuppressions(diagnostics, suppressions);
+        }
+
+        public AnalysisResult AnalyzeScriptPathFull(string path)
+        {
+            Ast ast = Parser.ParseFile(path, out Token[] tokens, out ParseError[] parseErrors);
+            return AnalyzeScriptFull(ast, tokens, path);
+        }
+
+        public AnalysisResult AnalyzeScriptInputFull(string input)
+        {
+            Ast ast = Parser.ParseInput(input, out Token[] tokens, out ParseError[] parseErrors);
+            return AnalyzeScriptFull(ast, tokens, scriptPath: null);
+        }
+
+        public AnalysisResult AnalyzeScriptFull(Ast scriptAst, Token[] scriptTokens, string? scriptPath)
+        {
+            IRuleExecutor ruleExecutor = _executorFactory.CreateRuleExecutor(scriptAst, scriptTokens, scriptPath);
+
+            foreach (IRuleProvider ruleProvider in RuleProviders)
+            {
+                foreach (ScriptRule rule in ruleProvider.GetScriptRules())
+                {
+                    ruleExecutor.AddRule(rule);
+                }
+            }
+
+            IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
+
+            Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst, scriptTokens);
+            return SuppressionApplier.ApplySuppressionsWithTracking(diagnostics, suppressions);
         }
     }
 }
