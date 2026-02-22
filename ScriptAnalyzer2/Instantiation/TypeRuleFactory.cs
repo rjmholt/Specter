@@ -12,12 +12,15 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
 {
     public abstract class TypeRuleFactory<TRule>
     {
-        public TypeRuleFactory(RuleInfo ruleInfo)
+        public TypeRuleFactory(RuleInfo ruleInfo, bool isEnabled)
         {
             RuleInfo = ruleInfo;
+            IsEnabled = isEnabled;
         }
 
         public RuleInfo RuleInfo { get; }
+
+        public bool IsEnabled { get; }
 
         public abstract TRule GetRuleInstance();
 
@@ -42,7 +45,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo)
-            : this(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration: null)
+            : this(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration: null, isEnabled: true)
         {
         }
 
@@ -50,8 +53,9 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration)
-            : base(ruleInfo)
+            IRuleConfiguration ruleConfiguration,
+            bool isEnabled = true)
+            : base(ruleInfo, isEnabled)
         {
             _ruleComponentProvider = ruleComponentProvider;
             _ruleInfo = ruleInfo;
@@ -136,8 +140,9 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration)
-            : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration)
+            IRuleConfiguration ruleConfiguration,
+            bool isEnabled = true)
+            : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration, isEnabled)
         {
         }
 
@@ -155,10 +160,11 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration)
-            : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration)
+            IRuleConfiguration ruleConfiguration,
+            bool isEnabled = true)
+            : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration, isEnabled)
         {
-            _instance = InstantiateRuleInstance();
+            _instance = isEnabled ? InstantiateRuleInstance() : default;
         }
 
         public override TRule GetRuleInstance()
@@ -175,10 +181,11 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             RuleComponentProvider ruleComponentProvider,
             RuleInfo ruleInfo,
             ConstructorInfo ctorInfo,
-            IRuleConfiguration ruleConfiguration)
-            : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration)
+            IRuleConfiguration ruleConfiguration,
+            bool isEnabled = true)
+            : base(ruleComponentProvider, ruleInfo, ctorInfo, ruleConfiguration, isEnabled)
         {
-            _pool = new ResettablePool(() => (IResettable)InstantiateRuleInstance());
+            _pool = isEnabled ? new ResettablePool(() => (IResettable)InstantiateRuleInstance()) : null;
         }
 
         public override TRule GetRuleInstance()

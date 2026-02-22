@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management.Automation.Language;
 using Microsoft.PowerShell.ScriptAnalyzer.Formatting;
 
@@ -29,6 +30,16 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Rules
         {
             if (ast is null) throw new ArgumentNullException(nameof(ast));
 
+            if (!Configuration.Common.Enabled)
+            {
+                return Enumerable.Empty<ScriptDiagnostic>();
+            }
+
+            return AnalyzeScriptCore(ast, tokens, scriptPath);
+        }
+
+        private IEnumerable<ScriptDiagnostic> AnalyzeScriptCore(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
+        {
             string scriptContent = ast.Extent.Text;
             IScriptEditor editor = CreateEditor();
             IReadOnlyList<ScriptEdit> edits = editor.GetEdits(scriptContent, ast, tokens, scriptPath);

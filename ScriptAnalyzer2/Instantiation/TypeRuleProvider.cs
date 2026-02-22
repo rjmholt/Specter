@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builder;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using System;
@@ -27,6 +27,11 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
         {
             foreach (TypeRuleFactory<ScriptRule> ruleFactory in _scriptRuleFactories.Values)
             {
+                if (!ruleFactory.IsEnabled)
+                {
+                    continue;
+                }
+
                 yield return ruleFactory.GetRuleInstance();
             }
         }

@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell.ScriptAnalyzer.Builder;
+using Microsoft.PowerShell.ScriptAnalyzer.Builder;
 using Microsoft.PowerShell.ScriptAnalyzer.Configuration;
 using Microsoft.PowerShell.ScriptAnalyzer.Rules;
 using System;
@@ -43,6 +43,7 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
             ConstructorInfo ruleConstructor = ruleConstructors[0];
 
             ruleConfigurationCollection.TryGetValue(ruleInfo.FullName, out IRuleConfiguration ruleConfiguration);
+            bool isEnabled = ruleConfiguration?.Common?.Enabled ?? true;
 
             if (ruleInfo.IsIdempotent)
             {
@@ -50,7 +51,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
                     ruleComponentProvider,
                     ruleInfo,
                     ruleConstructor,
-                    ruleConfiguration);
+                    ruleConfiguration,
+                    isEnabled);
                 return true;
             }
 
@@ -60,7 +62,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
                     ruleComponentProvider,
                     ruleInfo,
                     ruleConstructor,
-                    ruleConfiguration);
+                    ruleConfiguration,
+                    isEnabled);
                 return true;
             }
 
@@ -70,7 +73,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
                     ruleComponentProvider,
                     ruleInfo,
                     ruleConstructor,
-                    ruleConfiguration);
+                    ruleConfiguration,
+                    isEnabled);
                 return true;
             }
 
@@ -78,7 +82,8 @@ namespace Microsoft.PowerShell.ScriptAnalyzer.Instantiation
                 ruleComponentProvider,
                 ruleInfo,
                 ruleConstructor,
-                ruleConfiguration);
+                ruleConfiguration,
+                isEnabled);
             return true;
         }
     }
