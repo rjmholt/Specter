@@ -53,7 +53,8 @@ namespace PSpecter.CommandDatabase.Sqlite
 
         public string GetAliasTarget(string alias)
         {
-            if (TryGetCommand(alias, platforms: null, out CommandMetadata cmd))
+            if (TryGetCommand(alias, platforms: null, out CommandMetadata cmd)
+                && !string.Equals(alias, cmd.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return cmd.Name;
             }

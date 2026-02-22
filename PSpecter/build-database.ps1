@@ -1,11 +1,15 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Builds the pre-populated PSpecter command database from shipped JSON data.
+    Builds the pre-populated PSpecter command database from shipped JSON data
+    and the current PowerShell session.
 
 .DESCRIPTION
-    This script creates a SQLite database at PSpecter/Data/pspecter.db by importing
-    the legacy Engine/Settings JSON files. Run this after dotnet publish.
+    This script creates a SQLite database at PSpecter/Data/pspecter.db by:
+    1. Importing legacy Engine/Settings JSON files (PS 5.1 and Core 6.1 profiles)
+    2. Importing commands from the current PowerShell session
+
+    Run this from the repository root or from the PSpecter directory.
 
 .PARAMETER OutputPath
     Path for the output database file. Defaults to PSpecter/Data/pspecter.db.
@@ -41,7 +45,7 @@ if (Test-Path $OutputPath) {
     Remove-Item $OutputPath -Force
 }
 
-# Load the built assembly
+# Publish the project if needed
 $framework = if ($PSEdition -eq 'Core') { 'net8' } else { 'net462' }
 $publishDir = Join-Path $PSScriptRoot 'bin' 'Debug' $framework 'publish'
 
@@ -49,71 +53,47 @@ if (-not (Test-Path $publishDir)) {
     Write-Host "Publish directory not found at $publishDir, trying to build..."
     Push-Location $PSScriptRoot
     try {
-        dotnet publish -f $framework
+        dotnet publish -f $framework -c Debug
         if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
     } finally {
         Pop-Location
     }
 }
 
-# Load Microsoft.Data.Sqlite and PSpecter assemblies
-$sqliteDll = Join-Path $publishDir 'Microsoft.Data.Sqlite.dll'
 $pspecterDll = Join-Path $publishDir 'PSpecter.dll'
-
-if (-not (Test-Path $sqliteDll)) { throw "Microsoft.Data.Sqlite.dll not found at $sqliteDll" }
 if (-not (Test-Path $pspecterDll)) { throw "PSpecter.dll not found at $pspecterDll" }
 
-# Also need SQLitePCLRaw
-$rawBundleDll = Get-ChildItem $publishDir -Filter 'SQLitePCLRaw.bundle*.dll' | Select-Object -First 1
-$rawCoreDll = Get-ChildItem $publishDir -Filter 'SQLitePCLRaw.core.dll' | Select-Object -First 1
-$rawProviderDll = Get-ChildItem $publishDir -Filter 'SQLitePCLRaw.provider*.dll' | Select-Object -First 1
+# Copy the native SQLite library next to the managed DLLs so the runtime can find it.
+# dotnet publish puts native libs under runtimes/<rid>/native/ which PowerShell's
+# module loader doesn't probe.
+$rid = if ($IsWindows) {
+    if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'win-arm64' } else { 'win-x64' }
+} elseif ($IsMacOS) {
+    if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'osx-arm64' } else { 'osx-x64' }
+} else {
+    if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64') { 'linux-arm64' } else { 'linux-x64' }
+}
+$nativeDir = Join-Path $publishDir 'runtimes' $rid 'native'
+if (Test-Path $nativeDir) {
+    foreach ($nativeLib in Get-ChildItem $nativeDir) {
+        $dest = Join-Path $publishDir $nativeLib.Name
+        if (-not (Test-Path $dest)) {
+            Copy-Item $nativeLib.FullName $dest
+        }
+    }
+}
 
-if ($rawBundleDll) { Add-Type -Path $rawBundleDll.FullName -ErrorAction SilentlyContinue }
-if ($rawCoreDll) { Add-Type -Path $rawCoreDll.FullName -ErrorAction SilentlyContinue }
-if ($rawProviderDll) { Add-Type -Path $rawProviderDll.FullName -ErrorAction SilentlyContinue }
-Add-Type -Path $sqliteDll
-Add-Type -Path $pspecterDll
-
-# Initialize SQLitePCL
-[SQLitePCL.Batteries_V2]::Init()
+# Import the module
+Import-Module $pspecterDll -Force
 
 Write-Host "Creating database at: $OutputPath"
 Write-Host "Importing settings from: $SettingsPath"
 
-$connStr = [Microsoft.Data.Sqlite.SqliteConnectionStringBuilder]::new()
-$connStr.DataSource = $OutputPath
-$connStr.Mode = [Microsoft.Data.Sqlite.SqliteOpenMode]::ReadWriteCreate
+# Step 1: Import legacy JSON settings
+Update-PSpecterDatabase -DatabasePath $OutputPath -LegacySettingsPath $SettingsPath -Verbose
 
-$connection = [Microsoft.Data.Sqlite.SqliteConnection]::new($connStr.ToString())
-$connection.Open()
-
-try {
-    [PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema]::CreateTables($connection)
-
-    $writer = [PSpecter.CommandDatabase.Sqlite.CommandDatabaseWriter]::Begin($connection)
-    try {
-        $writer.WriteSchemaVersion([PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema]::SchemaVersion)
-        $writer.Commit()
-    } finally {
-        $writer.Dispose()
-    }
-
-    [PSpecter.CommandDatabase.Import.LegacySettingsImporter]::ImportDirectory($connection, $SettingsPath)
-
-    # Count what was imported
-    $cmd = $connection.CreateCommand()
-    $cmd.CommandText = "SELECT COUNT(*) FROM Platform"
-    $platformCount = $cmd.ExecuteScalar()
-
-    $cmd.CommandText = "SELECT COUNT(*) FROM Module"
-    $moduleCount = $cmd.ExecuteScalar()
-
-    $cmd.CommandText = "SELECT COUNT(*) FROM Command"
-    $commandCount = $cmd.ExecuteScalar()
-
-    Write-Host "Done! Imported $platformCount platforms, $moduleCount modules, $commandCount commands."
-} finally {
-    $connection.Dispose()
-}
+# Step 2: Import from the current PowerShell session
+Write-Host "Importing commands from current session..."
+Update-PSpecterDatabase -DatabasePath $OutputPath -FromSession -Verbose
 
 Write-Host "Database written to: $OutputPath"

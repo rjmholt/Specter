@@ -122,9 +122,7 @@ namespace PSpecter.Commands
 
         private PsCommandMetadata ConvertCommandInfo(CommandInfo cmdInfo)
         {
-            string moduleName = cmdInfo.ModuleName;
-            if (string.IsNullOrEmpty(moduleName))
-                moduleName = "(none)";
+            string moduleName = string.IsNullOrEmpty(cmdInfo.ModuleName) ? null : cmdInfo.ModuleName;
 
             string commandType = cmdInfo.CommandType.ToString();
             string defaultParamSet = null;
@@ -205,9 +203,7 @@ namespace PSpecter.Commands
                 string targetName = aliasInfo.Definition;
                 if (string.IsNullOrEmpty(targetName)) continue;
 
-                string moduleName = aliasInfo.Module?.Name;
-                if (string.IsNullOrEmpty(moduleName))
-                    moduleName = "(none)";
+                string moduleName = string.IsNullOrEmpty(aliasInfo.Module?.Name) ? null : aliasInfo.Module.Name;
 
                 commands.Add(new PsCommandMetadata(
                     name: targetName,

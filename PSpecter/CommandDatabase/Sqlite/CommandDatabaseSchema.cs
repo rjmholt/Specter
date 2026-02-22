@@ -41,7 +41,7 @@ namespace PSpecter.CommandDatabase.Sqlite
 
             $"CREATE TABLE IF NOT EXISTS {Db.Command.Table} (" +
             $"  {Db.Command.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
-            $"  {Db.Command.ModuleId} INTEGER REFERENCES {Db.Module.Table}({Db.Module.Id})," +
+            $"  {Db.Command.ModuleId} INTEGER NOT NULL REFERENCES {Db.Module.Table}({Db.Module.Id})," +
             $"  {Db.Command.Name} TEXT NOT NULL," +
             $"  {Db.Command.CommandType} TEXT NOT NULL," +
             $"  {Db.Command.DefaultParameterSet} TEXT," +

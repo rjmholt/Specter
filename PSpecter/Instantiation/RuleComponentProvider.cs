@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Management.Automation;
 using System.Text;
 using PSpecter.CommandDatabase;
+using PSpecter.CommandDatabase.Sqlite;
 
 namespace PSpecter.Builder
 {
@@ -123,6 +125,32 @@ namespace PSpecter.Builder
             _componentRegistrations[typeof(TRegistered)] = factory;
             return this;
         }
+
+        public RuleComponentProviderBuilder UseBuiltinDatabase()
+            => AddSingleton<IPowerShellCommandDatabase>(BuiltinCommandDatabase.Instance);
+
+        /// <summary>
+        /// Use the shipped SQLite database at the default module location.
+        /// </summary>
+        public RuleComponentProviderBuilder UseSqliteDatabase()
+            => AddSingleton<IPowerShellCommandDatabase>(
+                BuiltinCommandDatabase.CreateWithDatabase(BuiltinCommandDatabase.FindDefaultDatabasePath()));
+
+        /// <summary>
+        /// Use a SQLite database at the specified path.
+        /// </summary>
+        public RuleComponentProviderBuilder UseSqliteDatabase(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException("Database path must not be null or empty.", nameof(path));
+            }
+
+            return AddSingleton<IPowerShellCommandDatabase>(new SqliteCommandDatabase(path));
+        }
+
+        public RuleComponentProviderBuilder UseSessionDatabase(CommandInvocationIntrinsics invokeCommand)
+            => AddSingleton<IPowerShellCommandDatabase>(SessionStateCommandDatabase.Create(invokeCommand));
 
         public RuleComponentProvider Build()
         {

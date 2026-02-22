@@ -66,14 +66,18 @@ namespace PSpecter.CommandDatabase.Import
 
             foreach (Module module in root.Modules)
             {
+                string moduleName = module.Name;
+
                 if (module.ExportedCommands is not null)
                 {
                     foreach (Command cmd in module.ExportedCommands)
                     {
+                        if (string.IsNullOrWhiteSpace(cmd?.Name)) continue;
+
                         result.Add(new CommandMetadata(
                             name: cmd.Name,
                             commandType: cmd.CommandType ?? "Cmdlet",
-                            moduleName: module.Name,
+                            moduleName: moduleName,
                             defaultParameterSet: null,
                             parameterSetNames: null,
                             aliases: null,
@@ -91,7 +95,7 @@ namespace PSpecter.CommandDatabase.Import
                         result.Add(new CommandMetadata(
                             name: aliasName,
                             commandType: "Alias",
-                            moduleName: module.Name,
+                            moduleName: moduleName,
                             defaultParameterSet: null,
                             parameterSetNames: null,
                             aliases: null,

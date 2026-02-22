@@ -4,3 +4,8 @@ obj/
 /out/
 **/out/
 testResults.xml
+
+# Generated SQLite database and WAL files
+PSpecter/Data/
+*.db-shm
+*.db-wal

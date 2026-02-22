@@ -11,7 +11,6 @@ using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Formatting;
 using PSpecter.Rules;
-using PSpecter.CommandDatabase;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic;
 
@@ -284,9 +283,6 @@ namespace PSpecter.PssaCompatibility.Commands
 
         private ScriptAnalyzer BuildAnalyzer()
         {
-            IPowerShellCommandDatabase commandDb = SessionStateCommandDatabase.Create(
-                SessionState.InvokeCommand);
-
             // Start with default rule configurations
             var configDict = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in Default.RuleConfiguration)
@@ -317,7 +313,7 @@ namespace PSpecter.PssaCompatibility.Commands
             }
 
             return new ScriptAnalyzerBuilder()
-                .WithRuleComponentProvider(rcpb => rcpb.AddSingleton(commandDb))
+                .WithRuleComponentProvider(rcpb => rcpb.UseSessionDatabase(SessionState.InvokeCommand))
                 .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
                 .AddBuiltinRules(configDict)
                 .Build();

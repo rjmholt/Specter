@@ -7,7 +7,6 @@ using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
 using PSpecter.Rules;
-using PSpecter.CommandDatabase;
 using CompatSeverity = Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticSeverity;
 using EngineSeverity = PSpecter.DiagnosticSeverity;
 
@@ -26,11 +25,8 @@ namespace PSpecter.PssaCompatibility.Commands
 
         protected override void ProcessRecord()
         {
-            IPowerShellCommandDatabase commandDb = SessionStateCommandDatabase.Create(
-                SessionState.InvokeCommand);
-
             ScriptAnalyzer analyzer = new ScriptAnalyzerBuilder()
-                .WithRuleComponentProvider(rcpb => rcpb.AddSingleton(commandDb))
+                .WithRuleComponentProvider(rcpb => rcpb.UseSessionDatabase(SessionState.InvokeCommand))
                 .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
                 .AddBuiltinRules()
                 .Build();

@@ -48,7 +48,7 @@ FormatsToProcess = @()
 FunctionsToExport = @()
 
 # Cmdlets to export from this module
-CmdletsToExport = @('Invoke-ScriptAnalyzer2', 'Write-Diagnostic')
+CmdletsToExport = @('Invoke-ScriptAnalyzer2', 'Write-Diagnostic', 'Update-PSpecterDatabase')
 
 # Variables to export from this module
 VariablesToExport = @()

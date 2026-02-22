@@ -84,7 +84,7 @@ namespace PSpecter.Builtin
         private static RuleComponentProvider BuildRuleComponentProvider()
         {
             return new RuleComponentProviderBuilder()
-                .AddSingleton<IPowerShellCommandDatabase>(BuiltinCommandDatabase.Instance)
+                .UseBuiltinDatabase()
                 .Build();
         }
     }

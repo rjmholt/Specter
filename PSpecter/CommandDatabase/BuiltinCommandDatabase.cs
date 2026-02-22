@@ -21,6 +21,13 @@ namespace PSpecter.CommandDatabase
 
         public static BuiltinCommandDatabase Instance => s_instance.Value;
 
+        /// <summary>
+        /// Override the default database path. When set, <see cref="Instance"/>
+        /// will look here before probing assembly-relative locations.
+        /// Must be set before the first access of <see cref="Instance"/>.
+        /// </summary>
+        public static string DefaultDatabasePath { get; set; }
+
         private readonly SqliteCommandDatabase _sqliteDb;
         private readonly Dictionary<string, string> _aliasToCommand;
         private readonly Dictionary<string, List<string>> _commandToAliases;
@@ -31,7 +38,7 @@ namespace PSpecter.CommandDatabase
             _commandToAliases = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             PopulateDefaultAliases();
 
-            string dbPath = FindShippedDatabase();
+            string dbPath = FindDefaultDatabasePath();
             if (dbPath is not null)
             {
                 try
@@ -122,10 +129,20 @@ namespace PSpecter.CommandDatabase
             _sqliteDb?.Dispose();
         }
 
-        private static string FindShippedDatabase()
+        /// <summary>
+        /// Resolves the default database path by checking <see cref="DefaultDatabasePath"/>,
+        /// then probing assembly-relative <c>Data/pspecter.db</c> locations.
+        /// Returns null if no database file is found.
+        /// </summary>
+        public static string FindDefaultDatabasePath()
         {
             try
             {
+                if (DefaultDatabasePath is not null && File.Exists(DefaultDatabasePath))
+                {
+                    return DefaultDatabasePath;
+                }
+
                 string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 if (assemblyDir is null) return null;
 

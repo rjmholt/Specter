@@ -148,8 +148,9 @@ namespace PSpecter.CommandDatabase.Sqlite
 
         private long EnsureModule(string name, string moduleVersion)
         {
+            string normName = name ?? string.Empty;
             string normVersion = moduleVersion ?? string.Empty;
-            var key = (name, normVersion);
+            var key = (normName, normVersion);
             if (_moduleCache.TryGetValue(key, out long cached))
                 return cached;
 
@@ -161,7 +162,7 @@ namespace PSpecter.CommandDatabase.Sqlite
                 $"ON CONFLICT({Db.Module.Name}, {Db.Module.Version}) " +
                 $"DO UPDATE SET {Db.Module.Name} = {Db.Module.Name} " +
                 $"RETURNING {Db.Module.Id}";
-            cmd.Parameters.AddWithValue("@n", name);
+            cmd.Parameters.AddWithValue("@n", normName);
             cmd.Parameters.AddWithValue("@v", normVersion);
 
             long id = (long)cmd.ExecuteScalar();
