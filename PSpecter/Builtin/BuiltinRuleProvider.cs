@@ -68,6 +68,8 @@ namespace PSpecter.Builtin
             typeof(UseSingularNouns),
             typeof(UseSupportsShouldProcess),
             typeof(AvoidUsingDeprecatedManifestFields),
+            typeof(UseCompatibleSyntax),
+            typeof(UseCompatibleCmdlets),
         };
     }
 
@@ -137,6 +139,8 @@ namespace PSpecter.Builtin
             { "PS/UseSingularNouns", new UseSingularNounsConfiguration() },
             { "PS/UseSupportsShouldProcess", null },
             { "PS/AvoidUsingDeprecatedManifestFields", null },
+            { "PS/UseCompatibleSyntax", new UseCompatibleSyntaxConfiguration() },
+            { "PS/UseCompatibleCmdlets", new UseCompatibleCmdletsConfiguration() },
         };
 
         public static IRuleExecutorFactory RuleExecutorFactory { get; } = new ParallelLinqRuleExecutorFactory();

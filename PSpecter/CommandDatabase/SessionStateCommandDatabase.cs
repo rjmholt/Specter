@@ -8,7 +8,7 @@ namespace PSpecter.CommandDatabase
     public class SessionStateCommandDatabase : IPowerShellCommandDatabase
     {
         private const CommandTypes ResolvableCommandTypes =
-            CommandTypes.Cmdlet | CommandTypes.Function | CommandTypes.ExternalScript;
+            CommandTypes.Cmdlet | CommandTypes.Function | CommandTypes.ExternalScript | CommandTypes.Application;
 
         public static SessionStateCommandDatabase Create(CommandInvocationIntrinsics invokeCommandProvider)
         {
@@ -136,6 +136,11 @@ namespace PSpecter.CommandDatabase
             }
 
             return null;
+        }
+
+        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        {
+            return TryGetCommand(nameOrAlias, platforms, out _);
         }
 
         public IReadOnlyList<string> GetAllNamesForCommand(string command)

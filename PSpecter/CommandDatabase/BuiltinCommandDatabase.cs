@@ -130,6 +130,16 @@ namespace PSpecter.CommandDatabase
             return names;
         }
 
+        public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
+        {
+            if (_sqliteDb is not null)
+            {
+                return _sqliteDb.CommandExistsOnPlatform(nameOrAlias, platforms);
+            }
+
+            return _aliasToCommand.ContainsKey(nameOrAlias);
+        }
+
         public void Dispose()
         {
             _sqliteDb?.Dispose();

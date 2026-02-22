@@ -138,9 +138,16 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     continue;
                 }
 
-                // Check for implicit Get- prefix aliases
+                // Check for implicit Get- prefix aliases, but skip if the command
+                // exists as a real (non-alias) command (e.g. native 'date' on Unix)
                 if (s_knownGetAliases.TryGetValue(commandName, out string getCommandName))
                 {
+                    if (_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata meta)
+                        && !string.Equals(meta.CommandType, "Alias", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     var correction = new AstCorrection(
                         cmdAst.CommandElements[0],
                         getCommandName,

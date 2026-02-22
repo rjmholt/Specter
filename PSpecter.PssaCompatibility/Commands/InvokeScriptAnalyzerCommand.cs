@@ -14,6 +14,8 @@ using PSpecter.Rules;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic;
 
+using PSpecter.CommandDatabase;
+
 #if !CORECLR
 using PSpecter.Internal;
 #endif
@@ -312,8 +314,20 @@ namespace PSpecter.PssaCompatibility.Commands
                 _effectiveSeverity = Severity;
             }
 
+            // Set the default database path from the module location so the
+            // BuiltinCommandDatabase can find it even when the assembly is loaded in-memory
+            string moduleBase = MyInvocation?.MyCommand?.Module?.ModuleBase;
+            if (moduleBase is not null)
+            {
+                string dbPath = System.IO.Path.Combine(moduleBase, "Data", "pspecter.db");
+                if (System.IO.File.Exists(dbPath))
+                {
+                    BuiltinCommandDatabase.DefaultDatabasePath = dbPath;
+                }
+            }
+
             return new ScriptAnalyzerBuilder()
-                .WithRuleComponentProvider(rcpb => rcpb.UseSessionDatabase(SessionState.InvokeCommand))
+                .WithRuleComponentProvider(rcpb => rcpb.UseBuiltinDatabase())
                 .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
                 .AddBuiltinRules(configDict)
                 .Build();
@@ -357,11 +371,14 @@ namespace PSpecter.PssaCompatibility.Commands
             {
                 object config = Activator.CreateInstance(configType);
 
+                bool hasExplicitEnable = false;
+                bool hasNonEnableSettings = false;
+
                 foreach (var arg in args)
                 {
-                    // PSSA uses "Enable" to toggle rules; map it to Common.Enabled
                     if (string.Equals(arg.Key, "Enable", StringComparison.OrdinalIgnoreCase))
                     {
+                        hasExplicitEnable = true;
                         bool enabled = Convert.ToBoolean(arg.Value);
                         if (config is IEditorConfiguration editorConfig)
                         {
@@ -390,6 +407,21 @@ namespace PSpecter.PssaCompatibility.Commands
                     if (convertedValue != null || !prop.PropertyType.IsValueType)
                     {
                         prop.SetValue(config, convertedValue);
+                        hasNonEnableSettings = true;
+                    }
+                }
+
+                // PSSA behavior: if settings are configured for a rule (beyond just Enable),
+                // implicitly enable it unless explicitly disabled
+                if (hasNonEnableSettings && !hasExplicitEnable)
+                {
+                    if (config is IEditorConfiguration editorCfg)
+                    {
+                        editorCfg.Common.Enabled = true;
+                    }
+                    else if (config is IRuleConfiguration ruleCfg)
+                    {
+                        ruleCfg.Common.Enabled = true;
                     }
                 }
 

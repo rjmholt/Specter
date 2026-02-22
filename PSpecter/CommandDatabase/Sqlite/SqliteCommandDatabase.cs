@@ -13,6 +13,7 @@ namespace PSpecter.CommandDatabase.Sqlite
     {
         private readonly SqliteConnection _connection;
         private readonly SegmentedLruCache<CacheKey, CommandMetadata> _cache;
+        private readonly object _syncLock = new object();
 
         /// <summary>
         /// Opens a read-only connection to the SQLite command database.
@@ -51,14 +52,17 @@ namespace PSpecter.CommandDatabase.Sqlite
         {
             var key = new CacheKey(nameOrAlias, platforms);
 
-            if (_cache.TryGet(key, out command))
+            lock (_syncLock)
             {
+                if (_cache.TryGet(key, out command))
+                {
+                    return command is not null;
+                }
+
+                command = LoadCommand(nameOrAlias, platforms);
+                _cache.Set(key, command);
                 return command is not null;
             }
-
-            command = LoadCommand(nameOrAlias, platforms);
-            _cache.Set(key, command);
-            return command is not null;
         }
 
         public bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms)
@@ -73,6 +77,7 @@ namespace PSpecter.CommandDatabase.Sqlite
             {
                 return cmd.Name;
             }
+
             return null;
         }
 

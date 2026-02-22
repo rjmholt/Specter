@@ -43,12 +43,23 @@ namespace PSpecter.Commands
         [ValidateNotNullOrEmpty]
         public string PlatformOS { get; set; }
 
+        [Parameter(ParameterSetName = "Session")]
+        public SwitchParameter IncludeNativeCommands { get; set; }
+
         protected override void EndProcessing()
         {
             string dbPath = ResolveDatabasePath();
             bool isNew = !File.Exists(dbPath);
 
             WriteVerbose($"Database path: {dbPath}");
+
+            SqliteNativeLibrary.EnsureLoaded();
+
+            string parentDir = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
+            {
+                Directory.CreateDirectory(parentDir);
+            }
 
             using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
             {
@@ -97,8 +108,14 @@ namespace PSpecter.Commands
             var platform = new PlatformInfo(edition, version, os);
             var commands = new List<PsCommandMetadata>();
 
+            string commandTypes = IncludeNativeCommands.IsPresent
+                ? "Cmdlet,Function,Application"
+                : "Cmdlet,Function";
+
+            WriteVerbose($"Collecting command types: {commandTypes}");
+
             var psCommands = InvokeCommand.InvokeScript(
-                "Get-Command -CommandType Cmdlet,Function -ErrorAction SilentlyContinue");
+                $"Get-Command -CommandType {commandTypes} -ErrorAction SilentlyContinue");
 
             foreach (PSObject cmdObj in psCommands)
             {
@@ -112,7 +129,6 @@ namespace PSpecter.Commands
                 }
             }
 
-            // Collect aliases separately and add them as commands with alias info
             CollectAliases(commands);
 
             using var writer = CommandDatabaseWriter.Begin(connection);
@@ -168,6 +184,10 @@ namespace PSpecter.Commands
                     }
                 }
             }
+            catch (Exception) when (cmdInfo is not CmdletInfo && cmdInfo is not FunctionInfo)
+            {
+                // ApplicationInfo and other command types may throw NotSupportedException
+            }
             catch (RuntimeException)
             {
             }
@@ -183,6 +203,9 @@ namespace PSpecter.Commands
                         outputTypes.Add(typeName);
                     }
                 }
+            }
+            catch (Exception) when (cmdInfo is not CmdletInfo && cmdInfo is not FunctionInfo)
+            {
             }
             catch (RuntimeException)
             {

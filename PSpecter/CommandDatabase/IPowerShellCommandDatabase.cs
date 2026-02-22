@@ -17,6 +17,12 @@ namespace PSpecter.CommandDatabase
         string GetAliasTarget(string alias);
 
         IReadOnlyList<string> GetAllNamesForCommand(string command);
+
+        /// <summary>
+        /// Returns true if the given command (or alias) exists on any of the specified platforms.
+        /// When <paramref name="platforms"/> is null, the check is platform-agnostic.
+        /// </summary>
+        bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo> platforms);
     }
 
     public static class CommandDatabaseExtensions
