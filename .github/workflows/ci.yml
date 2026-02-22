@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, pssa2]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install PowerShell
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          dotnet tool install --global PowerShell || true
+
+      - name: Restore
+        run: dotnet restore ScriptAnalyzer2.sln
+
+      - name: Build
+        run: dotnet build ScriptAnalyzer2.sln -c Release --no-restore
+
+      - name: Run xUnit tests
+        run: dotnet test PSpecter.Test/PSpecter.Test.csproj -c Release --no-build --verbosity normal
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -MinimumVersion 5.0 -Force -Scope CurrentUser
+
+      - name: Publish PSpecter module
+        shell: pwsh
+        run: |
+          dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -c Release -f net8.0
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          $config = New-PesterConfiguration
+          $config.Run.Path = './Tests/Rules'
+          $config.Run.Exit = $true
+          $config.Output.Verbosity = 'Detailed'
+          $config.Filter.ExcludeTag = @('DSC', 'SkipCI')
+          Invoke-Pester -Configuration $config
