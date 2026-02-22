@@ -19,7 +19,11 @@ namespace PSpecter.Builtin
             typeof(AvoidDefaultTrueValueSwitchParameter),
             typeof(AvoidDefaultValueForMandatoryParameter),
             typeof(AvoidEmptyCatchBlock),
+            typeof(AvoidGlobalAliases),
+            typeof(AvoidGlobalFunctions),
             typeof(AvoidGlobalVars),
+            typeof(AvoidMultipleTypeAttributes),
+            typeof(AvoidShouldContinueWithoutForce),
             typeof(AvoidNullOrEmptyHelpMessageAttribute),
             typeof(AvoidPositionalParameters),
             typeof(AvoidTrailingWhitespace),
@@ -36,6 +40,7 @@ namespace PSpecter.Builtin
             typeof(UseConsistentWhitespace),
             typeof(UseCorrectCasing),
             typeof(UseDeclaredVarsMoreThanAssignments),
+            typeof(UseProcessBlockForPipelineCommand),
             typeof(UseShouldProcessForStateChangingFunctions),
         };
     }
@@ -56,6 +61,9 @@ namespace PSpecter.Builtin
             { "PS/AlignAssignmentStatement", DisabledEditorConfig<AlignAssignmentStatementEditorConfiguration>() },
             { "PS/AvoidDefaultValueForMandatoryParameter", null },
             { "PS/AvoidDefaultValueSwitchParameter", null },
+            { "PS/AvoidGlobalAliases", null },
+            { "PS/AvoidGlobalFunctions", null },
+            { "PS/AvoidMultipleTypeAttributes", null },
             { "PS/AvoidNullOrEmptyHelpMessageAttribute", null },
             { "PS/AvoidTrailingWhitespace", null },
             { "PS/AvoidUsingCmdletAliases", null },
@@ -64,6 +72,7 @@ namespace PSpecter.Builtin
             { "PS/AvoidUsingInvokeExpression", null },
             { "PS/AvoidUsingWriteHost", null },
             { "PS/AvoidGlobalVars", null },
+            { "PS/AvoidShouldContinueWithoutForce", null },
             { "PS/AvoidUsingPositionalParameters", null },
             { "PS/AvoidUsingWMICmdlet", null },
             { "PS/MisleadingBacktick", null },
@@ -74,6 +83,7 @@ namespace PSpecter.Builtin
             { "PS/UseConsistentWhitespace", DisabledEditorConfig<UseConsistentWhitespaceEditorConfiguration>() },
             { "PS/UseCorrectCasing", DisabledEditorConfig<UseCorrectCasingEditorConfiguration>() },
             { "PS/UseDeclaredVarsMoreThanAssignments", null },
+            { "PS/UseProcessBlockForPipelineCommand", null },
             { "PS/UseShouldProcessForStateChangingFunctions", null },
         };
 

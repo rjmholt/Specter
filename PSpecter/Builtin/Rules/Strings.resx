@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1121,5 +1121,17 @@
   </data>	
   <data name="ReviewUnusedParameterName" xml:space="preserve">	
     <value>ReviewUnusedParameter</value>	
+  </data>
+  <data name="AvoidMultipleTypeAttributesCommonName" xml:space="preserve">
+    <value>Avoid multiple type specifiers on parameters</value>
+  </data>
+  <data name="AvoidMultipleTypeAttributesDescription" xml:space="preserve">
+    <value>Parameter should not have more than one type specifier.</value>
+  </data>
+  <data name="AvoidMultipleTypeAttributesError" xml:space="preserve">
+    <value>Parameter '{0}' has more than one type specifier.</value>
+  </data>
+  <data name="AvoidMultipleTypeAttributesName" xml:space="preserve">
+    <value>AvoidMultipleTypeAttributes</value>
   </data>
 </root>
