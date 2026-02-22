@@ -44,7 +44,7 @@ namespace PSpecter.Builtin.Editors
 
             var edits = new List<ScriptEdit>();
             int indentationLevel = 0;
-            bool onNewLine = false;
+            bool onNewLine = true;
             int pipelineIndentIncrease = 0;
             bool skipNextPipelineLine = false;
 
@@ -71,7 +71,7 @@ namespace PSpecter.Builtin.Editors
                     case TokenKind.LParen:
                     case TokenKind.DollarParen:
                     case TokenKind.AtParen:
-                        bool skipIndent = IsSingleLineParen(tokens, k);
+                        bool skipIndent = IsSingleLineParen(tokens, k) || !HasContentOnNextLine(tokens, k);
                         lParenSkippedIndent.Push(skipIndent);
                         if (!skipIndent)
                         {
@@ -91,16 +91,14 @@ namespace PSpecter.Builtin.Editors
                     case TokenKind.Pipe:
                         if (Configuration.PipelineIndentation == PipelineIndentationStyle.None
                             && IsInMultiLinePipeline(token, multiLinePipelines)
-                            && k + 1 < tokens.Count
-                            && (tokens[k + 1].Kind == TokenKind.NewLine || tokens[k + 1].Kind == TokenKind.LineContinuation))
+                            && IsFollowedByNewLine(tokens, k))
                         {
                             skipNextPipelineLine = true;
                         }
                         else if (Configuration.PipelineIndentation != PipelineIndentationStyle.None
                             && Configuration.PipelineIndentation != PipelineIndentationStyle.NoIndentation
                             && IsInMultiLinePipeline(token, multiLinePipelines)
-                            && k + 1 < tokens.Count
-                            && (tokens[k + 1].Kind == TokenKind.NewLine || tokens[k + 1].Kind == TokenKind.LineContinuation))
+                            && IsFollowedByNewLine(tokens, k))
                         {
                             bool shouldIncrement = Configuration.PipelineIndentation == PipelineIndentationStyle.IncreaseIndentationAfterEveryPipeline
                                 || (Configuration.PipelineIndentation == PipelineIndentationStyle.IncreaseIndentationForFirstPipeline
@@ -146,7 +144,7 @@ namespace PSpecter.Builtin.Editors
                         {
                             extra = 1;
                         }
-                        else if (k > 0 && tokens[k - 1].Kind == TokenKind.NewLine && token.Kind == TokenKind.Comment)
+                        else if (k > 0 && tokens[k - 1].Kind == TokenKind.NewLine)
                         {
                             for (int j = k - 2; j >= 0; j--)
                             {
@@ -194,7 +192,14 @@ namespace PSpecter.Builtin.Editors
 
             if (actualIndent != expectedIndent)
             {
-                edits.Add(new ScriptEdit(actualIndentStart, actualIndentEnd, expectedIndent));
+                int lineEndOffset = GetLineEndOffset(scriptContent, token.Extent.StartOffset);
+                string lineContent = scriptContent.Substring(token.Extent.StartOffset, lineEndOffset - token.Extent.StartOffset);
+                edits.Add(new ScriptEdit(
+                    actualIndentStart,
+                    lineEndOffset,
+                    expectedIndent + lineContent,
+                    diagnosticStartOffset: token.Extent.StartOffset,
+                    diagnosticEndOffset: lineEndOffset));
             }
         }
 
@@ -220,6 +225,66 @@ namespace PSpecter.Builtin.Editors
                 }
             }
             return 0;
+        }
+
+        private static int GetLineEndOffset(string content, int offset)
+        {
+            for (int i = offset; i < content.Length; i++)
+            {
+                if (content[i] == '\n' || content[i] == '\r')
+                {
+                    return i;
+                }
+            }
+            return content.Length;
+        }
+
+        /// <summary>
+        /// Returns true if the token at the given index is followed (possibly past inline comments)
+        /// by a NewLine or LineContinuation token.
+        /// </summary>
+        private static bool IsFollowedByNewLine(IReadOnlyList<Token> tokens, int index)
+        {
+            for (int i = index + 1; i < tokens.Count; i++)
+            {
+                if (tokens[i].Kind == TokenKind.NewLine || tokens[i].Kind == TokenKind.LineContinuation)
+                {
+                    return true;
+                }
+
+                if (tokens[i].Kind == TokenKind.Comment)
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true when the first non-comment token after the LParen is a NewLine,
+        /// meaning content starts on the next line and the paren should increase indentation.
+        /// </summary>
+        private static bool HasContentOnNextLine(IReadOnlyList<Token> tokens, int lParenIdx)
+        {
+            for (int i = lParenIdx + 1; i < tokens.Count; i++)
+            {
+                if (tokens[i].Kind == TokenKind.NewLine || tokens[i].Kind == TokenKind.LineContinuation)
+                {
+                    return true;
+                }
+
+                if (tokens[i].Kind == TokenKind.Comment)
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return false;
         }
 
         private static bool IsSingleLineParen(IReadOnlyList<Token> tokens, int lParenIdx)

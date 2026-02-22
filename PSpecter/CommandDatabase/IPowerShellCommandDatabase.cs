@@ -31,8 +31,13 @@ namespace PSpecter.CommandDatabase
         /// Returns true if <paramref name="name"/> is either the canonical command
         /// name or one of its known aliases.
         /// </summary>
-        public static bool IsCommandOrAlias(this IPowerShellCommandDatabase db, string name, string canonicalCommand)
+        public static bool IsCommandOrAlias(this IPowerShellCommandDatabase db, string? name, string canonicalCommand)
         {
+            if (name is null)
+            {
+                return false;
+            }
+
             if (string.Equals(name, canonicalCommand, StringComparison.OrdinalIgnoreCase))
             {
                 return true;

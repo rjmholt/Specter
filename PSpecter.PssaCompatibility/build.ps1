@@ -36,6 +36,24 @@ try
         New-Item -ItemType Directory -Path "$moduleOutPath/$framework" -Force | Out-Null
         Copy-Item -Path "$PSScriptRoot/bin/$Configuration/$framework/publish/*.dll" -Destination "$moduleOutPath/$framework"
         Copy-Item -Path "$PSScriptRoot/bin/$Configuration/$framework/publish/*.pdb" -Destination "$moduleOutPath/$framework" -ErrorAction Ignore
+
+        $settingsSource = "$PSScriptRoot/bin/$Configuration/$framework/publish/Settings"
+        if (Test-Path $settingsSource)
+        {
+            Copy-Item -Recurse -Force -Path $settingsSource -Destination "$moduleOutPath/$framework/Settings"
+        }
+
+        $dataSource = "$PSScriptRoot/bin/$Configuration/$framework/publish/Data"
+        if (Test-Path $dataSource)
+        {
+            Copy-Item -Recurse -Force -Path $dataSource -Destination "$moduleOutPath/$framework/Data"
+        }
+
+        $runtimesSource = "$PSScriptRoot/bin/$Configuration/$framework/publish/runtimes"
+        if (Test-Path $runtimesSource)
+        {
+            Copy-Item -Recurse -Force -Path $runtimesSource -Destination "$moduleOutPath/$framework/runtimes"
+        }
     }
 }
 finally

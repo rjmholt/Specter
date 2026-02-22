@@ -17,6 +17,7 @@ namespace PSpecter.Builtin.Editors
         public bool CheckOpenParen { get; set; } = true;
         public bool CheckOperator { get; set; } = true;
         public bool CheckSeparator { get; set; } = true;
+        public bool CheckParameter { get; set; } = false;
         public bool IgnoreAssignmentOperatorInsideHashTable { get; set; } = true;
     }
 
@@ -83,6 +84,11 @@ namespace PSpecter.Builtin.Editors
                 {
                     AddSpaceAfterSeparator(tokens, i, edits);
                 }
+            }
+
+            if (Configuration.CheckParameter)
+            {
+                AddParameterSpacingEdits(ast, tokens, edits);
             }
 
             return edits;
@@ -235,7 +241,7 @@ namespace PSpecter.Builtin.Editors
             if (Configuration.IgnoreAssignmentOperatorInsideHashTable
                 && (op.TokenFlags & TokenFlags.AssignmentOperator) != 0
                 && multiLineHashtableRanges != null
-                && IsInsideRange(op.Extent.StartOffset, multiLineHashtableRanges))
+                && IsInsideMultiLineHashtable(op.Extent.StartOffset, tokens, k, multiLineHashtableRanges))
             {
                 return;
             }
@@ -246,6 +252,9 @@ namespace PSpecter.Builtin.Editors
                 return;
             }
 
+            bool needSpaceBefore = false;
+            bool needSpaceAfter = false;
+
             if (k > 0)
             {
                 Token prev = tokens[k - 1];
@@ -253,7 +262,8 @@ namespace PSpecter.Builtin.Editors
                     && prev.Kind != TokenKind.LineContinuation
                     && prev.Extent.StartLineNumber == op.Extent.StartLineNumber)
                 {
-                    EnsureOneSpaceBetween(prev, op, edits);
+                    int gap = op.Extent.StartOffset - prev.Extent.EndOffset;
+                    needSpaceBefore = gap != 1;
                 }
             }
 
@@ -265,8 +275,34 @@ namespace PSpecter.Builtin.Editors
                     && next.Kind != TokenKind.EndOfInput
                     && next.Extent.StartLineNumber == op.Extent.StartLineNumber)
                 {
-                    EnsureOneSpaceBetween(op, next, edits);
+                    int gap = next.Extent.StartOffset - op.Extent.EndOffset;
+                    needSpaceAfter = gap != 1;
                 }
+            }
+
+            if (!needSpaceBefore && !needSpaceAfter)
+            {
+                return;
+            }
+
+            if (needSpaceBefore && needSpaceAfter)
+            {
+                Token prev = tokens[k - 1];
+                Token next = tokens[k + 1];
+                edits.Add(new ScriptEdit(
+                    prev.Extent.EndOffset,
+                    next.Extent.StartOffset,
+                    " " + op.Text + " "));
+            }
+            else if (needSpaceBefore)
+            {
+                Token prev = tokens[k - 1];
+                EnsureOneSpaceBetween(prev, op, edits);
+            }
+            else
+            {
+                Token next = tokens[k + 1];
+                EnsureOneSpaceBetween(op, next, edits);
             }
         }
 
@@ -287,6 +323,87 @@ namespace PSpecter.Builtin.Editors
             }
 
             EnsureOneSpaceBetween(sep, next, edits);
+        }
+
+        private static void AddParameterSpacingEdits(Ast ast, IReadOnlyList<Token> tokens, List<ScriptEdit> edits)
+        {
+            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
+            {
+                var cmdAst = (CommandAst)node;
+                var elements = cmdAst.CommandElements;
+
+                if (elements.Count >= 2)
+                {
+                    for (int i = 0; i < elements.Count - 1; i++)
+                    {
+                        var current = elements[i];
+                        var next = elements[i + 1];
+
+                        if (current.Extent.EndLineNumber != next.Extent.StartLineNumber)
+                        {
+                            continue;
+                        }
+
+                        if (current is CommandParameterAst paramAst
+                            && paramAst.Argument == null
+                            && paramAst.ParameterName.EndsWith(":", StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        int gap = next.Extent.StartOffset - current.Extent.EndOffset;
+                        if (gap > 1)
+                        {
+                            edits.Add(new ScriptEdit(
+                                current.Extent.EndOffset + 1,
+                                next.Extent.StartOffset,
+                                string.Empty,
+                                diagnosticStartOffset: current.Extent.StartOffset,
+                                diagnosticEndOffset: current.Extent.EndOffset));
+                        }
+                    }
+                }
+
+                AddRedirectSpacingEdits(cmdAst, tokens, edits);
+            }
+        }
+
+        private static void AddRedirectSpacingEdits(CommandAst cmdAst, IReadOnlyList<Token> tokens, List<ScriptEdit> edits)
+        {
+            if (cmdAst.Redirections == null || cmdAst.Redirections.Count == 0)
+            {
+                return;
+            }
+
+            int cmdStartOffset = cmdAst.Extent.StartOffset;
+            int cmdEndOffset = cmdAst.Extent.EndOffset;
+
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                Token t = tokens[i];
+                if (t.Extent.StartOffset < cmdStartOffset) continue;
+                if (t.Extent.StartOffset >= cmdEndOffset) break;
+
+                if (t.Kind != TokenKind.Redirection && t.Kind != TokenKind.RedirectInStd) continue;
+
+                if (i > 0)
+                {
+                    Token prev = tokens[i - 1];
+                    if (prev.Extent.StartLineNumber == t.Extent.StartLineNumber)
+                    {
+                        int gap = t.Extent.StartOffset - prev.Extent.EndOffset;
+                        if (gap > 1)
+                        {
+                            edits.Add(new ScriptEdit(
+                                prev.Extent.EndOffset + 1,
+                                t.Extent.StartOffset,
+                                string.Empty,
+                                diagnosticStartOffset: prev.Extent.StartOffset,
+                                diagnosticEndOffset: prev.Extent.EndOffset));
+                        }
+                    }
+                }
+            }
         }
 
         private static void EnsureOneSpaceBetween(Token left, Token right, List<ScriptEdit> edits)
@@ -324,10 +441,20 @@ namespace PSpecter.Builtin.Editors
             }
         }
 
+        private static List<HashtableAst> GetAllHashtables(Ast ast)
+        {
+            var hashtables = new List<HashtableAst>();
+            foreach (Ast htAst in ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true))
+            {
+                hashtables.Add((HashtableAst)htAst);
+            }
+            return hashtables;
+        }
+
         private static List<OffsetRange> GetMultiLineHashtableRanges(Ast ast)
         {
             var ranges = new List<OffsetRange>();
-            foreach (Ast htAst in ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true))
+            foreach (HashtableAst htAst in GetAllHashtables(ast))
             {
                 if (htAst.Extent.StartLineNumber != htAst.Extent.EndLineNumber)
                 {
@@ -335,6 +462,63 @@ namespace PSpecter.Builtin.Editors
                 }
             }
             return ranges;
+        }
+
+        /// <summary>
+        /// Returns true if the operator is directly inside a multi-line hashtable.
+        /// If a single-line hashtable is nested within a multi-line one, assignments in the
+        /// single-line hashtable are NOT considered "in a multi-line hashtable".
+        /// </summary>
+        private static bool IsInsideMultiLineHashtable(
+            int offset, IReadOnlyList<Token> tokens, int tokenIndex, List<OffsetRange> multiLineRanges)
+        {
+            if (!IsInsideRange(offset, multiLineRanges))
+            {
+                return false;
+            }
+
+            int singleLineDepth = 0;
+            for (int i = tokenIndex - 1; i >= 0; i--)
+            {
+                if (tokens[i].Kind == TokenKind.RCurly)
+                {
+                    singleLineDepth++;
+                }
+                else if (tokens[i].Kind == TokenKind.LCurly || tokens[i].Kind == TokenKind.AtCurly)
+                {
+                    if (singleLineDepth > 0)
+                    {
+                        singleLineDepth--;
+                        continue;
+                    }
+
+                    bool isMultiLine = tokens[i].Extent.StartLineNumber != FindMatchingRCurlyLine(tokens, i);
+                    return isMultiLine;
+                }
+            }
+
+            return true;
+        }
+
+        private static int FindMatchingRCurlyLine(IReadOnlyList<Token> tokens, int lCurlyIdx)
+        {
+            int depth = 1;
+            for (int i = lCurlyIdx + 1; i < tokens.Count; i++)
+            {
+                if (tokens[i].Kind == TokenKind.LCurly || tokens[i].Kind == TokenKind.AtCurly)
+                {
+                    depth++;
+                }
+                else if (tokens[i].Kind == TokenKind.RCurly)
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        return tokens[i].Extent.StartLineNumber;
+                    }
+                }
+            }
+            return -1;
         }
 
         private static bool IsInsideRange(int offset, List<OffsetRange> ranges)

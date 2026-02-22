@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Management.Automation.Language;
+using System.Text;
 using PSpecter.Rules;
 using PSpecter.Tools;
 
@@ -19,6 +21,10 @@ namespace PSpecter.Builtin.Rules
             "CmdletsToExport",
             "AliasesToExport",
         };
+
+        private const int MaxLineLength = 80;
+        private const int TabWidth = 4;
+        private const int ContinuationIndentWidth = TabWidth * 2;
 
         public UseToExportFieldsInManifest(RuleInfo ruleInfo)
             : base(ruleInfo)
@@ -52,6 +58,14 @@ namespace PSpecter.Builtin.Rules
                 yield break;
             }
 
+            IReadOnlyList<string>? moduleFunctions = null;
+            string? rootModulePath = ResolveRootModulePath(hashtable, scriptPath);
+
+            if (rootModulePath is not null)
+            {
+                moduleFunctions = GetExportedFunctionNames(rootModulePath);
+            }
+
             foreach (var kvp in hashtable.KeyValuePairs)
             {
                 if (kvp.Item1 is not StringConstantExpressionAst keyAst)
@@ -74,14 +88,18 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                foreach (ScriptDiagnostic diagnostic in CheckExportFieldValue(kvp.Item2, fieldName))
+                IReadOnlyList<string>? exportNames = string.Equals(fieldName, "FunctionsToExport", StringComparison.OrdinalIgnoreCase)
+                    ? moduleFunctions
+                    : null;
+
+                foreach (ScriptDiagnostic diagnostic in CheckExportFieldValue(kvp.Item2, fieldName, exportNames))
                 {
                     yield return diagnostic;
                 }
             }
         }
 
-        private IEnumerable<ScriptDiagnostic> CheckExportFieldValue(StatementAst valueStatement, string fieldName)
+        private IEnumerable<ScriptDiagnostic> CheckExportFieldValue(StatementAst valueStatement, string fieldName, IReadOnlyList<string>? exportNames)
         {
             if (valueStatement is null)
             {
@@ -100,17 +118,13 @@ namespace PSpecter.Builtin.Rules
             if (valueAst is VariableExpressionAst varExpr
                 && varExpr.VariablePath.UserPath.Equals("null", StringComparison.OrdinalIgnoreCase))
             {
-                yield return CreateDiagnostic(
-                    string.Format(CultureInfo.CurrentCulture, Strings.UseToExportFieldsInManifestError, fieldName),
-                    varExpr);
+                yield return CreateDiagnosticWithCorrection(fieldName, varExpr, exportNames);
                 yield break;
             }
 
             if (valueAst is StringConstantExpressionAst stringConst && ContainsWildcard(stringConst.Value))
             {
-                yield return CreateDiagnostic(
-                    string.Format(CultureInfo.CurrentCulture, Strings.UseToExportFieldsInManifestError, fieldName),
-                    stringConst);
+                yield return CreateDiagnosticWithCorrection(fieldName, stringConst, exportNames);
                 yield break;
             }
 
@@ -162,6 +176,130 @@ namespace PSpecter.Builtin.Rules
                         }
                     }
                 }
+            }
+        }
+
+        private ScriptDiagnostic CreateDiagnosticWithCorrection(string fieldName, Ast extent, IReadOnlyList<string>? exportNames)
+        {
+            string message = string.Format(CultureInfo.CurrentCulture, Strings.UseToExportFieldsInManifestError, fieldName);
+
+            if (exportNames is null || exportNames.Count == 0)
+            {
+                return CreateDiagnostic(message, extent);
+            }
+
+            string correctionText = FormatExportArray(exportNames);
+            string extentText = extent.Extent.Text;
+            if (extentText.Length >= 2
+                && extentText[0] == '\''
+                && extentText[extentText.Length - 1] == '\'')
+            {
+                extentText = extentText.Substring(1, extentText.Length - 2);
+            }
+            string description = string.Format(CultureInfo.CurrentCulture, "Replace '{0}' with {1}", extentText, correctionText);
+
+            var correction = new Correction(extent.Extent, correctionText, description);
+
+            return CreateDiagnostic(message, extent.Extent, new[] { correction });
+        }
+
+        private static string FormatExportArray(IReadOnlyList<string> names)
+        {
+            if (names.Count == 0)
+            {
+                return "@()";
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("@(");
+            int currentLineLength = 2;
+
+            for (int i = 0; i < names.Count; i++)
+            {
+                string element = "'" + names[i] + "'";
+                int elementWithSeparator = element.Length + 2; // always count ", "
+
+                if (i > 0 && currentLineLength + elementWithSeparator >= MaxLineLength)
+                {
+                    sb.Append(Environment.NewLine);
+                    sb.Append("\t\t");
+                    currentLineLength = ContinuationIndentWidth;
+                }
+
+                sb.Append(element);
+                if (i < names.Count - 1)
+                {
+                    sb.Append(", ");
+                }
+                currentLineLength += elementWithSeparator;
+            }
+
+            sb.Append(')');
+            return sb.ToString();
+        }
+
+        private static string? ResolveRootModulePath(HashtableAst hashtable, string manifestPath)
+        {
+            foreach (var kvp in hashtable.KeyValuePairs)
+            {
+                if (kvp.Item1 is not StringConstantExpressionAst keyAst)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(keyAst.Value, "RootModule", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(keyAst.Value, "ModuleToProcess", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (kvp.Item2 is PipelineAst rhsPipeline)
+                {
+                    ExpressionAst? expr = rhsPipeline.GetPureExpression();
+                    if (expr is StringConstantExpressionAst strValue && !string.IsNullOrWhiteSpace(strValue.Value))
+                    {
+                        string? manifestDir = Path.GetDirectoryName(manifestPath);
+                        if (manifestDir is not null)
+                        {
+                            string fullPath = Path.Combine(manifestDir, strValue.Value);
+                            if (File.Exists(fullPath))
+                            {
+                                return fullPath;
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            return null;
+        }
+
+        private static IReadOnlyList<string>? GetExportedFunctionNames(string modulePath)
+        {
+            try
+            {
+                string content = File.ReadAllText(modulePath);
+                Ast moduleAst = Parser.ParseInput(content, out _, out _);
+
+                var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                // Collect function definitions
+                foreach (Ast node in moduleAst.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: false))
+                {
+                    var funcDef = (FunctionDefinitionAst)node;
+                    if (!string.IsNullOrWhiteSpace(funcDef.Name))
+                    {
+                        names.Add(funcDef.Name);
+                    }
+                }
+
+                return names.Count > 0 ? names.ToList() : null;
+            }
+            catch
+            {
+                return null;
             }
         }
 

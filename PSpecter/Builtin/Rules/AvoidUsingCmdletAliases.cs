@@ -151,7 +151,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
                 // Check for implicit Get- prefix aliases, but skip if the command
                 // exists as a real (non-alias) command (e.g. native 'date' on Unix)
-                if (s_knownGetAliases.TryGetValue(commandName, out string? getCommandName))
+                // Also skip named block keywords (begin/process/end) used with scriptblocks
+                if (s_knownGetAliases.TryGetValue(commandName, out string? getCommandName)
+                    && !IsNamedBlockKeywordUsage(cmdAst))
                 {
                     if (_commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata? meta)
                         && meta is not null && !string.Equals(meta.CommandType, "Alias", StringComparison.OrdinalIgnoreCase))
@@ -167,8 +169,80 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     yield return CreateDiagnostic(
                         string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingCmdletAliasesMissingGetPrefixError, commandName, getCommandName),
                         firstElement);
+                    continue;
+                }
+
+                // Detect misplaced statements before named blocks in functions.
+                // e.g. function foo { SomeName; process {} } — the bare name
+                // before a named block is almost certainly a mistake.
+                if (IsStatementBeforeNamedBlock(cmdAst))
+                {
+                    yield return CreateDiagnostic(
+                        string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingCmdletAliasesError, commandName, commandName),
+                        firstElement,
+                        DiagnosticSeverity.ParseError);
                 }
             }
+        }
+
+        private static readonly HashSet<string> s_namedBlockKeywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "begin", "process", "end", "clean",
+        };
+
+        private static bool IsNamedBlockKeywordUsage(CommandAst cmdAst)
+        {
+            string? name = cmdAst.GetCommandName();
+            return name is not null
+                && s_namedBlockKeywords.Contains(name)
+                && cmdAst.CommandElements.Count == 2
+                && cmdAst.CommandElements[1] is ScriptBlockExpressionAst;
+        }
+
+        private static bool IsStatementBeforeNamedBlock(CommandAst cmdAst)
+        {
+            if (cmdAst.Parent is not PipelineAst pipeline)
+            {
+                return false;
+            }
+
+            if (pipeline.Parent is not NamedBlockAst namedBlock || !namedBlock.Unnamed)
+            {
+                return false;
+            }
+
+            if (namedBlock.Parent is not ScriptBlockAst scriptBlock)
+            {
+                return false;
+            }
+
+            if (scriptBlock.Parent is not FunctionDefinitionAst)
+            {
+                return false;
+            }
+
+            // Check if sibling statements include commands that look like
+            // named blocks (e.g. "process {}"), which indicates the function
+            // has a mix of bare statements and intended named blocks.
+            foreach (StatementAst sibling in namedBlock.Statements)
+            {
+                if (sibling is PipelineAst siblingPipeline
+                    && siblingPipeline.PipelineElements.Count == 1
+                    && siblingPipeline.PipelineElements[0] is CommandAst siblingCmd
+                    && !ReferenceEquals(siblingCmd, cmdAst))
+                {
+                    string? siblingName = siblingCmd.GetCommandName();
+                    if (siblingName is not null
+                        && s_namedBlockKeywords.Contains(siblingName)
+                        && siblingCmd.CommandElements.Count == 2
+                        && siblingCmd.CommandElements[1] is ScriptBlockExpressionAst)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 

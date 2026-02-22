@@ -167,6 +167,7 @@ namespace PSpecter.Builtin.Rules
         private static IEnumerable<ReturnTypeInfo> InferReturnTypes(FunctionDefinitionAst funcAst)
         {
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var variableTypes = BuildVariableTypeMap(funcAst);
 
             foreach (Ast node in funcAst.Body.FindAll(a => true, searchNestedScriptBlocks: false))
             {
@@ -180,7 +181,7 @@ namespace PSpecter.Builtin.Rules
 
                 if (node is ReturnStatementAst returnStmt && returnStmt.Pipeline is not null)
                 {
-                    var inferResult = InferExpressionType(returnStmt.Pipeline);
+                    var inferResult = InferExpressionType(returnStmt.Pipeline, variableTypes);
                     if (inferResult is not null)
                     {
                         typeName = inferResult.Value.TypeName;
@@ -190,7 +191,7 @@ namespace PSpecter.Builtin.Rules
                 else if (node is PipelineAst pipeline
                     && IsOutputStatement(pipeline, funcAst))
                 {
-                    var inferResult = InferPipelineOutputType(pipeline);
+                    var inferResult = InferPipelineOutputType(pipeline, variableTypes);
                     if (inferResult is not null)
                     {
                         typeName = inferResult.Value.TypeName;
@@ -203,6 +204,44 @@ namespace PSpecter.Builtin.Rules
                     yield return new ReturnTypeInfo(typeName!, extent);
                 }
             }
+        }
+
+        private static Dictionary<string, string> BuildVariableTypeMap(FunctionDefinitionAst funcAst)
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Ast node in funcAst.Body.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
+            {
+                var assign = (AssignmentStatementAst)node;
+
+                if (assign.Left is not VariableExpressionAst varExpr)
+                {
+                    continue;
+                }
+
+                ExpressionAst? rhs = null;
+                if (assign.Right is PipelineAst rhsPipeline)
+                {
+                    rhs = rhsPipeline.GetPureExpression();
+                }
+                else if (assign.Right is CommandExpressionAst cmdExpr)
+                {
+                    rhs = cmdExpr.Expression;
+                }
+
+                if (rhs is null)
+                {
+                    continue;
+                }
+
+                var inferred = InferExpressionAstType(rhs);
+                if (inferred is not null)
+                {
+                    map[varExpr.VariablePath.UserPath] = inferred.Value.TypeName;
+                }
+            }
+
+            return map;
         }
 
         private static bool IsOutputStatement(PipelineAst pipeline, FunctionDefinitionAst funcAst)
@@ -238,22 +277,28 @@ namespace PSpecter.Builtin.Rules
             return false;
         }
 
-        private static ReturnTypeInfo? InferExpressionType(Ast ast)
+        private static ReturnTypeInfo? InferExpressionType(Ast ast, Dictionary<string, string> variableTypes)
         {
             if (ast is PipelineAst pipeline)
             {
-                return InferPipelineOutputType(pipeline);
+                return InferPipelineOutputType(pipeline, variableTypes);
             }
 
             return null;
         }
 
-        private static ReturnTypeInfo? InferPipelineOutputType(PipelineAst pipeline)
+        private static ReturnTypeInfo? InferPipelineOutputType(PipelineAst pipeline, Dictionary<string, string> variableTypes)
         {
             ExpressionAst expr = pipeline.GetPureExpression();
             if (expr is null)
             {
                 return null;
+            }
+
+            if (expr is VariableExpressionAst varExpr
+                && variableTypes.TryGetValue(varExpr.VariablePath.UserPath, out string? varType))
+            {
+                return new ReturnTypeInfo(varType, expr.Extent);
             }
 
             return InferExpressionAstType(expr);

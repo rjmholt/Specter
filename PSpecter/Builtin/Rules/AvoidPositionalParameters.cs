@@ -69,7 +69,8 @@ namespace PSpecter.Builtin.Rules
                 }
 
                 bool isKnown = declaredFunctionNames.Contains(commandName)
-                    || IsKnownCmdlet(commandName);
+                    || IsKnownCmdlet(commandName)
+                    || LooksLikeCmdlet(commandName);
 
                 if (!isKnown)
                 {
@@ -100,6 +101,12 @@ namespace PSpecter.Builtin.Rules
             return _commandDb.TryGetCommand(commandName, platforms: null, out _)
                 || _commandDb.GetAliasTarget(commandName) != null
                 || _commandDb.GetCommandAliases(commandName) != null;
+        }
+
+        private static bool LooksLikeCmdlet(string commandName)
+        {
+            int hyphen = commandName.IndexOf('-');
+            return hyphen > 0 && hyphen < commandName.Length - 1;
         }
 
         private static bool HasSplattedVariable(CommandAst cmdAst)

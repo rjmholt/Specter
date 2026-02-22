@@ -392,7 +392,9 @@ namespace PSpecter.PssaCompatibility.Commands
             string? moduleBase = MyInvocation?.MyCommand?.Module?.ModuleBase;
             if (moduleBase is not null)
             {
-                string dbPath = System.IO.Path.Combine(moduleBase, "Data", "pspecter.db");
+                string? assemblyDir = System.IO.Path.GetDirectoryName(GetType().Assembly.Location);
+                string? dbDir = assemblyDir ?? moduleBase;
+                string dbPath = System.IO.Path.Combine(dbDir, "Data", "pspecter.db");
                 if (System.IO.File.Exists(dbPath))
                 {
                     BuiltinCommandDatabase.DefaultDatabasePath = dbPath;
@@ -546,6 +548,23 @@ namespace PSpecter.PssaCompatibility.Commands
             if (value is string singleStr && targetType == typeof(string[]))
             {
                 return new[] { singleStr };
+            }
+
+            if (targetType.IsEnum)
+            {
+                string? strVal = value.ToString();
+                if (strVal is not null)
+                {
+                    try
+                    {
+                        return Enum.Parse(targetType, strVal, ignoreCase: true);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                return null;
             }
 
             try
