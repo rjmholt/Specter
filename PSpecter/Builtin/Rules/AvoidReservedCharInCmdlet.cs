@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Management.Automation;
 using System.Management.Automation.Language;
 using PSpecter.Rules;
+using PSpecter.Tools;
 
 namespace PSpecter.Builtin.Rules
 {
@@ -24,14 +24,11 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        /// <summary>
-        /// AnalyzeScript: Analyzes the ast to check that cmdlets do not use reserved characters.
-        /// </summary>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
             if (ast == null)
             {
-                throw new ArgumentNullException(Strings.NullAstErrorMessage);
+                throw new ArgumentNullException(nameof(ast));
             }
 
             IEnumerable<Ast> funcAsts = ast.FindAll(testAst => testAst is FunctionDefinitionAst, true);
@@ -41,21 +38,31 @@ namespace PSpecter.Builtin.Rules
             }
 
             string reservedChars = Strings.ReserverCmdletChars;
+            HashSet<string> exportedFunctions = AstExtensions.GetExportedFunctionNames(ast);
 
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {
-                if (funcAst.Body?.ParamBlock?.Attributes == null)
+                if (funcAst.Body?.ParamBlock == null || !funcAst.Body.ParamBlock.HasCmdletBinding())
                 {
                     continue;
                 }
 
-                if (!funcAst.Body.ParamBlock.Attributes.Any(attr =>
-                    attr.TypeName.GetReflectionType() == typeof(CmdletBindingAttribute)))
+                string funcName = funcAst.GetNameWithoutScope();
+
+                // Only flag functions that are explicitly exported
+                if (exportedFunctions != null
+                    && !exportedFunctions.Contains(funcAst.Name)
+                    && !exportedFunctions.Contains(funcName))
                 {
                     continue;
                 }
 
-                string funcName = FunctionNameWithoutScope(funcAst.Name);
+                // If no Export-ModuleMember is found, skip entirely (matches PSSA behavior)
+                if (exportedFunctions == null)
+                {
+                    continue;
+                }
+
                 if (funcName != null && funcName.Intersect(reservedChars).Any())
                 {
                     yield return CreateDiagnostic(
@@ -63,25 +70,6 @@ namespace PSpecter.Builtin.Rules
                         funcAst);
                 }
             }
-        }
-
-        private static string FunctionNameWithoutScope(string name)
-        {
-            if (name == null)
-            {
-                return null;
-            }
-
-            string[] scopePrefixes = { "Global:", "Local:", "Script:", "Private:" };
-            foreach (string prefix in scopePrefixes)
-            {
-                if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    return name.Substring(prefix.Length);
-                }
-            }
-
-            return name;
         }
     }
 }

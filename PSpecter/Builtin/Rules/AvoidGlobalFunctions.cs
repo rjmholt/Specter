@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 using PSpecter.Rules;
+using PSpecter.Tools;
 
 namespace PSpecter.Builtin.Rules
 {
@@ -21,17 +22,14 @@ namespace PSpecter.Builtin.Rules
         {
         }
 
-        /// <summary>
-        /// AnalyzeScript: Analyze the script to check that functions are not declared with Global: prefix in module scripts.
-        /// </summary>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
             if (ast == null)
             {
-                throw new ArgumentNullException(Strings.NullAstErrorMessage);
+                throw new ArgumentNullException(nameof(ast));
             }
 
-            if (string.IsNullOrEmpty(fileName) || !fileName.EndsWith(".psm1", StringComparison.OrdinalIgnoreCase))
+            if (!AstExtensions.IsModuleScript(fileName))
             {
                 yield break;
             }

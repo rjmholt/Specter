@@ -42,8 +42,8 @@ namespace PSpecter.Builtin.Rules
                 if (typeConstraintCount > 1)
                 {
                     yield return CreateDiagnostic(
-                        string.Format(CultureInfo.CurrentCulture, Strings.AvoidMultipleTypeAttributesError, paramAst.Name.VariablePath.UserPath),
-                        paramAst);
+                        string.Format(CultureInfo.CurrentCulture, Strings.AvoidMultipleTypeAttributesError, paramAst.Name),
+                        paramAst.Name.Extent);
                 }
             }
         }

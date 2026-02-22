@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Management.Automation.Language;
-using System.Text;
 
 namespace PSpecter.Tools
 {
@@ -11,6 +8,15 @@ namespace PSpecter.Tools
         {
             return thisExtent.StartOffset <= thatExtent.StartOffset
                 && thisExtent.EndOffset >= thatExtent.EndOffset;
+        }
+
+        /// <summary>
+        /// Returns true if the extent text is wrapped in parentheses.
+        /// Used for clang-style implicit suppression of warnings.
+        /// </summary>
+        public static bool IsWrappedInParentheses(this IScriptExtent extent)
+        {
+            return extent.Text.StartsWith("(") && extent.Text.EndsWith(")");
         }
     }
 }

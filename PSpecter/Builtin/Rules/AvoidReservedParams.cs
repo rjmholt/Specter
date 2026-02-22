@@ -4,10 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Management.Automation;
 using System.Management.Automation.Language;
 using PSpecter.Rules;
+using PSpecter.Tools;
 
 namespace PSpecter.Builtin.Rules
 {
@@ -19,34 +18,16 @@ namespace PSpecter.Builtin.Rules
     [Rule("ReservedParams", typeof(Strings), nameof(Strings.ReservedParamsDescription))]
     public class AvoidReservedParams : ScriptRule
     {
-        private static readonly IReadOnlyList<string> s_commonParameterNames = new[]
-        {
-            "Verbose",
-            "Debug",
-            "ErrorAction",
-            "WarningAction",
-            "InformationAction",
-            "ErrorVariable",
-            "WarningVariable",
-            "InformationVariable",
-            "OutVariable",
-            "OutBuffer",
-            "PipelineVariable",
-        };
-
         public AvoidReservedParams(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
 
-        /// <summary>
-        /// AnalyzeScript: Analyzes the ast to check for reserved parameters in function definitions.
-        /// </summary>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
             if (ast == null)
             {
-                throw new ArgumentNullException(Strings.NullAstErrorMessage);
+                throw new ArgumentNullException(nameof(ast));
             }
 
             IEnumerable<Ast> funcAsts = ast.FindAll(testAst => testAst is FunctionDefinitionAst, true);
@@ -58,14 +39,8 @@ namespace PSpecter.Builtin.Rules
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {
                 if (funcAst.Body?.ParamBlock == null
-                    || funcAst.Body.ParamBlock.Attributes == null
-                    || funcAst.Body.ParamBlock.Parameters == null)
-                {
-                    continue;
-                }
-
-                if (!funcAst.Body.ParamBlock.Attributes.Any(attr =>
-                    attr.TypeName.GetReflectionType() == typeof(CmdletBindingAttribute)))
+                    || funcAst.Body.ParamBlock.Parameters == null
+                    || !funcAst.Body.ParamBlock.HasCmdletBinding())
                 {
                     continue;
                 }
@@ -73,7 +48,7 @@ namespace PSpecter.Builtin.Rules
                 foreach (ParameterAst paramAst in funcAst.Body.ParamBlock.Parameters)
                 {
                     string paramName = paramAst.Name.VariablePath.UserPath;
-                    if (s_commonParameterNames.Contains(paramName, StringComparer.OrdinalIgnoreCase))
+                    if (PowerShellConstants.CommonParameterNames.Contains(paramName))
                     {
                         yield return CreateDiagnostic(
                             string.Format(CultureInfo.CurrentCulture, Strings.ReservedParamsError, funcAst.Name, paramName),
