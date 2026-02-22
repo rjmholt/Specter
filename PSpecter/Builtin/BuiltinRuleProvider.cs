@@ -70,6 +70,12 @@ namespace PSpecter.Builtin
             typeof(AvoidUsingDeprecatedManifestFields),
             typeof(UseCompatibleSyntax),
             typeof(UseCompatibleCmdlets),
+            typeof(UseToExportFieldsInManifest),
+            typeof(MissingModuleManifestField),
+            typeof(ProvideCommentHelp),
+            typeof(UseShouldProcessCorrectly),
+            typeof(UseOutputTypeCorrectly),
+            typeof(UseCmdletCorrectly),
         };
     }
 
@@ -141,6 +147,12 @@ namespace PSpecter.Builtin
             { "PS/AvoidUsingDeprecatedManifestFields", null },
             { "PS/UseCompatibleSyntax", new UseCompatibleSyntaxConfiguration() },
             { "PS/UseCompatibleCmdlets", new UseCompatibleCmdletsConfiguration() },
+            { "PS/UseToExportFieldsInManifest", null },
+            { "PS/MissingModuleManifestField", null },
+            { "PS/ProvideCommentHelp", new ProvideCommentHelpConfiguration() },
+            { "PS/ShouldProcess", null },
+            { "PS/UseOutputTypeCorrectly", null },
+            { "PS/UseCmdletCorrectly", null },
         };
 
         public static IRuleExecutorFactory RuleExecutorFactory { get; } = new ParallelLinqRuleExecutorFactory();
