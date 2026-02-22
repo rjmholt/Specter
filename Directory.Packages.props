@@ -13,5 +13,6 @@
     <!-- Please update minimumPowerShellCoreVersion in PSScriptAnalyzer.psm1 when updating below SMA version for better user-facing error message -->
     <PackageVersion Include="System.Management.Automation" Version="7.4.7" />
     <PackageVersion Include="System.Reflection.TypeExtensions" Version="4.7.0" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
   </ItemGroup>
 </Project>
