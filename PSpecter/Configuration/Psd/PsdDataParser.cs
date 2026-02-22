@@ -1,3 +1,5 @@
+#nullable disable
+
 using PSpecter.Utils;
 using System;
 using System.Collections;

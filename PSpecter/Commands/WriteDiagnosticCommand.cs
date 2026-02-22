@@ -1,3 +1,5 @@
+#nullable disable
+
 ﻿using PSpecter.Rules;
 using System;
 using System.Management.Automation;

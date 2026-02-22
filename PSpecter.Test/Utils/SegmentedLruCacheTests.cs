@@ -1,3 +1,5 @@
+#nullable disable
+
 using Xunit;
 using PSpecter.Utils;
 

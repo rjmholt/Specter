@@ -1,3 +1,5 @@
+#nullable disable
+
 ﻿using PSpecter.Tools;
 using Newtonsoft.Json;
 using System;

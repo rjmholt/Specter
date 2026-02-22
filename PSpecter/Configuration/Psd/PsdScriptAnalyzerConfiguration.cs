@@ -1,3 +1,5 @@
+#nullable disable
+
 ﻿using PSpecter.Tools;
 using System;
 using System.Collections.Concurrent;

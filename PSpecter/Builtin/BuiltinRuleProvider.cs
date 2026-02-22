@@ -1,3 +1,5 @@
+#nullable disable
+
 using PSpecter.Builder;
 using PSpecter.Builtin.Editors;
 using PSpecter.Builtin.Rules;

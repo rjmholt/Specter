@@ -5,6 +5,9 @@ obj/
 **/out/
 testResults.xml
 
+# BenchmarkDotNet artifacts
+BenchmarkDotNet.Artifacts/
+
 # Generated SQLite database and WAL files
 PSpecter/Data/
 *.db-shm

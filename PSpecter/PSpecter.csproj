@@ -6,6 +6,7 @@
     <RootNamespace>PSpecter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 

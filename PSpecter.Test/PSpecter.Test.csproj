@@ -6,6 +6,7 @@
     <AssemblyName>PSpecter.Test</AssemblyName>
     <RootNamespace>PSpecter.Test</RootNamespace>
     <IsTestProject>true</IsTestProject>
+    <Nullable>enable</Nullable>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 

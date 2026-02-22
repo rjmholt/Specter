@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 {
     /// <summary>

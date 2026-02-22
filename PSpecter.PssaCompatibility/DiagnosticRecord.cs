@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 using EngineDiagnostic = PSpecter.ScriptDiagnostic;

@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Management.Automation.Language;
 
 namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
