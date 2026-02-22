@@ -34,9 +34,14 @@ namespace PSpecter.Utils
             IEqualityComparer<TKey> comparer = null)
         {
             if (capacity < 2)
+            {
                 throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must be at least 2.");
+            }
+
             if (probationRatio <= 0 || probationRatio >= 1)
+            {
                 throw new ArgumentOutOfRangeException(nameof(probationRatio), "Must be between 0 and 1 exclusive.");
+            }
 
             _probationCapacity = Math.Max(1, (int)(capacity * probationRatio));
             _protectedCapacity = capacity - _probationCapacity;

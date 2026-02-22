@@ -33,7 +33,7 @@ namespace PSpecter.Formatting
 
         public static ScriptFormatBuffer FromScript(string scriptContent, string filePath)
         {
-            if (scriptContent is null) throw new ArgumentNullException(nameof(scriptContent));
+            if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
             Ast ast = Parser.ParseInput(scriptContent, out Token[] tokens, out _);
             return new ScriptFormatBuffer(scriptContent, ast, tokens, filePath);

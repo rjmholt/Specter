@@ -21,7 +21,10 @@ namespace PSpecter.Builtin.Rules
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
-            if (ast is null) throw new ArgumentNullException(nameof(ast));
+            if (ast is null)
+            {
+                throw new ArgumentNullException(nameof(ast));
+            }
 
             foreach (Ast foundAst in ast.FindAll(testAst => testAst is ParameterAst, searchNestedScriptBlocks: true))
             {

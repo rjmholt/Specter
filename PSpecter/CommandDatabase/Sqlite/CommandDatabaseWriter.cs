@@ -53,8 +53,15 @@ namespace PSpecter.CommandDatabase.Sqlite
             IReadOnlyList<CommandMetadata> commands,
             PlatformInfo platform)
         {
-            if (commands is null) throw new ArgumentNullException(nameof(commands));
-            if (platform is null) throw new ArgumentNullException(nameof(platform));
+            if (commands is null)
+            {
+                throw new ArgumentNullException(nameof(commands));
+            }
+
+            if (platform is null)
+            {
+                throw new ArgumentNullException(nameof(platform));
+            }
 
             long platformId = EnsurePlatform(platform.Edition, platform.Version, platform.OS);
 
@@ -127,7 +134,9 @@ namespace PSpecter.CommandDatabase.Sqlite
         {
             var key = (edition, version, os);
             if (_platformCache.TryGetValue(key, out long cached))
+            {
                 return cached;
+            }
 
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
@@ -152,7 +161,9 @@ namespace PSpecter.CommandDatabase.Sqlite
             string normVersion = moduleVersion ?? string.Empty;
             var key = (normName, normVersion);
             if (_moduleCache.TryGetValue(key, out long cached))
+            {
                 return cached;
+            }
 
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;

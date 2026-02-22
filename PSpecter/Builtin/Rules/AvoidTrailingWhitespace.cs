@@ -24,7 +24,10 @@ namespace PSpecter.Builtin.Rules
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
-            if (ast is null) throw new ArgumentNullException(nameof(ast));
+            if (ast is null)
+            {
+                throw new ArgumentNullException(nameof(ast));
+            }
 
             string[] lines = ast.Extent.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 

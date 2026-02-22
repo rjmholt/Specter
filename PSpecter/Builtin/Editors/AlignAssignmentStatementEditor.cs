@@ -30,11 +30,11 @@ namespace PSpecter.Builtin.Editors
             IReadOnlyList<Token> tokens,
             string filePath)
         {
-            if (scriptContent is null) throw new ArgumentNullException(nameof(scriptContent));
+            if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
             var edits = new List<ScriptEdit>();
 
-            if (!Configuration.CheckHashtable) return edits;
+            if (!Configuration.CheckHashtable) { return edits; }
 
             var hashtables = ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true);
 
@@ -117,8 +117,8 @@ namespace PSpecter.Builtin.Editors
             for (int i = 0; i < tokens.Count; i++)
             {
                 Token t = tokens[i];
-                if (t.Extent.StartOffset < afterOffset) continue;
-                if (t.Extent.StartOffset >= beforeOffset) break;
+                if (t.Extent.StartOffset < afterOffset) { continue; }
+                if (t.Extent.StartOffset >= beforeOffset) { break; }
 
                 if (t.Kind == TokenKind.Equals)
                 {

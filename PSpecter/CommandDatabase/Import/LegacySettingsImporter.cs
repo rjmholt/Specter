@@ -60,7 +60,9 @@ namespace PSpecter.CommandDatabase.Import
         {
             var root = JsonConvert.DeserializeObject<SettingsRoot>(json);
             if (root?.Modules is null)
+            {
                 return Array.Empty<CommandMetadata>();
+            }
 
             var result = new List<CommandMetadata>();
 
@@ -72,7 +74,10 @@ namespace PSpecter.CommandDatabase.Import
                 {
                     foreach (Command cmd in module.ExportedCommands)
                     {
-                        if (string.IsNullOrWhiteSpace(cmd?.Name)) continue;
+                        if (string.IsNullOrWhiteSpace(cmd?.Name))
+                        {
+                            continue;
+                        }
 
                         result.Add(new CommandMetadata(
                             name: cmd.Name,
@@ -90,7 +95,10 @@ namespace PSpecter.CommandDatabase.Import
                 {
                     foreach (string aliasName in module.ExportedAliases)
                     {
-                        if (string.IsNullOrWhiteSpace(aliasName)) continue;
+                        if (string.IsNullOrWhiteSpace(aliasName))
+                        {
+                            continue;
+                        }
 
                         result.Add(new CommandMetadata(
                             name: aliasName,
@@ -118,19 +126,29 @@ namespace PSpecter.CommandDatabase.Import
             os = null;
 
             int firstDash = fileName.IndexOf('-');
-            if (firstDash < 0) return false;
+            if (firstDash < 0)
+            {
+                return false;
+            }
 
             int lastDash = fileName.LastIndexOf('-');
-            if (lastDash <= firstDash) return false;
+            if (lastDash <= firstDash)
+            {
+                return false;
+            }
 
             edition = fileName.Substring(0, firstDash);
             version = fileName.Substring(firstDash + 1, lastDash - firstDash - 1);
             os = fileName.Substring(lastDash + 1);
 
             if (string.Equals(edition, "core", StringComparison.OrdinalIgnoreCase))
+            {
                 edition = "Core";
+            }
             else if (string.Equals(edition, "desktop", StringComparison.OrdinalIgnoreCase))
+            {
                 edition = "Desktop";
+            }
 
             return !string.IsNullOrEmpty(edition) && !string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(os);
         }

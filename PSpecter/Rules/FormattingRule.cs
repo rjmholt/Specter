@@ -28,7 +28,7 @@ namespace PSpecter.Rules
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string scriptPath)
         {
-            if (ast is null) throw new ArgumentNullException(nameof(ast));
+            if (ast is null) { throw new ArgumentNullException(nameof(ast)); }
 
             if (!Configuration.Common.Enabled)
             {

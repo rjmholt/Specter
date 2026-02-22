@@ -23,7 +23,10 @@ namespace PSpecter.CommandDatabase
 
         public bool Equals(PlatformInfo other)
         {
-            if (other is null) return false;
+            if (other is null)
+            {
+                return false;
+            }
             return string.Equals(Edition, other.Edition, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(Version, other.Version, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(OS, other.OS, StringComparison.OrdinalIgnoreCase);

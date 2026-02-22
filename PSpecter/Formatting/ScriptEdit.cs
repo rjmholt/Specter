@@ -10,8 +10,8 @@ namespace PSpecter.Formatting
     {
         public ScriptEdit(int startOffset, int endOffset, string newText)
         {
-            if (startOffset < 0) throw new ArgumentOutOfRangeException(nameof(startOffset));
-            if (endOffset < startOffset) throw new ArgumentOutOfRangeException(nameof(endOffset));
+            if (startOffset < 0) { throw new ArgumentOutOfRangeException(nameof(startOffset)); }
+            if (endOffset < startOffset) { throw new ArgumentOutOfRangeException(nameof(endOffset)); }
 
             StartOffset = startOffset;
             EndOffset = endOffset;

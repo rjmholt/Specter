@@ -26,7 +26,7 @@ namespace PSpecter.Formatting
         /// </summary>
         public static ScriptFormatter FromEditorConfigs(IReadOnlyDictionary<string, IEditorConfiguration> configs)
         {
-            if (configs is null) throw new ArgumentNullException(nameof(configs));
+            if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
 
             return FromEditorConfigs(BuiltinEditors.DefaultEditors, configs);
         }
@@ -41,8 +41,8 @@ namespace PSpecter.Formatting
             IReadOnlyList<Type> editorTypes,
             IReadOnlyDictionary<string, IEditorConfiguration> configs)
         {
-            if (editorTypes is null) throw new ArgumentNullException(nameof(editorTypes));
-            if (configs is null) throw new ArgumentNullException(nameof(configs));
+            if (editorTypes is null) { throw new ArgumentNullException(nameof(editorTypes)); }
+            if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
 
             var builder = new Builder();
             builder.AddConfiguredEditors(editorTypes, configs);
@@ -54,7 +54,7 @@ namespace PSpecter.Formatting
         /// </summary>
         public string Format(string scriptContent, string filePath = null)
         {
-            if (scriptContent is null) throw new ArgumentNullException(nameof(scriptContent));
+            if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
             var buffer = ScriptFormatBuffer.FromScript(scriptContent, filePath);
 
@@ -73,7 +73,7 @@ namespace PSpecter.Formatting
 
             public Builder AddEditor(IScriptEditor editor)
             {
-                if (editor is null) throw new ArgumentNullException(nameof(editor));
+                if (editor is null) { throw new ArgumentNullException(nameof(editor)); }
                 _editors.Add(editor);
                 return this;
             }
@@ -87,8 +87,8 @@ namespace PSpecter.Formatting
                 IReadOnlyList<Type> editorTypes,
                 IReadOnlyDictionary<string, IEditorConfiguration> configs)
             {
-                if (editorTypes is null) throw new ArgumentNullException(nameof(editorTypes));
-                if (configs is null) throw new ArgumentNullException(nameof(configs));
+                if (editorTypes is null) { throw new ArgumentNullException(nameof(editorTypes)); }
+                if (configs is null) { throw new ArgumentNullException(nameof(configs)); }
 
                 foreach (Type editorType in editorTypes)
                 {
@@ -123,7 +123,7 @@ namespace PSpecter.Formatting
             /// </summary>
             public Builder AddEditorsFromRules(IEnumerable<ScriptRule> rules)
             {
-                if (rules is null) throw new ArgumentNullException(nameof(rules));
+                if (rules is null) { throw new ArgumentNullException(nameof(rules)); }
 
                 foreach (ScriptRule rule in rules)
                 {

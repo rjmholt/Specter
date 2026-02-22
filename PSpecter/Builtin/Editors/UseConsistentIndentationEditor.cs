@@ -40,7 +40,7 @@ namespace PSpecter.Builtin.Editors
             IReadOnlyList<Token> tokens,
             string filePath)
         {
-            if (scriptContent is null) throw new ArgumentNullException(nameof(scriptContent));
+            if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
             var edits = new List<ScriptEdit>();
             int indentationLevel = 0;
@@ -178,7 +178,7 @@ namespace PSpecter.Builtin.Editors
             int expectedLevel,
             List<ScriptEdit> edits)
         {
-            if (!onNewLine) return;
+            if (!onNewLine) { return; }
             onNewLine = false;
 
             Token token = tokens[k];
@@ -200,7 +200,7 @@ namespace PSpecter.Builtin.Editors
 
         private string GetIndentString(int level)
         {
-            if (level <= 0) return string.Empty;
+            if (level <= 0) { return string.Empty; }
 
             if (Configuration.UseTabs)
             {

@@ -106,7 +106,9 @@ namespace PSpecter.Commands
                 {
                     PsCommandMetadata meta = ConvertCommandInfo(cmdInfo);
                     if (meta is not null)
+                    {
                         commands.Add(meta);
+                    }
                 }
             }
 
@@ -128,9 +130,13 @@ namespace PSpecter.Commands
             string defaultParamSet = null;
 
             if (cmdInfo is CmdletInfo cmdletInfo)
+            {
                 defaultParamSet = cmdletInfo.DefaultParameterSet;
+            }
             else if (cmdInfo is FunctionInfo funcInfo)
+            {
                 defaultParamSet = funcInfo.DefaultParameterSet;
+            }
 
             var parameters = new List<PsParameterMetadata>();
             try
@@ -173,7 +179,9 @@ namespace PSpecter.Commands
                 {
                     string typeName = outputType.Type?.FullName ?? outputType.Name;
                     if (!string.IsNullOrWhiteSpace(typeName))
+                    {
                         outputTypes.Add(typeName);
+                    }
                 }
             }
             catch (RuntimeException)
@@ -193,27 +201,50 @@ namespace PSpecter.Commands
 
         private void CollectAliases(List<PsCommandMetadata> commands)
         {
+            var commandLookup = new Dictionary<string, PsCommandMetadata>(StringComparer.OrdinalIgnoreCase);
+            foreach (PsCommandMetadata cmd in commands)
+            {
+                if (!commandLookup.ContainsKey(cmd.Name))
+                {
+                    commandLookup[cmd.Name] = cmd;
+                }
+            }
+
             var aliases = InvokeCommand.InvokeScript(
                 "Get-Alias -ErrorAction SilentlyContinue");
 
             foreach (PSObject aliasObj in aliases)
             {
-                if (aliasObj.BaseObject is not AliasInfo aliasInfo) continue;
+                if (aliasObj.BaseObject is not AliasInfo aliasInfo)
+                {
+                    continue;
+                }
 
                 string targetName = aliasInfo.Definition;
-                if (string.IsNullOrEmpty(targetName)) continue;
+                if (string.IsNullOrEmpty(targetName))
+                {
+                    continue;
+                }
 
-                string moduleName = string.IsNullOrEmpty(aliasInfo.Module?.Name) ? null : aliasInfo.Module.Name;
-
-                commands.Add(new PsCommandMetadata(
-                    name: targetName,
-                    commandType: "Alias",
-                    moduleName: moduleName,
-                    defaultParameterSet: null,
-                    parameterSetNames: null,
-                    aliases: new[] { aliasInfo.Name },
-                    parameters: null,
-                    outputTypes: null));
+                if (commandLookup.TryGetValue(targetName, out PsCommandMetadata existing))
+                {
+                    existing.AddAlias(aliasInfo.Name);
+                }
+                else
+                {
+                    string moduleName = string.IsNullOrEmpty(aliasInfo.Module?.Name) ? null : aliasInfo.Module.Name;
+                    var meta = new PsCommandMetadata(
+                        name: targetName,
+                        commandType: "Alias",
+                        moduleName: moduleName,
+                        defaultParameterSet: null,
+                        parameterSetNames: null,
+                        aliases: new[] { aliasInfo.Name },
+                        parameters: null,
+                        outputTypes: null);
+                    commands.Add(meta);
+                    commandLookup[targetName] = meta;
+                }
             }
         }
 
@@ -316,10 +347,16 @@ namespace PSpecter.Commands
 #if CORECLR
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
                 System.Runtime.InteropServices.OSPlatform.Windows))
+            {
                 return "windows";
+            }
+
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
                 System.Runtime.InteropServices.OSPlatform.OSX))
+            {
                 return "macos";
+            }
+
             return "linux";
 #else
             return "windows";

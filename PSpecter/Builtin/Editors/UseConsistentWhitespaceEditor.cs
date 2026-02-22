@@ -36,7 +36,7 @@ namespace PSpecter.Builtin.Editors
             IReadOnlyList<Token> tokens,
             string filePath)
         {
-            if (scriptContent is null) throw new ArgumentNullException(nameof(scriptContent));
+            if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
             var edits = new List<ScriptEdit>();
             var multiLineHashtableRanges = Configuration.IgnoreAssignmentOperatorInsideHashTable
@@ -90,7 +90,7 @@ namespace PSpecter.Builtin.Editors
 
         private void AddSpaceBeforeOpenBrace(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
         {
-            if (k < 1) return;
+            if (k < 1) { return; }
 
             Token prev = tokens[k - 1];
             Token brace = tokens[k];
@@ -114,7 +114,7 @@ namespace PSpecter.Builtin.Editors
 
         private static void AddSpaceAfterOpenBrace(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
         {
-            if (k + 1 >= tokens.Count) return;
+            if (k + 1 >= tokens.Count) { return; }
 
             Token brace = tokens[k];
             Token next = tokens[k + 1];
@@ -133,7 +133,7 @@ namespace PSpecter.Builtin.Editors
 
         private static void AddSpaceBeforeCloseBrace(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
         {
-            if (k < 1) return;
+            if (k < 1) { return; }
 
             Token prev = tokens[k - 1];
             Token brace = tokens[k];
@@ -199,7 +199,7 @@ namespace PSpecter.Builtin.Editors
 
         private static void AddSpaceBetweenKeywordAndParen(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
         {
-            if (k < 1) return;
+            if (k < 1) { return; }
 
             Token prev = tokens[k - 1];
             Token paren = tokens[k];
@@ -270,7 +270,7 @@ namespace PSpecter.Builtin.Editors
 
         private static void AddSpaceAfterSeparator(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
         {
-            if (k + 1 >= tokens.Count) return;
+            if (k + 1 >= tokens.Count) { return; }
 
             Token sep = tokens[k];
             Token next = tokens[k + 1];

@@ -30,7 +30,7 @@ namespace PSpecter.Builtin.Editors
             IReadOnlyList<Token> tokens,
             string filePath)
         {
-            if (scriptContent is null) throw new ArgumentNullException(nameof(scriptContent));
+            if (scriptContent is null) { throw new ArgumentNullException(nameof(scriptContent)); }
 
             var edits = new List<ScriptEdit>();
 

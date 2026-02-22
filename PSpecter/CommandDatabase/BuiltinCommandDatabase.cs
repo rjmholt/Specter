@@ -91,7 +91,10 @@ namespace PSpecter.CommandDatabase
             if (_sqliteDb is not null)
             {
                 string result = _sqliteDb.GetAliasTarget(alias);
-                if (result is not null) return result;
+                if (result is not null)
+                {
+                    return result;
+                }
             }
 
             return _aliasToCommand.TryGetValue(alias, out string target) ? target : null;
@@ -102,7 +105,10 @@ namespace PSpecter.CommandDatabase
             if (_sqliteDb is not null)
             {
                 IReadOnlyList<string> result = _sqliteDb.GetCommandAliases(command);
-                if (result is not null) return result;
+                if (result is not null)
+                {
+                    return result;
+                }
             }
 
             return _commandToAliases.TryGetValue(command, out List<string> aliases) ? aliases : null;
@@ -113,7 +119,10 @@ namespace PSpecter.CommandDatabase
             if (_sqliteDb is not null)
             {
                 IReadOnlyList<string> result = _sqliteDb.GetAllNamesForCommand(command);
-                if (result is not null) return result;
+                if (result is not null)
+                {
+                    return result;
+                }
             }
 
             var names = new List<string> { command };
@@ -144,16 +153,25 @@ namespace PSpecter.CommandDatabase
                 }
 
                 string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                if (assemblyDir is null) return null;
+                if (assemblyDir is null)
+                {
+                    return null;
+                }
 
                 string candidate = Path.Combine(assemblyDir, "Data", "pspecter.db");
-                if (File.Exists(candidate)) return candidate;
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
 
                 string parentDir = Path.GetDirectoryName(assemblyDir);
                 if (parentDir is not null)
                 {
                     candidate = Path.Combine(parentDir, "Data", "pspecter.db");
-                    if (File.Exists(candidate)) return candidate;
+                    if (File.Exists(candidate))
+                    {
+                        return candidate;
+                    }
                 }
             }
             catch

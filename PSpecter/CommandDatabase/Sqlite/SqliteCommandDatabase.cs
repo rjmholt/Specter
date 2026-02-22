@@ -18,7 +18,10 @@ namespace PSpecter.CommandDatabase.Sqlite
         /// <param name="cacheCapacity">Total LRU cache capacity. Default 1024.</param>
         public SqliteCommandDatabase(string databasePath, int cacheCapacity = 1024)
         {
-            if (databasePath is null) throw new ArgumentNullException(nameof(databasePath));
+            if (databasePath is null)
+            {
+                throw new ArgumentNullException(nameof(databasePath));
+            }
 
             _connection = new SqliteConnection(new SqliteConnectionStringBuilder
             {
@@ -178,7 +181,10 @@ namespace PSpecter.CommandDatabase.Sqlite
                 cmd.Parameters.AddWithValue("@id", commandId);
 
                 using SqliteDataReader reader = cmd.ExecuteReader();
-                if (!reader.Read()) return null;
+                if (!reader.Read())
+                {
+                    return null;
+                }
 
                 name = reader.GetString(0);
                 commandType = reader.GetString(1);
@@ -395,15 +401,31 @@ namespace PSpecter.CommandDatabase.Sqlite
             public bool Equals(CacheKey x, CacheKey y)
             {
                 if (!string.Equals(x.NameOrAlias, y.NameOrAlias, StringComparison.OrdinalIgnoreCase))
+                {
                     return false;
+                }
 
-                if (x.Platforms is null && y.Platforms is null) return true;
-                if (x.Platforms is null || y.Platforms is null) return false;
-                if (x.Platforms.Count != y.Platforms.Count) return false;
+                if (x.Platforms is null && y.Platforms is null)
+                {
+                    return true;
+                }
+
+                if (x.Platforms is null || y.Platforms is null)
+                {
+                    return false;
+                }
+
+                if (x.Platforms.Count != y.Platforms.Count)
+                {
+                    return false;
+                }
 
                 foreach (PlatformInfo p in x.Platforms)
                 {
-                    if (!y.Platforms.Contains(p)) return false;
+                    if (!y.Platforms.Contains(p))
+                    {
+                        return false;
+                    }
                 }
                 return true;
             }

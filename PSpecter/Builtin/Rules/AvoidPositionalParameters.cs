@@ -47,7 +47,10 @@ namespace PSpecter.Builtin.Rules
                 // Handles the exception caused by commands like, {& $PLINK $args 2> $TempErrorFile}.
                 // You can also review the remark section in following document,
                 // MSDN: CommandAst.GetCommandName Method
-                if (cmdAst.GetCommandName() == null) continue;
+                if (cmdAst.GetCommandName() == null)
+                {
+                    continue;
+                }
 
                 // TODO: Requires command database / Helper infrastructure to detect positional parameter usage
             }

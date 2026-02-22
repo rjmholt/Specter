@@ -22,7 +22,10 @@ namespace PSpecter.Builtin.Rules
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
-            if (ast is null) throw new ArgumentNullException(nameof(ast));
+            if (ast is null)
+            {
+                throw new ArgumentNullException(nameof(ast));
+            }
 
             var visitor = new WriteHostVisitor(this, fileName);
             ast.Visit(visitor);

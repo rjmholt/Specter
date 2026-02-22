@@ -58,17 +58,25 @@ namespace PSpecter.CommandDatabase.Import
             var commands = new List<CommandMetadata>();
 
             if (root?.Runtime?.Modules is null)
+            {
                 return (platform, commands);
+            }
 
             foreach (var moduleEntry in root.Runtime.Modules)
             {
                 string moduleName = moduleEntry.Key;
-                if (moduleEntry.Value is null) continue;
+                if (moduleEntry.Value is null)
+                {
+                    continue;
+                }
 
                 foreach (var versionEntry in moduleEntry.Value)
                 {
                     ModuleVersion moduleData = versionEntry.Value;
-                    if (moduleData is null) continue;
+                    if (moduleData is null)
+                    {
+                        continue;
+                    }
 
                     var aliasMap = moduleData.Aliases ?? new Dictionary<string, string>();
 
@@ -76,7 +84,9 @@ namespace PSpecter.CommandDatabase.Import
                     foreach (var kvp in aliasMap)
                     {
                         if (string.IsNullOrWhiteSpace(kvp.Key) || string.IsNullOrWhiteSpace(kvp.Value))
+                        {
                             continue;
+                        }
 
                         if (!commandAliases.TryGetValue(kvp.Value, out var list))
                         {
@@ -104,14 +114,21 @@ namespace PSpecter.CommandDatabase.Import
 
                     foreach (var aliasKvp in aliasMap)
                     {
-                        if (string.IsNullOrWhiteSpace(aliasKvp.Key)) continue;
+                        if (string.IsNullOrWhiteSpace(aliasKvp.Key))
+                        {
+                            continue;
+                        }
                         string targetName = aliasKvp.Value;
 
                         bool alreadyHandled = false;
                         if (moduleData.Cmdlets is not null && moduleData.Cmdlets.ContainsKey(targetName))
+                        {
                             alreadyHandled = true;
+                        }
                         if (!alreadyHandled && moduleData.Functions is not null && moduleData.Functions.ContainsKey(targetName))
+                        {
                             alreadyHandled = true;
+                        }
 
                         if (!alreadyHandled)
                         {
@@ -145,7 +162,10 @@ namespace PSpecter.CommandDatabase.Import
                 foreach (var paramEntry in data.Parameters)
                 {
                     ParameterData paramData = paramEntry.Value;
-                    if (paramData is null) continue;
+                    if (paramData is null)
+                    {
+                        continue;
+                    }
 
                     var sets = new List<ParameterSetInfo>();
                     if (paramData.ParameterSets is not null)
@@ -153,11 +173,16 @@ namespace PSpecter.CommandDatabase.Import
                         foreach (var setEntry in paramData.ParameterSets)
                         {
                             ParameterSetData setData = setEntry.Value;
-                            if (setData is null) continue;
+                            if (setData is null)
+                            {
+                                continue;
+                            }
 
                             int? position = setData.Position;
                             if (position == int.MinValue)
+                            {
                                 position = null;
+                            }
 
                             bool isMandatory = false;
                             bool valueFromPipeline = false;
@@ -168,11 +193,17 @@ namespace PSpecter.CommandDatabase.Import
                                 foreach (string flag in setData.Flags)
                                 {
                                     if (string.Equals(flag, "Mandatory", StringComparison.OrdinalIgnoreCase))
+                                    {
                                         isMandatory = true;
+                                    }
                                     else if (string.Equals(flag, "ValueFromPipeline", StringComparison.OrdinalIgnoreCase))
+                                    {
                                         valueFromPipeline = true;
+                                    }
                                     else if (string.Equals(flag, "ValueFromPipelineByPropertyName", StringComparison.OrdinalIgnoreCase))
+                                    {
                                         valueFromPipelineByPropertyName = true;
+                                    }
                                 }
                             }
 
@@ -214,7 +245,9 @@ namespace PSpecter.CommandDatabase.Import
                 {
                     edition = NormalizeEdition(root.Platform.PowerShell.Edition);
                     if (!string.IsNullOrEmpty(root.Platform.PowerShell.Version))
+                    {
                         version = root.Platform.PowerShell.Version;
+                    }
                 }
 
                 if (root.Platform.OperatingSystem is not null)
@@ -228,17 +261,35 @@ namespace PSpecter.CommandDatabase.Import
 
         private static string NormalizeEdition(string edition)
         {
-            if (string.Equals(edition, "Core", StringComparison.OrdinalIgnoreCase)) return "Core";
-            if (string.Equals(edition, "Desktop", StringComparison.OrdinalIgnoreCase)) return "Desktop";
+            if (string.Equals(edition, "Core", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Core";
+            }
+            if (string.Equals(edition, "Desktop", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Desktop";
+            }
             return edition ?? "Core";
         }
 
         private static string NormalizeOsFamily(string family)
         {
-            if (family is null) return "windows";
-            if (family.IndexOf("Windows", StringComparison.OrdinalIgnoreCase) >= 0) return "windows";
-            if (family.IndexOf("MacOS", StringComparison.OrdinalIgnoreCase) >= 0) return "macos";
-            if (family.IndexOf("Linux", StringComparison.OrdinalIgnoreCase) >= 0) return "linux";
+            if (family is null)
+            {
+                return "windows";
+            }
+            if (family.IndexOf("Windows", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "windows";
+            }
+            if (family.IndexOf("MacOS", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "macos";
+            }
+            if (family.IndexOf("Linux", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "linux";
+            }
             return family.ToLowerInvariant();
         }
     }

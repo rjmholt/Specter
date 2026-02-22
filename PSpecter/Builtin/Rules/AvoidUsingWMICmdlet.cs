@@ -37,7 +37,10 @@ namespace PSpecter.Builtin.Rules
         /// </summary>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
-            if (ast == null) throw new ArgumentNullException(Strings.NullAstErrorMessage);
+            if (ast == null)
+            {
+                throw new ArgumentNullException(Strings.NullAstErrorMessage);
+            }
 
             // Rule is applicable only when PowerShell Version is > 3.0, since CIM cmdlet was introduced in 3.0
             int majorPSVersion = ast.GetPSRequiredVersionMajor();

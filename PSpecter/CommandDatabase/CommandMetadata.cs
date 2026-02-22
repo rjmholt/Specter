@@ -4,6 +4,8 @@ namespace PSpecter.CommandDatabase
 {
     public sealed class CommandMetadata
     {
+        private readonly List<string> _aliases;
+
         public CommandMetadata(
             string name,
             string commandType,
@@ -19,7 +21,7 @@ namespace PSpecter.CommandDatabase
             ModuleName = moduleName;
             DefaultParameterSet = defaultParameterSet;
             ParameterSetNames = parameterSetNames ?? System.Array.Empty<string>();
-            Aliases = aliases ?? System.Array.Empty<string>();
+            _aliases = aliases is not null ? new List<string>(aliases) : new List<string>();
             Parameters = parameters ?? System.Array.Empty<ParameterMetadata>();
             OutputTypes = outputTypes ?? System.Array.Empty<string>();
         }
@@ -29,9 +31,11 @@ namespace PSpecter.CommandDatabase
         public string ModuleName { get; }
         public string DefaultParameterSet { get; }
         public IReadOnlyList<string> ParameterSetNames { get; }
-        public IReadOnlyList<string> Aliases { get; }
+        public IReadOnlyList<string> Aliases => _aliases;
         public IReadOnlyList<ParameterMetadata> Parameters { get; }
         public IReadOnlyList<string> OutputTypes { get; }
+
+        public void AddAlias(string alias) => _aliases.Add(alias);
     }
 
     public sealed class ParameterMetadata

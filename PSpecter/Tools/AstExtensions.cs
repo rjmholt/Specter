@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 
@@ -63,7 +63,10 @@ namespace PSpecter.Tools
         /// <returns>The name of this rule</returns>
         public static int GetPSRequiredVersionMajor(this Ast ast)
         {
-            if (ast == null) throw new ArgumentNullException("TODO");
+            if (ast == null)
+            {
+                throw new ArgumentNullException("TODO");
+            }
 
             IEnumerable<Ast> scriptBlockAsts = ast.FindAll(testAst => testAst is ScriptBlockAst, true);
 

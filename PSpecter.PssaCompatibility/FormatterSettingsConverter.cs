@@ -45,7 +45,10 @@ namespace PSpecter.PssaCompatibility
         /// </summary>
         public static IReadOnlyDictionary<string, IEditorConfiguration> FromSettings(Settings settings)
         {
-            if (settings is null) throw new ArgumentNullException(nameof(settings));
+            if (settings is null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
 
             var configs = new Dictionary<string, IEditorConfiguration>(StringComparer.OrdinalIgnoreCase);
 
@@ -128,19 +131,38 @@ namespace PSpecter.PssaCompatibility
 
         private static object ConvertValue(object value, Type targetType)
         {
-            if (value == null) return null;
+            if (value == null)
+            {
+                return null;
+            }
 
             if (targetType == typeof(bool))
             {
-                if (value is bool b) return b;
-                if (value is string s && bool.TryParse(s, out bool parsed)) return parsed;
+                if (value is bool b)
+                {
+                    return b;
+                }
+
+                if (value is string s && bool.TryParse(s, out bool parsed))
+                {
+                    return parsed;
+                }
+
                 return null;
             }
 
             if (targetType == typeof(int))
             {
-                if (value is int i) return i;
-                if (int.TryParse(value.ToString(), out int parsed)) return parsed;
+                if (value is int i)
+                {
+                    return i;
+                }
+
+                if (int.TryParse(value.ToString(), out int parsed))
+                {
+                    return parsed;
+                }
+
                 return null;
             }
 
@@ -172,8 +194,15 @@ namespace PSpecter.PssaCompatibility
                 return defaultValue;
             }
 
-            if (val is bool b) return b;
-            if (val is string s && bool.TryParse(s, out bool parsed)) return parsed;
+            if (val is bool b)
+            {
+                return b;
+            }
+
+            if (val is string s && bool.TryParse(s, out bool parsed))
+            {
+                return parsed;
+            }
 
             return defaultValue;
         }
