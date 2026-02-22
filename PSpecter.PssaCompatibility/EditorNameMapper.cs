@@ -24,6 +24,7 @@ namespace PSpecter.PssaCompatibility
                 ["PSAvoidTrailingWhitespace"] = "AvoidTrailingWhitespace",
                 ["PSAvoidSemicolonsAsLineTerminators"] = "AvoidSemicolonsAsLineTerminators",
                 ["PSAvoidUsingDoubleQuotesForConstantString"] = "AvoidUsingDoubleQuotesForConstantString",
+                ["PSAvoidExclaimOperator"] = "AvoidExclaimOperator",
             };
 
         /// <summary>

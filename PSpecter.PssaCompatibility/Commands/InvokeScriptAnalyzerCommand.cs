@@ -359,11 +359,19 @@ namespace PSpecter.PssaCompatibility.Commands
 
                 foreach (var arg in args)
                 {
-                    // PSSA uses "Enable" to toggle rules; map it to Common.Enabled for editor configs
-                    if (string.Equals(arg.Key, "Enable", StringComparison.OrdinalIgnoreCase)
-                        && config is IEditorConfiguration editorConfig)
+                    // PSSA uses "Enable" to toggle rules; map it to Common.Enabled
+                    if (string.Equals(arg.Key, "Enable", StringComparison.OrdinalIgnoreCase))
                     {
-                        editorConfig.Common.Enabled = Convert.ToBoolean(arg.Value);
+                        bool enabled = Convert.ToBoolean(arg.Value);
+                        if (config is IEditorConfiguration editorConfig)
+                        {
+                            editorConfig.Common.Enabled = enabled;
+                        }
+                        else if (config is IRuleConfiguration ruleConfig)
+                        {
+                            ruleConfig.Common.Enabled = enabled;
+                        }
+
                         continue;
                     }
 

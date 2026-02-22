@@ -67,6 +67,7 @@ namespace PSpecter.Builtin
             typeof(ReviewUnusedParameter),
             typeof(UseSingularNouns),
             typeof(UseSupportsShouldProcess),
+            typeof(AvoidUsingDeprecatedManifestFields),
         };
     }
 
@@ -135,6 +136,7 @@ namespace PSpecter.Builtin
             { "PS/ReviewUnusedParameter", new ReviewUnusedParameterConfiguration() },
             { "PS/UseSingularNouns", new UseSingularNounsConfiguration() },
             { "PS/UseSupportsShouldProcess", null },
+            { "PS/AvoidUsingDeprecatedManifestFields", null },
         };
 
         public static IRuleExecutorFactory RuleExecutorFactory { get; } = new ParallelLinqRuleExecutorFactory();

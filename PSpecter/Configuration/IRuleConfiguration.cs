@@ -1,4 +1,4 @@
-﻿using PSpecter.Builtin;
+using PSpecter.Builtin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace PSpecter.Configuration
             Enabled = enabled;
         }
 
-        public bool Enabled { get; } = true;
+        public bool Enabled { get; set; } = true;
 
         public CommonConfiguration Common => this;
     }

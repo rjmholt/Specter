@@ -26,6 +26,7 @@ namespace PSpecter.Builtin
             typeof(AvoidTrailingWhitespaceEditor),
             typeof(AvoidSemicolonsAsLineTerminatorsEditor),
             typeof(AvoidUsingDoubleQuotesForConstantStringEditor),
+            typeof(AvoidExclaimOperatorEditor),
         };
 
         /// <summary>
@@ -43,6 +44,7 @@ namespace PSpecter.Builtin
                 ["AvoidTrailingWhitespace"] = new AvoidTrailingWhitespaceEditorConfiguration(),
                 ["AvoidSemicolonsAsLineTerminators"] = new AvoidSemicolonsAsLineTerminatorsEditorConfiguration(),
                 ["AvoidUsingDoubleQuotesForConstantString"] = new AvoidUsingDoubleQuotesForConstantStringEditorConfiguration(),
+                ["AvoidExclaimOperator"] = new AvoidExclaimOperatorEditorConfiguration(),
             };
     }
 

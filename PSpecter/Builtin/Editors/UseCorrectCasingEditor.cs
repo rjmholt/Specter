@@ -204,7 +204,7 @@ namespace PSpecter.Builtin.Editors
         /// </summary>
         private static bool IsFilePath(string commandName)
         {
-            if (commandName.Contains('/'))
+            if (commandName.Contains("/"))
             {
                 return true;
             }
