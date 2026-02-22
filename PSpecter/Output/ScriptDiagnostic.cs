@@ -1,4 +1,4 @@
-﻿using PSpecter.Rules;
+using PSpecter.Rules;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 
@@ -38,6 +38,8 @@ namespace PSpecter
         public DiagnosticSeverity Severity { get; }
 
         public IReadOnlyList<Correction> Corrections { get; }
+
+        public string RuleSuppressionId { get; set; }
     }
 
     public class ScriptAstDiagnostic : ScriptDiagnostic

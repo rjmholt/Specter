@@ -1,7 +1,8 @@
-﻿using PSpecter.Builder;
+using PSpecter.Builder;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
 using PSpecter.Rules;
+using PSpecter.Suppression;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 
@@ -62,7 +63,10 @@ namespace PSpecter
                 }
             }
 
-            return ruleExecutor.CollectDiagnostics();
+            IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
+
+            Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst);
+            return SuppressionApplier.ApplySuppressions(diagnostics, suppressions);
         }
     }
 }

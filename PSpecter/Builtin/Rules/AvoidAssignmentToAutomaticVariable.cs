@@ -102,32 +102,38 @@ namespace PSpecter.Builtin.Rules
 
         private ScriptDiagnostic CheckVariable(string variableName, IScriptExtent extent, string fileName)
         {
+            string suppressionId = variableName;
+            ScriptDiagnostic diagnostic = null;
+
             if (s_readOnlyAutomaticVariables.Contains(variableName))
             {
-                return CreateDiagnostic(
+                diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidAssignmentToReadOnlyAutomaticVariableError, variableName),
                     extent,
                     DiagnosticSeverity.Error);
             }
-
-            if (s_readOnlyIntroducedInV6.Contains(variableName))
+            else if (s_readOnlyIntroducedInV6.Contains(variableName))
             {
                 DiagnosticSeverity severity = IsPowerShell6OrGreater() ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-                return CreateDiagnostic(
+                diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidAssignmentToReadOnlyAutomaticVariableIntroducedInPowerShell6_0Error, variableName),
                     extent,
                     severity);
             }
-
-            if (s_writableAutomaticVariables.Contains(variableName))
+            else if (s_writableAutomaticVariables.Contains(variableName))
             {
-                return CreateDiagnostic(
+                diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidAssignmentToWritableAutomaticVariableError, variableName),
                     extent,
                     DiagnosticSeverity.Warning);
             }
 
-            return null;
+            if (diagnostic is not null)
+            {
+                diagnostic.RuleSuppressionId = suppressionId;
+            }
+
+            return diagnostic;
         }
 
         private static bool IsPowerShell6OrGreater()

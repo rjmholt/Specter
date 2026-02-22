@@ -80,6 +80,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
                 ruleName,
                 severity,
                 scriptPath,
+                ruleId: diagnostic.RuleSuppressionId,
                 suggestedCorrections: corrections);
         }
 
