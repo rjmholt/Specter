@@ -3,6 +3,7 @@
 using PSpecter.Builder;
 using PSpecter.Builtin.Editors;
 using PSpecter.Builtin.Rules;
+using PSpecter.Builtin.Rules.Dsc;
 using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Formatting;
@@ -78,6 +79,13 @@ namespace PSpecter.Builtin
             typeof(UseShouldProcessCorrectly),
             typeof(UseOutputTypeCorrectly),
             typeof(UseCmdletCorrectly),
+            typeof(UseStandardDscFunctionsInResource),
+            typeof(UseVerboseMessageInDscResource),
+            typeof(ReturnCorrectTypesForDscFunctions),
+            typeof(UseIdenticalParametersDsc),
+            typeof(DscTestsPresent),
+            typeof(DscExamplesPresent),
+            typeof(UseIdenticalMandatoryParametersDsc),
         };
     }
 
@@ -155,6 +163,13 @@ namespace PSpecter.Builtin
             { "PS/ShouldProcess", null },
             { "PS/UseOutputTypeCorrectly", null },
             { "PS/UseCmdletCorrectly", null },
+            { "PSDSC/StandardDSCFunctionsInResource", null },
+            { "PSDSC/UseVerboseMessageInDSCResource", null },
+            { "PSDSC/ReturnCorrectTypesForDSCFunctions", null },
+            { "PSDSC/UseIdenticalParametersForDSC", null },
+            { "PSDSC/DscTestsPresent", null },
+            { "PSDSC/DscExamplesPresent", null },
+            { "PSDSC/UseIdenticalMandatoryParametersForDSC", null },
         };
 
         public static IRuleExecutorFactory RuleExecutorFactory { get; } = new ParallelLinqRuleExecutorFactory();

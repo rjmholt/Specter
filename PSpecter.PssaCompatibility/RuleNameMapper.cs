@@ -28,6 +28,13 @@ namespace PSpecter.PssaCompatibility
                 return pssaRuleName;
             }
 
+            if (pssaRuleName.StartsWith("PSDSC", StringComparison.OrdinalIgnoreCase)
+                && pssaRuleName.Length > 5
+                && char.IsUpper(pssaRuleName[5]))
+            {
+                return "PSDSC/" + pssaRuleName.Substring(5);
+            }
+
             if (pssaRuleName.StartsWith("PS", StringComparison.OrdinalIgnoreCase)
                 && pssaRuleName.Length > 2
                 && char.IsUpper(pssaRuleName[2]))
