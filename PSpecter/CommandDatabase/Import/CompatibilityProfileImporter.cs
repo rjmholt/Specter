@@ -118,30 +118,24 @@ namespace PSpecter.CommandDatabase.Import
                         {
                             continue;
                         }
+
                         string targetName = aliasKvp.Value;
 
-                        bool alreadyHandled = false;
-                        if (moduleData.Cmdlets is not null && moduleData.Cmdlets.ContainsKey(targetName))
+                        if (moduleData.Cmdlets?.ContainsKey(targetName) == true
+                            || moduleData.Functions?.ContainsKey(targetName) == true)
                         {
-                            alreadyHandled = true;
-                        }
-                        if (!alreadyHandled && moduleData.Functions is not null && moduleData.Functions.ContainsKey(targetName))
-                        {
-                            alreadyHandled = true;
+                            continue;
                         }
 
-                        if (!alreadyHandled)
-                        {
-                            commands.Add(new CommandMetadata(
-                                name: targetName ?? aliasKvp.Key,
-                                commandType: "Alias",
-                                moduleName: moduleName,
-                                defaultParameterSet: null,
-                                parameterSetNames: null,
-                                aliases: new[] { aliasKvp.Key },
-                                parameters: null,
-                                outputTypes: null));
-                        }
+                        commands.Add(new CommandMetadata(
+                            name: targetName ?? aliasKvp.Key,
+                            commandType: "Alias",
+                            moduleName: moduleName,
+                            defaultParameterSet: null,
+                            parameterSetNames: null,
+                            aliases: new[] { aliasKvp.Key },
+                            parameters: null,
+                            outputTypes: null));
                     }
                 }
             }

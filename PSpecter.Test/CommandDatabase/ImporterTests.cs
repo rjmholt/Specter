@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.Sqlite;
 using Xunit;
 using PSpecter.CommandDatabase;
@@ -125,6 +126,67 @@ namespace PSpecter.Test.CommandDatabase
             Assert.Equal("Cmdlet", commands[0].CommandType);
             Assert.Equal("gx", commands[1].Name);
             Assert.Equal("Alias", commands[1].CommandType);
+        }
+
+        [Fact]
+        public void ParseJson_HandlesNullModuleName()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": null,
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [
+                            { ""Name"": ""Test-Cmd"" }
+                        ],
+                        ""ExportedAliases"": []
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Null(commands[0].ModuleName);
+        }
+
+        [Fact]
+        public void ParseJson_HandlesSingleValueExportedAliases()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": ""Mod"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [],
+                        ""ExportedAliases"": ""singlealias""
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Equal("singlealias", commands[0].Name);
+            Assert.Equal("Alias", commands[0].CommandType);
+        }
+
+        [Fact]
+        public void ParseJson_HandlesSingleValueExportedCommands()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": ""Mod"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": { ""Name"": ""Only-Cmd"", ""CommandType"": ""Cmdlet"" },
+                        ""ExportedAliases"": []
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Equal("Only-Cmd", commands[0].Name);
+            Assert.Equal("Cmdlet", commands[0].CommandType);
         }
 
         private static SqliteConnection CreateConnection()
@@ -340,12 +402,110 @@ namespace PSpecter.Test.CommandDatabase
             Assert.Empty(commands);
         }
 
+        [Fact]
+        public void ParseJson_AliasTargetingExistingCmdlet_NotDuplicatedAsCommand()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": { ""Version"": ""7.0.0"", ""Edition"": ""Core"" },
+                    ""OperatingSystem"": { ""Family"": ""Windows"" }
+                },
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""TestMod"": {
+                            ""1.0"": {
+                                ""Cmdlets"": {
+                                    ""Get-Widget"": {}
+                                },
+                                ""Functions"": {},
+                                ""Aliases"": {
+                                    ""gw"": ""Get-Widget""
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            var (_, commands) = CompatibilityProfileImporter.ParseJson(json);
+
+            int getWidgetCount = 0;
+            foreach (var cmd in commands)
+            {
+                if (string.Equals(cmd.Name, "Get-Widget", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    getWidgetCount++;
+                }
+            }
+            Assert.Equal(1, getWidgetCount);
+
+            Assert.Contains(commands, c => c.Name == "Get-Widget" && c.Aliases.Contains("gw"));
+        }
+
+        [Fact]
+        public void ParseJson_StandaloneAlias_ImportedAsAliasCommand()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": { ""Version"": ""7.0.0"", ""Edition"": ""Core"" },
+                    ""OperatingSystem"": { ""Family"": ""Windows"" }
+                },
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""TestMod"": {
+                            ""1.0"": {
+                                ""Cmdlets"": {},
+                                ""Functions"": {},
+                                ""Aliases"": {
+                                    ""gw"": ""Get-Widget""
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            var (_, commands) = CompatibilityProfileImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Equal("Get-Widget", commands[0].Name);
+            Assert.Equal("Alias", commands[0].CommandType);
+            Assert.Contains("gw", commands[0].Aliases);
+        }
+
         private static SqliteConnection CreateConnection()
         {
             var conn = new SqliteConnection("Data Source=:memory:");
             conn.Open();
             CommandDatabaseSchema.CreateTables(conn);
             return conn;
+        }
+    }
+
+    public class CommandMetadataTests
+    {
+        [Fact]
+        public void AddAlias_AppendsToAliasesList()
+        {
+            var cmd = new CommandMetadata("Get-Foo", "Cmdlet", "Mod", null, null, new[] { "gf" }, null, null);
+            Assert.Single(cmd.Aliases);
+
+            cmd.AddAlias("foo");
+
+            Assert.Equal(2, cmd.Aliases.Count);
+            Assert.Contains("gf", cmd.Aliases);
+            Assert.Contains("foo", cmd.Aliases);
+        }
+
+        [Fact]
+        public void AddAlias_WorksWhenInitialAliasesNull()
+        {
+            var cmd = new CommandMetadata("Get-Bar", "Cmdlet", "Mod", null, null, null, null, null);
+            Assert.Empty(cmd.Aliases);
+
+            cmd.AddAlias("gb");
+
+            Assert.Single(cmd.Aliases);
+            Assert.Contains("gb", cmd.Aliases);
         }
     }
 }

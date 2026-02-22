@@ -167,6 +167,57 @@ namespace PSpecter.Test.CommandDatabase
         }
 
         [Fact]
+        public void ImportCommands_NullModuleName_StoredAsEmptyString()
+        {
+            using var connection = CreatePopulatedConnection();
+            using var writer = CommandDatabaseWriter.Begin(connection);
+
+            var platform = new PlatformInfo("Core", "7.4.7", "windows");
+            var commands = new[]
+            {
+                new CommandMetadata("Test-NoModule", "Function", null, null, null, null, null, null),
+            };
+
+            writer.ImportCommands(commands, platform);
+            writer.Commit();
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT m.Name FROM Module m
+                INNER JOIN Command c ON c.ModuleId = m.Id
+                WHERE c.Name = 'Test-NoModule'";
+            Assert.Equal("", (string)cmd.ExecuteScalar());
+        }
+
+        [Fact]
+        public void ImportCommands_NullModuleName_DeduplicatesCorrectly()
+        {
+            using var connection = CreatePopulatedConnection();
+            using var writer = CommandDatabaseWriter.Begin(connection);
+
+            var platform1 = new PlatformInfo("Core", "7.4.7", "windows");
+            var platform2 = new PlatformInfo("Core", "7.4.7", "macos");
+
+            var commands = new[]
+            {
+                new CommandMetadata("Test-NoModule", "Function", null, null, null, null, null, null),
+            };
+
+            writer.ImportCommands(commands, platform1);
+            writer.ImportCommands(commands, platform2);
+            writer.Commit();
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-NoModule'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar());
+
+            cmd.CommandText = @"
+                SELECT COUNT(*) FROM CommandPlatform
+                WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Test-NoModule')";
+            Assert.Equal(2L, (long)cmd.ExecuteScalar());
+        }
+
+        [Fact]
         public void WriteSchemaVersion_Works()
         {
             using var connection = CreatePopulatedConnection();
@@ -299,9 +350,21 @@ namespace PSpecter.Test.CommandDatabase
         }
 
         [Fact]
-        public void GetAliasTarget_Delegates()
+        public void GetAliasTarget_ReturnsTargetForAlias()
         {
             Assert.Equal("Get-ChildItem", _db.GetAliasTarget("gci"));
+        }
+
+        [Fact]
+        public void GetAliasTarget_ReturnsNullForCanonicalName()
+        {
+            Assert.Null(_db.GetAliasTarget("Get-ChildItem"));
+        }
+
+        [Fact]
+        public void GetAliasTarget_ReturnsNullForCanonicalName_CaseInsensitive()
+        {
+            Assert.Null(_db.GetAliasTarget("get-childitem"));
         }
 
         [Fact]
@@ -345,6 +408,26 @@ namespace PSpecter.Test.CommandDatabase
             Assert.True(_db.TryGetCommand("Get-ChildItem", null, out _));
             _db.InvalidateCache();
             Assert.True(_db.TryGetCommand("Get-ChildItem", null, out _));
+        }
+
+        [Fact]
+        public void TryGetCommand_NullModuleName_ReturnsEmptyModuleName()
+        {
+            Assert.True(_db.TryGetCommand("NoModule-Cmd", null, out CommandMetadata cmd));
+            Assert.Equal("", cmd.ModuleName);
+        }
+
+        [Fact]
+        public void TryGetCommand_NullModuleName_FindsByAlias()
+        {
+            Assert.True(_db.TryGetCommand("nmc", null, out CommandMetadata cmd));
+            Assert.Equal("NoModule-Cmd", cmd.Name);
+        }
+
+        [Fact]
+        public void GetAliasTarget_ReturnsNullForUnknownCommand()
+        {
+            Assert.Null(_db.GetAliasTarget("nonexistent-alias"));
         }
 
         private static void PopulateTestDatabase(string dbPath)
@@ -395,6 +478,21 @@ namespace PSpecter.Test.CommandDatabase
             };
 
             writer.ImportCommands(winOnlyCommands, winPlatform);
+
+            var noModuleCommands = new[]
+            {
+                new CommandMetadata(
+                    "NoModule-Cmd",
+                    "Function",
+                    null,
+                    null,
+                    null,
+                    new[] { "nmc" },
+                    null,
+                    null),
+            };
+
+            writer.ImportCommands(noModuleCommands, winPlatform);
 
             writer.Commit();
         }
