@@ -292,7 +292,7 @@
     <value>Password parameters that take in plaintext will expose passwords and compromise the security of your system.</value>
   </data>
   <data name="AvoidUsingPlainTextForPasswordError" xml:space="preserve">
-    <value>Parameter '{0}' should use SecureString, otherwise this will expose sensitive information. See ConvertTo-SecureString for more information.</value>
+    <value>Parameter '{0}' should not use String type but either SecureString or PSCredential, otherwise it increases the chance to expose this sensitive information.</value>
   </data>
   <data name="AvoidUsingPlainTextForPasswordCommonName" xml:space="preserve">
     <value>Avoid Using Plain Text For Password Parameter</value>
@@ -1160,5 +1160,17 @@
   </data>
   <data name="AvoidUsingAllowUnencryptedAuthenticationName" xml:space="preserve">
     <value>AvoidUsingAllowUnencryptedAuthentication</value>
+  </data>
+  <data name="AvoidUsingBrokenHashAlgorithmsCommonName" xml:space="preserve">
+    <value>Avoid Using Broken Hash Algorithms</value>
+  </data>
+  <data name="AvoidUsingBrokenHashAlgorithmsDescription" xml:space="preserve">
+    <value>Avoid using the broken algorithms MD5 or SHA-1.</value>
+  </data>
+  <data name="AvoidUsingBrokenHashAlgorithmsError" xml:space="preserve">
+    <value>The Algorithm parameter of cmdlet '{0}' was used with the broken algorithm '{1}'.</value>
+  </data>
+  <data name="AvoidUsingBrokenHashAlgorithmsName" xml:space="preserve">
+    <value>AvoidUsingBrokenHashAlgorithms</value>
   </data>
 </root>

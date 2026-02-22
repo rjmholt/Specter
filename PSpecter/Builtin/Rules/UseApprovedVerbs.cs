@@ -36,7 +36,7 @@ namespace PSpecter.Builtin.Rules
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {
                 string funcName = funcAst.GetNameWithoutScope();
-                if (funcName == null || !funcName.Contains('-'))
+                if (funcName == null || !funcName.Contains("-"))
                 {
                     continue;
                 }
