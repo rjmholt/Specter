@@ -99,6 +99,7 @@ namespace PSpecter.Builtin.Editors
                 || prev.Kind == TokenKind.LCurly
                 || prev.Kind == TokenKind.LParen
                 || prev.Kind == TokenKind.DotDot
+                || prev.Kind == TokenKind.Dot
                 || prev.Extent.StartLineNumber != brace.Extent.StartLineNumber)
             {
                 return;
@@ -140,6 +141,7 @@ namespace PSpecter.Builtin.Editors
 
             if (prev.Kind == TokenKind.NewLine
                 || prev.Kind == TokenKind.LCurly
+                || prev.Kind == TokenKind.AtCurly
                 || prev.Kind == TokenKind.LineContinuation
                 || prev.Extent.StartLineNumber != brace.Extent.StartLineNumber)
             {
