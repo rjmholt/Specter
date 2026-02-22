@@ -41,18 +41,7 @@ namespace PSpecter.Builtin.Rules
             {
                 var binExpr = (BinaryExpressionAst)foundAst;
 
-                if (!s_equalityOperators.Contains(binExpr.Operator))
-                {
-                    continue;
-                }
-
-                if (!binExpr.Right.Extent.Text.Equals("$null", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (binExpr.Left is VariableExpressionAst leftVar
-                    && leftVar.IsSpecialVariable())
+                if (!IsIncorrectNullComparison(binExpr))
                 {
                     continue;
                 }
@@ -65,6 +54,117 @@ namespace PSpecter.Builtin.Rules
                     binExpr,
                     new[] { correction });
             }
+        }
+
+        /// <summary>
+        /// Determines whether the comparison could be problematic: $null on the right
+        /// side and the left side could plausibly be an array, which changes
+        /// PowerShell's comparison semantics from equality-test to filter.
+        /// </summary>
+        private static bool IsIncorrectNullComparison(BinaryExpressionAst binExpr)
+        {
+            if (!s_equalityOperators.Contains(binExpr.Operator))
+            {
+                return false;
+            }
+
+            if (!binExpr.Right.Extent.Text.Equals("$null", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            ExpressionAst left = binExpr.Left;
+
+            if (left.StaticType.IsArray)
+            {
+                return true;
+            }
+
+            if (left is VariableExpressionAst leftVar)
+            {
+                if (leftVar.IsSpecialVariable())
+                {
+                    return false;
+                }
+
+                // Without full type inference, a variable with StaticType == object
+                // could be anything including an array. Try a simple assignment lookup;
+                // if we can resolve to a concrete non-array/non-object type, skip it.
+                Type resolvedType = TryResolveVariableType(leftVar);
+                if (resolvedType is null)
+                {
+                    return true;
+                }
+
+                return resolvedType.IsArray
+                    || resolvedType == typeof(object)
+                    || resolvedType == typeof(void);
+            }
+
+            // For non-variable expressions (constants, method calls, etc.),
+            // only flag if the static type is object (truly unknown).
+            return left.StaticType == typeof(object);
+        }
+
+        /// <summary>
+        /// Walks up the AST to find the enclosing scope (function body or script block)
+        /// and looks for a simple assignment to the variable. If found, returns the
+        /// StaticType of the assigned expression.
+        /// </summary>
+        private static Type TryResolveVariableType(VariableExpressionAst variable)
+        {
+            string varName = variable.VariablePath.UserPath;
+
+            Ast scope = FindEnclosingScope(variable);
+            if (scope is null)
+            {
+                return null;
+            }
+
+            foreach (Ast node in scope.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
+            {
+                var assignment = (AssignmentStatementAst)node;
+
+                if (assignment.Left is not VariableExpressionAst target)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(target.VariablePath.UserPath, varName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // Only trust simple assignments (=), not compound ones (+=, etc.)
+                if (assignment.Operator != TokenKind.Equals)
+                {
+                    continue;
+                }
+
+                ExpressionAst rhs = (assignment.Right as PipelineBaseAst)?.GetPureExpression()
+                    ?? (assignment.Right as CommandExpressionAst)?.Expression;
+
+                if (rhs is not null && rhs.StaticType != typeof(object))
+                {
+                    return rhs.StaticType;
+                }
+            }
+
+            return null;
+        }
+
+        private static Ast FindEnclosingScope(Ast node)
+        {
+            for (Ast current = node.Parent; current is not null; current = current.Parent)
+            {
+                if (current is FunctionDefinitionAst
+                    || current is ScriptBlockAst { Parent: null })
+                {
+                    return current;
+                }
+            }
+
+            return null;
         }
     }
 }

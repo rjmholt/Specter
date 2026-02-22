@@ -35,12 +35,16 @@ namespace PSpecter.Builtin.Rules
 
                 foreach (ParameterAst paramAst in funcAst.Body.ParamBlock.Parameters)
                 {
-                    if (paramAst.DefaultValue is null)
+                    if (!IsMandatory(paramAst))
                     {
-                        continue;
+                        // Original PSSA stops checking after the first non-mandatory
+                        // parameter (break, not continue). We replicate this for
+                        // compatibility even though it means parameters after a
+                        // non-mandatory one are never checked.
+                        break;
                     }
 
-                    if (!IsMandatory(paramAst))
+                    if (paramAst.DefaultValue is null)
                     {
                         continue;
                     }

@@ -1,59 +1,140 @@
 using System;
 using System.Collections.Generic;
-using System.Management.Automation.Language;
 using System.Globalization;
+using System.Linq;
+using System.Management.Automation.Language;
+using PSpecter.CommandDatabase;
+using PSpecter.Configuration;
 using PSpecter.Rules;
-using PSpecter;
 
 namespace PSpecter.Builtin.Rules
 {
-    /// <summary>
-    /// AvoidPositionalParameters: Check to make sure that positional parameters are not used.
-    /// </summary>
-    public class AvoidPositionalParameters : ScriptRule
+    public class AvoidPositionalParametersConfiguration : IRuleConfiguration
     {
-        public AvoidPositionalParameters(RuleInfo ruleInfo) : base(ruleInfo)
+        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
+
+        public string[] CommandAllowList { get; set; } = Array.Empty<string>();
+    }
+
+    [ThreadsafeRule]
+    [IdempotentRule]
+    [Rule("AvoidUsingPositionalParameters", typeof(Strings), nameof(Strings.AvoidUsingPositionalParametersDescription),
+        Severity = DiagnosticSeverity.Information)]
+    public class AvoidPositionalParameters : ConfigurableScriptRule<AvoidPositionalParametersConfiguration>
+    {
+        private readonly IPowerShellCommandDatabase _commandDb;
+
+        public AvoidPositionalParameters(
+            RuleInfo ruleInfo,
+            AvoidPositionalParametersConfiguration configuration,
+            IPowerShellCommandDatabase commandDb)
+            : base(ruleInfo, configuration)
         {
+            _commandDb = commandDb;
         }
 
-        /// <summary>
-        /// AnalyzeScript: Analyze the ast to check that positional parameters are not used.
-        /// </summary>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
         {
-            // Find all function definitions in the script and add them to the set.
-            IEnumerable<Ast> functionDefinitionAsts = ast.FindAll(testAst => testAst is FunctionDefinitionAst, true);
-            var declaredFunctionNames = new HashSet<string>();
-
-            foreach (FunctionDefinitionAst functionDefinitionAst in functionDefinitionAsts)
+            if (ast == null)
             {
-                if (string.IsNullOrEmpty(functionDefinitionAst.Name))
+                throw new ArgumentNullException(nameof(ast));
+            }
+
+            var allowList = new HashSet<string>(
+                Configuration.CommandAllowList ?? Array.Empty<string>(),
+                StringComparer.OrdinalIgnoreCase);
+
+            var declaredFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            {
+                var funcAst = (FunctionDefinitionAst)node;
+                if (!string.IsNullOrEmpty(funcAst.Name))
+                {
+                    declaredFunctionNames.Add(funcAst.Name);
+                }
+            }
+
+            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
+            {
+                var cmdAst = (CommandAst)node;
+                string commandName = cmdAst.GetCommandName();
+                if (commandName == null)
                 {
                     continue;
                 }
-                declaredFunctionNames.Add(functionDefinitionAst.Name);
-            }
 
-            // Finds all CommandAsts.
-            IEnumerable<Ast> foundAsts = ast.FindAll(testAst => testAst is CommandAst, true);
-
-            // Iterates all CommandAsts and check the command name.
-            foreach (Ast foundAst in foundAsts)
-            {
-                CommandAst cmdAst = (CommandAst)foundAst;
-                // Handles the exception caused by commands like, {& $PLINK $args 2> $TempErrorFile}.
-                // You can also review the remark section in following document,
-                // MSDN: CommandAst.GetCommandName Method
-                if (cmdAst.GetCommandName() == null)
+                if (allowList.Contains(commandName))
                 {
                     continue;
                 }
 
-                // TODO: Requires command database / Helper infrastructure to detect positional parameter usage
+                bool isKnown = declaredFunctionNames.Contains(commandName)
+                    || IsKnownCmdlet(commandName);
+
+                if (!isKnown)
+                {
+                    continue;
+                }
+
+                if (HasSplattedVariable(cmdAst))
+                {
+                    continue;
+                }
+
+                if (!HasPositionalParameters(cmdAst, moreThanTwo: true))
+                {
+                    continue;
+                }
+
+                yield return CreateDiagnostic(
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.AvoidUsingPositionalParametersError,
+                        commandName),
+                    cmdAst.Extent);
+            }
+        }
+
+        private bool IsKnownCmdlet(string commandName)
+        {
+            return _commandDb.TryGetCommand(commandName, platforms: null, out _)
+                || _commandDb.GetAliasTarget(commandName) != null
+                || _commandDb.GetCommandAliases(commandName) != null;
+        }
+
+        private static bool HasSplattedVariable(CommandAst cmdAst)
+        {
+            foreach (CommandElementAst element in cmdAst.CommandElements)
+            {
+                if (element is VariableExpressionAst varExpr && varExpr.Splatted)
+                {
+                    return true;
+                }
             }
 
-            yield break;
+            return false;
+        }
+
+        private static bool HasPositionalParameters(CommandAst cmdAst, bool moreThanTwo)
+        {
+            int positionalCount = 0;
+
+            var elements = cmdAst.CommandElements;
+            for (int i = 1; i < elements.Count; i++)
+            {
+                if (!(elements[i] is CommandParameterAst) && !(elements[i - 1] is CommandParameterAst))
+                {
+                    positionalCount++;
+                }
+            }
+
+            var parent = cmdAst.Parent as PipelineAst;
+            if (parent != null && parent.PipelineElements.Count > 1 && parent.PipelineElements[0] != cmdAst)
+            {
+                positionalCount++;
+            }
+
+            return moreThanTwo ? positionalCount > 2 : positionalCount > 0;
         }
     }
 }
-
