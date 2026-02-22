@@ -135,7 +135,9 @@ namespace PSpecter.Builtin.Editors
             edits.Add(new ScriptEdit(
                 extraNewLine.Extent.StartOffset,
                 closeBrace.Extent.EndOffset,
-                extraNewLine.Text + indent + "}"));
+                extraNewLine.Text + indent + "}",
+                diagnosticStartOffset: closeBrace.Extent.StartOffset,
+                diagnosticEndOffset: closeBrace.Extent.EndOffset));
         }
 
         private static void TryAddEditForMissingNewLineAfter(

@@ -48,11 +48,14 @@ namespace PSpecter.Rules
             {
                 string message = GetDiagnosticMessage(edit, scriptContent);
 
-                ScriptExtent extent = ScriptExtent.FromOffsets(scriptContent, scriptPath, edit.StartOffset, edit.EndOffset);
+                ScriptExtent editExtent = ScriptExtent.FromOffsets(scriptContent, scriptPath, edit.StartOffset, edit.EndOffset);
+                var correction = new Correction(editExtent, edit.NewText, message);
 
-                var correction = new Correction(extent, edit.NewText, message);
+                ScriptExtent diagnosticExtent = edit.HasDiagnosticExtent
+                    ? ScriptExtent.FromOffsets(scriptContent, scriptPath, edit.DiagnosticStartOffset, edit.DiagnosticEndOffset)
+                    : editExtent;
 
-                yield return CreateDiagnostic(message, extent, new[] { correction });
+                yield return CreateDiagnostic(message, diagnosticExtent, new[] { correction });
             }
         }
     }

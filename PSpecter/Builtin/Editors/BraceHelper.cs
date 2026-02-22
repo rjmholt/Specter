@@ -59,28 +59,17 @@ namespace PSpecter.Builtin.Editors
         public static List<BracePair> GetBracePairsOnSameLine(Ast ast, IReadOnlyList<Token> tokens)
         {
             var result = new List<BracePair>();
-            var hashtableEndOffsets = new HashSet<int>();
-
-            foreach (Ast htAst in ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true))
-            {
-                hashtableEndOffsets.Add(htAst.Extent.EndOffset);
-            }
 
             var braceStack = new Stack<int>();
             for (int i = 0; i < tokens.Count; i++)
             {
-                if (tokens[i].Kind == TokenKind.LCurly)
+                if (tokens[i].Kind == TokenKind.LCurly || tokens[i].Kind == TokenKind.AtCurly)
                 {
                     braceStack.Push(i);
                 }
                 else if (tokens[i].Kind == TokenKind.RCurly && braceStack.Count > 0)
                 {
                     int openIdx = braceStack.Pop();
-
-                    if (hashtableEndOffsets.Contains(tokens[i].Extent.EndOffset))
-                    {
-                        continue;
-                    }
 
                     if (tokens[openIdx].Extent.StartLineNumber == tokens[i].Extent.StartLineNumber)
                     {
@@ -95,29 +84,17 @@ namespace PSpecter.Builtin.Editors
         public static List<BracePair> GetAllBracePairs(Ast ast, IReadOnlyList<Token> tokens)
         {
             var result = new List<BracePair>();
-            var hashtableEndOffsets = new HashSet<int>();
-
-            foreach (Ast htAst in ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true))
-            {
-                hashtableEndOffsets.Add(htAst.Extent.EndOffset);
-            }
 
             var braceStack = new Stack<int>();
             for (int i = 0; i < tokens.Count; i++)
             {
-                if (tokens[i].Kind == TokenKind.LCurly)
+                if (tokens[i].Kind == TokenKind.LCurly || tokens[i].Kind == TokenKind.AtCurly)
                 {
                     braceStack.Push(i);
                 }
                 else if (tokens[i].Kind == TokenKind.RCurly && braceStack.Count > 0)
                 {
                     int openIdx = braceStack.Pop();
-
-                    if (hashtableEndOffsets.Contains(tokens[i].Extent.EndOffset))
-                    {
-                        continue;
-                    }
-
                     result.Add(new BracePair(openIdx, i));
                 }
             }

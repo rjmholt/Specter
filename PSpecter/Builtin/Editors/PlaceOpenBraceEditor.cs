@@ -88,7 +88,9 @@ namespace PSpecter.Builtin.Editors
             edits.Add(new ScriptEdit(
                 precedingExpr.Extent.EndOffset,
                 tokens[k].Extent.EndOffset,
-                " {" + commentSuffix));
+                " {" + commentSuffix,
+                diagnosticStartOffset: tokens[k].Extent.StartOffset,
+                diagnosticEndOffset: tokens[k].Extent.EndOffset));
         }
 
         private static void TryAddEditsForBraceOnSameLine(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
@@ -104,7 +106,9 @@ namespace PSpecter.Builtin.Editors
             edits.Add(new ScriptEdit(
                 prevEnd,
                 tokens[k].Extent.EndOffset,
-                Environment.NewLine + indent + "{"));
+                Environment.NewLine + indent + "{",
+                diagnosticStartOffset: tokens[k].Extent.StartOffset,
+                diagnosticEndOffset: tokens[k].Extent.EndOffset));
         }
 
         private static void TryAddEditForMissingNewLineAfter(IReadOnlyList<Token> tokens, int k, List<ScriptEdit> edits)
@@ -121,7 +125,10 @@ namespace PSpecter.Builtin.Editors
             }
 
             int insertAt = tokens[k].Extent.EndOffset;
-            edits.Add(new ScriptEdit(insertAt, insertAt, Environment.NewLine));
+            edits.Add(new ScriptEdit(
+                insertAt, insertAt, Environment.NewLine,
+                diagnosticStartOffset: tokens[k].Extent.StartOffset,
+                diagnosticEndOffset: tokens[k].Extent.EndOffset));
         }
     }
 }
