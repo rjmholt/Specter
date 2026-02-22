@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+option csharp_namespace = "PSpecter.Server.Grpc";
+
+package pspecter;
+
+service PSpecterAnalysis {
+  rpc AnalyzeScript (AnalyzeScriptRequest) returns (AnalyzeScriptResponse);
+  rpc AnalyzeFile (AnalyzeFileRequest) returns (AnalyzeScriptResponse);
+  rpc FormatScript (FormatScriptRequest) returns (FormatScriptResponse);
+  rpc GetRules (GetRulesRequest) returns (GetRulesResponse);
+}
+
+message AnalyzeScriptRequest {
+  string script_content = 1;
+  string file_path = 2;
+  repeated string include_rules = 3;
+  repeated string exclude_rules = 4;
+}
+
+message AnalyzeFileRequest {
+  string file_path = 1;
+  repeated string include_rules = 2;
+  repeated string exclude_rules = 3;
+}
+
+message FormatScriptRequest {
+  string script_content = 1;
+  string file_path = 2;
+  map<string, string> settings = 3;
+}
+
+message FormatScriptResponse {
+  string formatted_content = 1;
+  bool changed = 2;
+}
+
+message GetRulesRequest {
+}
+
+message GetRulesResponse {
+  repeated RuleDescriptor rules = 1;
+}
+
+message AnalyzeScriptResponse {
+  repeated Diagnostic diagnostics = 1;
+}
+
+message Diagnostic {
+  string rule_name = 1;
+  string rule_id = 2;
+  DiagnosticSeverity severity = 3;
+  string message = 4;
+  ScriptExtent extent = 5;
+  repeated Correction corrections = 6;
+}
+
+enum DiagnosticSeverity {
+  DIAGNOSTIC_SEVERITY_UNSPECIFIED = 0;
+  DIAGNOSTIC_SEVERITY_INFORMATION = 1;
+  DIAGNOSTIC_SEVERITY_WARNING = 2;
+  DIAGNOSTIC_SEVERITY_ERROR = 3;
+}
+
+message ScriptExtent {
+  string file = 1;
+  int32 start_line = 2;
+  int32 start_column = 3;
+  int32 end_line = 4;
+  int32 end_column = 5;
+  int32 start_offset = 6;
+  int32 end_offset = 7;
+}
+
+message Correction {
+  string description = 1;
+  ScriptExtent extent = 2;
+  string replacement_text = 3;
+}
+
+message RuleDescriptor {
+  string name = 1;
+  string id = 2;
+  string description = 3;
+  DiagnosticSeverity default_severity = 4;
+}
