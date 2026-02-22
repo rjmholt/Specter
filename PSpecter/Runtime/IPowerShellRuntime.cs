@@ -9,6 +9,13 @@ namespace PSpecter.Runtime
 {
     public interface IPowerShellCommandDatabase
     {
+        /// <summary>
+        /// Looks up a command by canonical name or alias.
+        /// Returns a rich <see cref="CommandMetadata"/> if found.
+        /// Implementations that don't support rich metadata may return false.
+        /// </summary>
+        bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command);
+
         IReadOnlyList<string> GetCommandAliases(string command);
 
         string GetAliasTarget(string alias);
@@ -71,6 +78,15 @@ namespace PSpecter.Runtime
             _aliasTargets = aliasTargets;
             _commandAliases = commandAliases;
             _commandNames = new ConcurrentDictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Not supported by the session-state-only database; always returns false.
+        /// </summary>
+        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
+        {
+            command = null;
+            return false;
         }
 
         public string GetAliasTarget(string alias)

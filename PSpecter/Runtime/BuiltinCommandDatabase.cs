@@ -25,6 +25,15 @@ namespace PSpecter.Runtime
             PopulateDefaultAliases();
         }
 
+        /// <summary>
+        /// Not supported by the hardcoded builtin database; always returns false.
+        /// </summary>
+        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
+        {
+            command = null;
+            return false;
+        }
+
         private void AddAlias(string alias, string command)
         {
             _aliasToCommand[alias] = command;

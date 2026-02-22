@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" PrivateAssets="all" />
     <PackageReference Include="Newtonsoft.Json" PrivateAssets="all" />
   </ItemGroup>
 
