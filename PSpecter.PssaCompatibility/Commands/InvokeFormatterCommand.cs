@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Management.Automation;
 using PSpecter.CommandDatabase;
 using PSpecter.Formatting;
+using PSpecter.Module.CommandDatabase;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 
 namespace PSpecter.PssaCompatibility.Commands

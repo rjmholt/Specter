@@ -8,7 +8,7 @@ using System.Management.Automation.Runspaces;
 using System.Reflection;
 using SMA = System.Management.Automation;
 
-namespace PSpecter.Commands
+namespace PSpecter.Module.Commands
 {
     [Cmdlet(VerbsCommunications.Write, "Diagnostic")]
     [OutputType(typeof(ScriptDiagnostic))]

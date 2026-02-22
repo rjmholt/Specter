@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8;net462</TargetFrameworks>
-    <AssemblyName>PSpecter.PssaCompatibility</AssemblyName>
-    <RootNamespace>PSpecter.PssaCompatibility</RootNamespace>
+    <AssemblyName>PSpecter.Module</AssemblyName>
+    <RootNamespace>PSpecter.Module</RootNamespace>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -23,11 +23,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PSpecter\PSpecter.csproj" />
-    <ProjectReference Include="..\PSpecter.Module\PSpecter.Module.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="PSpecter.PssaCompatibility.psd1">
+    <None Include="PSpecter.psd1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

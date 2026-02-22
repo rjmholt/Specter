@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Management.Automation;
-using System.Text;
 using PSpecter.CommandDatabase;
 using PSpecter.CommandDatabase.Sqlite;
 
@@ -150,9 +148,6 @@ namespace PSpecter.Builder
 
             return AddSingleton<IPowerShellCommandDatabase>(SqliteCommandDatabase.Open(path));
         }
-
-        public RuleComponentProviderBuilder UseSessionDatabase(CommandInvocationIntrinsics invokeCommand)
-            => AddSingleton<IPowerShellCommandDatabase>(SessionStateCommandDatabase.Create(invokeCommand));
 
         public RuleComponentProvider Build()
         {

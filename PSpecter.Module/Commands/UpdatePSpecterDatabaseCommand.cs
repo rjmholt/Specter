@@ -12,7 +12,7 @@ using PsCommandMetadata = PSpecter.CommandDatabase.CommandMetadata;
 using PsParameterMetadata = PSpecter.CommandDatabase.ParameterMetadata;
 using SMA = System.Management.Automation;
 
-namespace PSpecter.Commands
+namespace PSpecter.Module.Commands
 {
     /// <summary>
     /// Cmdlet to create or update the PSpecter command database.

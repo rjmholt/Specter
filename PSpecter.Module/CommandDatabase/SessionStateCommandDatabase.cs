@@ -4,8 +4,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Management.Automation;
+using PSpecter.CommandDatabase;
+using PsDb = PSpecter.CommandDatabase;
 
-namespace PSpecter.CommandDatabase
+namespace PSpecter.Module.CommandDatabase
 {
     public class SessionStateCommandDatabase : IPowerShellCommandDatabase
     {
@@ -46,7 +48,7 @@ namespace PSpecter.CommandDatabase
         /// Lazily caches resolved commands so we only call GetCommand() once per name.
         /// A null value means we checked and the command doesn't exist.
         /// </summary>
-        private readonly ConcurrentDictionary<string, CommandMetadata> _commandCache;
+        private readonly ConcurrentDictionary<string, PsDb.CommandMetadata> _commandCache;
 
         private SessionStateCommandDatabase(
             CommandInvocationIntrinsics invokeCommand,
@@ -57,10 +59,10 @@ namespace PSpecter.CommandDatabase
             _aliasTargets = aliasTargets;
             _commandAliases = commandAliases;
             _commandNames = new ConcurrentDictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
-            _commandCache = new ConcurrentDictionary<string, CommandMetadata>(StringComparer.OrdinalIgnoreCase);
+            _commandCache = new ConcurrentDictionary<string, PsDb.CommandMetadata>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out CommandMetadata command)
+        public bool TryGetCommand(string nameOrAlias, HashSet<PlatformInfo> platforms, out PsDb.CommandMetadata command)
         {
             string resolved = GetAliasTarget(nameOrAlias) ?? nameOrAlias;
 
@@ -75,7 +77,7 @@ namespace PSpecter.CommandDatabase
             return command is not null;
         }
 
-        private CommandMetadata ResolveCommand(string commandName)
+        private PsDb.CommandMetadata ResolveCommand(string commandName)
         {
             CommandInfo cmdInfo;
             try
@@ -92,16 +94,16 @@ namespace PSpecter.CommandDatabase
                 return null;
             }
 
-            var parameters = new List<ParameterMetadata>();
+            var parameters = new List<PsDb.ParameterMetadata>();
             try
             {
                 foreach (var kvp in cmdInfo.Parameters)
                 {
-                    parameters.Add(new ParameterMetadata(
+                    parameters.Add(new PsDb.ParameterMetadata(
                         kvp.Key,
                         kvp.Value.ParameterType?.FullName,
                         isDynamic: kvp.Value.IsDynamic,
-                        parameterSets: System.Array.Empty<ParameterSetInfo>()));
+                        parameterSets: System.Array.Empty<PsDb.ParameterSetInfo>()));
                 }
             }
             catch
@@ -109,7 +111,7 @@ namespace PSpecter.CommandDatabase
                 // Some commands may throw when accessing Parameters
             }
 
-            return new CommandMetadata(
+            return new PsDb.CommandMetadata(
                 cmdInfo.Name,
                 cmdInfo.CommandType.ToString(),
                 cmdInfo.ModuleName ?? string.Empty,

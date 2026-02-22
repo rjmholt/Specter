@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Management.Automation;
 using PSpecter;
 using PSpecter.Builder;
+using PSpecter.Module;
 using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Instantiation;

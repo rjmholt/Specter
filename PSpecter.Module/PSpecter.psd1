@@ -10,11 +10,11 @@ Author = 'PSpecter Contributors'
 # Script module or binary module file associated with this manifest.
 RootModule = if ($PSEdition -eq 'Core')
     {
-        'net8/PSpecter.dll'
+        'net8/PSpecter.Module.dll'
     }
     else
     {
-        'net462/PSpecter.dll'
+        'net462/PSpecter.Module.dll'
     }
 
 # Version number of this module.

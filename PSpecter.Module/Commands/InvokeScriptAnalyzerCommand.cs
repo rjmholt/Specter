@@ -10,7 +10,7 @@ using System.Management.Automation;
 using PSpecter.Internal;
 #endif
 
-namespace PSpecter.Commands
+namespace PSpecter.Module.Commands
 {
     [Cmdlet(VerbsLifecycle.Invoke, "ScriptAnalyzer2")]
     public class InvokeScriptAnalyzerCommand : Cmdlet
