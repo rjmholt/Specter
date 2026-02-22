@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation;
+using PSpecter.CommandDatabase;
 using PSpecter.Formatting;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 
@@ -69,7 +70,11 @@ namespace PSpecter.PssaCompatibility.Commands
                 return;
             }
 
-            _formatter = ScriptFormatter.FromEditorConfigs(configs);
+            var services = new Dictionary<Type, object>
+            {
+                [typeof(IPowerShellCommandDatabase)] = SessionStateCommandDatabase.Create(SessionState.InvokeCommand)
+            };
+            _formatter = ScriptFormatter.FromEditorConfigs(configs, services);
         }
 
         protected override void ProcessRecord()
