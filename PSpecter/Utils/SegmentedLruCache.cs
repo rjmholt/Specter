@@ -1,9 +1,18 @@
 using System;
 using System.Collections.Generic;
+#if !NETFRAMEWORK
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace PSpecter.Utils
 {
+#if NETFRAMEWORK
+    [AttributeUsage(AttributeTargets.Parameter)]
+    internal sealed class MaybeNullWhenAttribute : Attribute
+    {
+        public MaybeNullWhenAttribute(bool returnValue) { }
+    }
+#endif
     /// <summary>
     /// A two-segment (probation + protected) LRU cache that balances recency
     /// with frequency. New entries land in the probation segment; a second access

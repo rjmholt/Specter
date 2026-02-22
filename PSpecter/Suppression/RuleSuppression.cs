@@ -1,10 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace PSpecter.Suppression
 {
+    internal sealed class ReferenceEqualityComparerHelper<T> : IEqualityComparer<T> where T : class
+    {
+        public static readonly ReferenceEqualityComparerHelper<T> Instance = new();
+
+        public bool Equals(T? x, T? y) => ReferenceEquals(x, y);
+
+        public int GetHashCode(T obj) => RuntimeHelpers.GetHashCode(obj);
+    }
     public sealed class RuleSuppression
     {
         public RuleSuppression(
@@ -422,7 +431,7 @@ namespace PSpecter.Suppression
             }
 
             var unapplied = new List<RuleSuppression>();
-            var seenUnapplied = new HashSet<RuleSuppression>(ReferenceEqualityComparer.Instance);
+            var seenUnapplied = new HashSet<RuleSuppression>(ReferenceEqualityComparerHelper<RuleSuppression>.Instance);
             foreach (List<RuleSuppression> suppressionList in suppressions.Values)
             {
                 foreach (RuleSuppression suppression in suppressionList)
@@ -531,7 +540,7 @@ namespace PSpecter.Suppression
 
                     if (isMatch)
                     {
-                        seen ??= new HashSet<RuleSuppression>(ReferenceEqualityComparer.Instance);
+                        seen ??= new HashSet<RuleSuppression>(ReferenceEqualityComparerHelper<RuleSuppression>.Instance);
                         if (seen.Add(suppression))
                         {
                             matched ??= new List<RuleSuppression>();

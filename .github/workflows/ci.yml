@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, pssa2]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -30,10 +30,10 @@ jobs:
           dotnet tool install --global PowerShell || true
 
       - name: Restore
-        run: dotnet restore ScriptAnalyzer2.sln
+        run: dotnet restore PSpecter.sln
 
       - name: Build
-        run: dotnet build ScriptAnalyzer2.sln -c Release --no-restore
+        run: dotnet build PSpecter.sln -c Release --no-restore
 
       - name: Run xUnit tests
         run: dotnet test PSpecter.Test/PSpecter.Test.csproj -c Release --no-build --verbosity normal
