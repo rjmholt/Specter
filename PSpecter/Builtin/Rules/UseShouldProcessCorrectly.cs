@@ -29,7 +29,7 @@ namespace PSpecter.Builtin.Rules
             "New-PSDrive", "Remove-PSDrive",
         };
 
-        public UseShouldProcessCorrectly(RuleInfo ruleInfo)
+        internal UseShouldProcessCorrectly(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

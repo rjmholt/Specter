@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     {
         private static readonly string[] s_passwordNames = { "Password", "Passphrase", "Cred", "Credential" };
 
-        public AvoidUsingPlainTextForPassword(RuleInfo ruleInfo)
+        internal AvoidUsingPlainTextForPassword(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -20,7 +20,7 @@ namespace PSpecter.Builtin.Editors
     {
         private readonly IPowerShellCommandDatabase? _commandDb;
 
-        public UseCorrectCasingEditor(
+        internal UseCorrectCasingEditor(
             UseCorrectCasingEditorConfiguration configuration,
             IPowerShellCommandDatabase? commandDb)
         {
@@ -28,7 +28,7 @@ namespace PSpecter.Builtin.Editors
             _commandDb = commandDb;
         }
 
-        public UseCorrectCasingEditor(UseCorrectCasingEditorConfiguration configuration)
+        internal UseCorrectCasingEditor(UseCorrectCasingEditorConfiguration configuration)
             : this(configuration, null)
         {
         }

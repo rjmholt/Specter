@@ -13,21 +13,21 @@ namespace PSpecter.Formatting
     {
         private readonly IReadOnlyList<Token> _tokens;
 
-        public TokenNavigator(IReadOnlyList<Token> tokens)
+        internal TokenNavigator(IReadOnlyList<Token> tokens)
         {
             _tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
         }
 
-        public IReadOnlyList<Token> Tokens => _tokens;
+        internal IReadOnlyList<Token> Tokens => _tokens;
 
-        public int Count => _tokens.Count;
+        internal int Count => _tokens.Count;
 
-        public Token this[int index] => _tokens[index];
+        internal Token this[int index] => _tokens[index];
 
         /// <summary>
         /// Returns true if any comment token overlaps the given offset range.
         /// </summary>
-        public bool HasCommentInRange(int startOffset, int endOffset)
+        internal bool HasCommentInRange(int startOffset, int endOffset)
         {
             for (int i = 0; i < _tokens.Count; i++)
             {
@@ -55,7 +55,7 @@ namespace PSpecter.Formatting
         /// <summary>
         /// Returns all tokens whose extents overlap the given offset range.
         /// </summary>
-        public List<Token> GetTokensInRange(int startOffset, int endOffset)
+        internal List<Token> GetTokensInRange(int startOffset, int endOffset)
         {
             var result = new List<Token>();
 
@@ -83,7 +83,7 @@ namespace PSpecter.Formatting
         /// Returns the index of the next token after <paramref name="index"/> that
         /// is not a newline or whitespace-only token, or -1 if none exists.
         /// </summary>
-        public int NextNonWhitespaceToken(int index)
+        internal int NextNonWhitespaceToken(int index)
         {
             for (int i = index + 1; i < _tokens.Count; i++)
             {
@@ -101,7 +101,7 @@ namespace PSpecter.Formatting
         /// Returns the index of the previous token before <paramref name="index"/> that
         /// is not a newline or whitespace-only token, or -1 if none exists.
         /// </summary>
-        public int PreviousNonWhitespaceToken(int index)
+        internal int PreviousNonWhitespaceToken(int index)
         {
             for (int i = index - 1; i >= 0; i--)
             {
@@ -119,7 +119,7 @@ namespace PSpecter.Formatting
         /// Returns the index of the next token after <paramref name="index"/> that
         /// is not a comment, or -1 if none exists.
         /// </summary>
-        public int NextTokenIgnoringComments(int index)
+        internal int NextTokenIgnoringComments(int index)
         {
             for (int i = index + 1; i < _tokens.Count; i++)
             {
@@ -136,7 +136,7 @@ namespace PSpecter.Formatting
         /// Returns the index of the previous token before <paramref name="index"/> that
         /// is not a comment, or -1 if none exists.
         /// </summary>
-        public int PreviousTokenIgnoringComments(int index)
+        internal int PreviousTokenIgnoringComments(int index)
         {
             for (int i = index - 1; i >= 0; i--)
             {
@@ -153,7 +153,7 @@ namespace PSpecter.Formatting
         /// Returns the index of the next token after <paramref name="index"/> that is
         /// not a newline, end-of-input, or comment, or -1 if none exists.
         /// </summary>
-        public int NextSignificantToken(int index)
+        internal int NextSignificantToken(int index)
         {
             for (int i = index + 1; i < _tokens.Count; i++)
             {
@@ -173,7 +173,7 @@ namespace PSpecter.Formatting
         /// Returns the index of the previous token before <paramref name="index"/> that is
         /// not a newline, end-of-input, or comment, or -1 if none exists.
         /// </summary>
-        public int PreviousSignificantToken(int index)
+        internal int PreviousSignificantToken(int index)
         {
             for (int i = index - 1; i >= 0; i--)
             {
@@ -194,7 +194,7 @@ namespace PSpecter.Formatting
         /// Uses linear scan; for frequent lookups, callers should cache results.
         /// Returns -1 if no token contains the offset.
         /// </summary>
-        public int FindTokenAtOffset(int offset)
+        internal int FindTokenAtOffset(int offset)
         {
             for (int i = 0; i < _tokens.Count; i++)
             {

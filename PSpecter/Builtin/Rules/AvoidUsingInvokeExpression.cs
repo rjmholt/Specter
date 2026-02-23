@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Rules
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public AvoidUsingInvokeExpression(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
+        internal AvoidUsingInvokeExpression(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
             : base(ruleInfo)
         {
             _commandDb = commandDb;

@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidUsingDoubleQuotesForConstantString", typeof(Strings), nameof(Strings.AvoidUsingDoubleQuotesForConstantStringDescription), Severity = DiagnosticSeverity.Information)]
     internal class AvoidUsingDoubleQuotesForConstantString : ScriptRule
     {
-        public AvoidUsingDoubleQuotesForConstantString(RuleInfo ruleInfo)
+        internal AvoidUsingDoubleQuotesForConstantString(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

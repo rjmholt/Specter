@@ -17,7 +17,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             ["Test-TargetResource"] = "System.Boolean",
         };
 
-        public ReturnCorrectTypesForDscFunctions(RuleInfo ruleInfo)
+        internal ReturnCorrectTypesForDscFunctions(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

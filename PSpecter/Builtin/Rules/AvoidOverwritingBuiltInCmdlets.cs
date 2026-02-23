@@ -21,7 +21,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidOverwritingBuiltInCmdlets", typeof(Strings), nameof(Strings.AvoidOverwritingBuiltInCmdletsDescription))]
     internal class AvoidOverwritingBuiltInCmdlets : ConfigurableScriptRule<AvoidOverwritingBuiltInCmdletsConfiguration>
     {
-        public AvoidOverwritingBuiltInCmdlets(RuleInfo ruleInfo, AvoidOverwritingBuiltInCmdletsConfiguration configuration)
+        internal AvoidOverwritingBuiltInCmdlets(RuleInfo ruleInfo, AvoidOverwritingBuiltInCmdletsConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

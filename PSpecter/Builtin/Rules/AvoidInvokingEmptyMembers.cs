@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidInvokingEmptyMembers", typeof(Strings), nameof(Strings.AvoidInvokingEmptyMembersDescription))]
     internal class AvoidInvokingEmptyMembers : ScriptRule
     {
-        public AvoidInvokingEmptyMembers(RuleInfo ruleInfo)
+        internal AvoidInvokingEmptyMembers(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidShouldContinueWithoutForce", typeof(Strings), nameof(Strings.AvoidShouldContinueWithoutForceDescription))]
     internal class AvoidShouldContinueWithoutForce : ScriptRule
     {
-        public AvoidShouldContinueWithoutForce(RuleInfo ruleInfo)
+        internal AvoidShouldContinueWithoutForce(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

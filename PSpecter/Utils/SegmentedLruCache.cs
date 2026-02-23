@@ -10,7 +10,7 @@ namespace PSpecter.Utils
     [AttributeUsage(AttributeTargets.Parameter)]
     internal sealed class MaybeNullWhenAttribute : Attribute
     {
-        public MaybeNullWhenAttribute(bool returnValue) { }
+        internal MaybeNullWhenAttribute(bool returnValue) { }
     }
 #endif
     /// <summary>
@@ -38,7 +38,7 @@ namespace PSpecter.Utils
         /// Fraction of capacity allocated to probation (0.0-1.0). Default 0.2 (20%).
         /// </param>
         /// <param name="comparer">Key comparer. Defaults to <see cref="EqualityComparer{TKey}.Default"/>.</param>
-        public SegmentedLruCache(
+        internal SegmentedLruCache(
             int capacity = 1024,
             double probationRatio = 0.2,
             IEqualityComparer<TKey>? comparer = null)
@@ -61,13 +61,13 @@ namespace PSpecter.Utils
             _protected = new LinkedList<CacheEntry>();
         }
 
-        public int Count => _index.Count;
+        internal int Count => _index.Count;
 
         /// <summary>
         /// Attempts to retrieve a cached value. On a hit, the entry is promoted
         /// (probation -> protected on second access, or moved to head of protected).
         /// </summary>
-        public bool TryGet(TKey key, [MaybeNullWhen(false)] out TValue value)
+        internal bool TryGet(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             if (!_index.TryGetValue(key, out LinkedListNode<CacheEntry>? node))
             {
@@ -98,7 +98,7 @@ namespace PSpecter.Utils
         /// Adds or updates an entry. New entries go to probation; existing entries
         /// are treated as a hit (promoted/refreshed).
         /// </summary>
-        public void Set(TKey key, TValue value)
+        internal void Set(TKey key, TValue value)
         {
             if (_index.TryGetValue(key, out LinkedListNode<CacheEntry>? existing))
             {
@@ -130,7 +130,7 @@ namespace PSpecter.Utils
         }
 
         /// <summary>Removes all entries from the cache.</summary>
-        public void Clear()
+        internal void Clear()
         {
             _index.Clear();
             _probation.Clear();
@@ -168,16 +168,16 @@ namespace PSpecter.Utils
 
         private sealed class CacheEntry
         {
-            public CacheEntry(TKey key, TValue value, Segment segment)
+            internal CacheEntry(TKey key, TValue value, Segment segment)
             {
                 Key = key;
                 Value = value;
                 Segment = segment;
             }
 
-            public TKey Key { get; }
-            public TValue Value { get; set; }
-            public Segment Segment { get; set; }
+            internal TKey Key { get; }
+            internal TValue Value { get; set; }
+            internal Segment Segment { get; set; }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         public readonly bool IsKey;
         public readonly bool IsRequired;
 
-        public MofProperty(string name, bool isKey, bool isRequired)
+        internal MofProperty(string name, bool isKey, bool isRequired)
         {
             Name = name;
             IsKey = isKey;
@@ -25,7 +25,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         public readonly string? SuperClassName;
         public readonly IReadOnlyList<MofProperty> Properties;
 
-        public MofClass(string name, string? superClassName, IReadOnlyList<MofProperty> properties)
+        internal MofClass(string name, string? superClassName, IReadOnlyList<MofProperty> properties)
         {
             Name = name;
             SuperClassName = superClassName;

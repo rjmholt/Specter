@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseBOMForUnicodeEncodedFile", typeof(Strings), nameof(Strings.UseBOMForUnicodeEncodedFileDescription))]
     internal class UseBOMForUnicodeEncodedFile : ScriptRule
     {
-        public UseBOMForUnicodeEncodedFile(RuleInfo ruleInfo)
+        internal UseBOMForUnicodeEncodedFile(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

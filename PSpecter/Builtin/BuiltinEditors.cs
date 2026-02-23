@@ -15,7 +15,7 @@ namespace PSpecter.Builtin
         /// <summary>
         /// Built-in editor types in their canonical execution order.
         /// </summary>
-        public static IReadOnlyList<Type> DefaultEditors { get; } = new[]
+        internal static IReadOnlyList<Type> DefaultEditors { get; } = new[]
         {
             typeof(PlaceCloseBraceEditor),
             typeof(PlaceOpenBraceEditor),
@@ -32,7 +32,7 @@ namespace PSpecter.Builtin
         /// <summary>
         /// Default configuration for all built-in editors (all enabled with default settings).
         /// </summary>
-        public static IReadOnlyDictionary<string, IEditorConfiguration> DefaultConfigurations { get; } =
+        internal static IReadOnlyDictionary<string, IEditorConfiguration> DefaultConfigurations { get; } =
             new Dictionary<string, IEditorConfiguration>(StringComparer.OrdinalIgnoreCase)
             {
                 ["PlaceCloseBrace"] = new PlaceCloseBraceEditorConfiguration(),
@@ -57,24 +57,24 @@ namespace PSpecter.Builtin
         /// <summary>
         /// Default preset: K&amp;R / Stroustrup brace style.
         /// </summary>
-        public static IReadOnlyDictionary<string, IEditorConfiguration> Default
+        internal static IReadOnlyDictionary<string, IEditorConfiguration> Default
             => BuiltinEditors.DefaultConfigurations;
 
         /// <summary>
         /// Stroustrup preset: identical to Default.
         /// </summary>
-        public static IReadOnlyDictionary<string, IEditorConfiguration> Stroustrup
+        internal static IReadOnlyDictionary<string, IEditorConfiguration> Stroustrup
             => Default;
 
         /// <summary>
         /// OTBS preset: open braces on same line, branches cuddled (} else {).
         /// </summary>
-        public static IReadOnlyDictionary<string, IEditorConfiguration> OTBS { get; } = CreateOTBS();
+        internal static IReadOnlyDictionary<string, IEditorConfiguration> OTBS { get; } = CreateOTBS();
 
         /// <summary>
         /// Allman preset: open braces on their own line, close braces followed by newline.
         /// </summary>
-        public static IReadOnlyDictionary<string, IEditorConfiguration> Allman { get; } = CreateAllman();
+        internal static IReadOnlyDictionary<string, IEditorConfiguration> Allman { get; } = CreateAllman();
 
         private static IReadOnlyDictionary<string, IEditorConfiguration> CreateOTBS()
         {

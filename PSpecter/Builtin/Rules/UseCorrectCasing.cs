@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseCorrectCasing", typeof(Strings), nameof(Strings.UseCorrectCasingDescription), Severity = DiagnosticSeverity.Information)]
     internal class UseCorrectCasing : FormattingRule<UseCorrectCasingEditorConfiguration>
     {
-        public UseCorrectCasing(RuleInfo ruleInfo, UseCorrectCasingEditorConfiguration configuration)
+        internal UseCorrectCasing(RuleInfo ruleInfo, UseCorrectCasingEditorConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

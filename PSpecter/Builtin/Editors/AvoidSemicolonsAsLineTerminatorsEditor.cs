@@ -16,7 +16,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("AvoidSemicolonsAsLineTerminators", Description = "Removes semicolons used as line terminators")]
     internal sealed class AvoidSemicolonsAsLineTerminatorsEditor : IScriptEditor, IConfigurableEditor<AvoidSemicolonsAsLineTerminatorsEditorConfiguration>
     {
-        public AvoidSemicolonsAsLineTerminatorsEditor(AvoidSemicolonsAsLineTerminatorsEditorConfiguration configuration)
+        internal AvoidSemicolonsAsLineTerminatorsEditor(AvoidSemicolonsAsLineTerminatorsEditorConfiguration configuration)
         {
             Configuration = configuration ?? new AvoidSemicolonsAsLineTerminatorsEditorConfiguration();
         }

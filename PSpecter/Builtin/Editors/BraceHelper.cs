@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Editors
     /// </summary>
     internal static class BraceHelper
     {
-        public static HashSet<int> GetCommandElementOpenBraces(Ast ast, IReadOnlyList<Token> tokens)
+        internal static HashSet<int> GetCommandElementOpenBraces(Ast ast, IReadOnlyList<Token> tokens)
         {
             var result = new HashSet<int>();
             var cmdElemScriptBlocks = ast.FindAll(
@@ -33,7 +33,7 @@ namespace PSpecter.Builtin.Editors
             return result;
         }
 
-        public static HashSet<int> GetCommandElementCloseBraces(Ast ast, IReadOnlyList<Token> tokens)
+        internal static HashSet<int> GetCommandElementCloseBraces(Ast ast, IReadOnlyList<Token> tokens)
         {
             var result = new HashSet<int>();
             var cmdElemScriptBlocks = ast.FindAll(
@@ -56,7 +56,7 @@ namespace PSpecter.Builtin.Editors
             return result;
         }
 
-        public static List<BracePair> GetBracePairsOnSameLine(Ast ast, IReadOnlyList<Token> tokens)
+        internal static List<BracePair> GetBracePairsOnSameLine(Ast ast, IReadOnlyList<Token> tokens)
         {
             var result = new List<BracePair>();
 
@@ -81,7 +81,7 @@ namespace PSpecter.Builtin.Editors
             return result;
         }
 
-        public static List<BracePair> GetAllBracePairs(Ast ast, IReadOnlyList<Token> tokens)
+        internal static List<BracePair> GetAllBracePairs(Ast ast, IReadOnlyList<Token> tokens)
         {
             var result = new List<BracePair>();
 
@@ -102,7 +102,7 @@ namespace PSpecter.Builtin.Editors
             return result;
         }
 
-        public static string GetIndentation(IReadOnlyList<Token> tokens, int openBraceIndex)
+        internal static string GetIndentation(IReadOnlyList<Token> tokens, int openBraceIndex)
         {
             Token openBrace = tokens[openBraceIndex];
 
@@ -125,7 +125,7 @@ namespace PSpecter.Builtin.Editors
             return new string(' ', firstOnLine.Extent.StartColumnNumber - 1);
         }
 
-        public static bool IsBranchKeyword(TokenKind kind)
+        internal static bool IsBranchKeyword(TokenKind kind)
         {
             switch (kind)
             {
@@ -141,14 +141,14 @@ namespace PSpecter.Builtin.Editors
 
         internal readonly struct BracePair
         {
-            public BracePair(int openIndex, int closeIndex)
+            internal BracePair(int openIndex, int closeIndex)
             {
                 OpenIndex = openIndex;
                 CloseIndex = closeIndex;
             }
 
-            public int OpenIndex { get; }
-            public int CloseIndex { get; }
+            internal int OpenIndex { get; }
+            internal int CloseIndex { get; }
         }
     }
 }

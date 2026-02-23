@@ -20,7 +20,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("ReviewUnusedParameter", typeof(Strings), nameof(Strings.ReviewUnusedParameterDescription))]
     internal class ReviewUnusedParameter : ConfigurableScriptRule<ReviewUnusedParameterConfiguration>
     {
-        public ReviewUnusedParameter(RuleInfo ruleInfo, ReviewUnusedParameterConfiguration configuration)
+        internal ReviewUnusedParameter(RuleInfo ruleInfo, ReviewUnusedParameterConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

@@ -18,7 +18,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("PlaceCloseBrace", Description = "Enforces close brace placement: own line, no empty lines before, newline-after vs cuddled branches")]
     internal sealed class PlaceCloseBraceEditor : IScriptEditor, IConfigurableEditor<PlaceCloseBraceEditorConfiguration>
     {
-        public PlaceCloseBraceEditor(PlaceCloseBraceEditorConfiguration configuration)
+        internal PlaceCloseBraceEditor(PlaceCloseBraceEditorConfiguration configuration)
         {
             Configuration = configuration ?? new PlaceCloseBraceEditorConfiguration();
         }

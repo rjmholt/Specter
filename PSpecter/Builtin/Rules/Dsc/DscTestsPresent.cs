@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [Rule("DscTestsPresent", typeof(Strings), nameof(Strings.DscTestsPresentDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Information)]
     internal class DscTestsPresent : ScriptRule
     {
-        public DscTestsPresent(RuleInfo ruleInfo)
+        internal DscTestsPresent(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

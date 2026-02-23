@@ -25,7 +25,7 @@ namespace PSpecter.Builtin.Rules
             TokenKind.Equals,
         };
 
-        public PossibleIncorrectComparisonWithNull(RuleInfo ruleInfo)
+        internal PossibleIncorrectComparisonWithNull(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

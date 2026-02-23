@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Rules
     {
         private static readonly Pluralizer s_pluralizer = new Pluralizer();
 
-        public UseSingularNouns(RuleInfo ruleInfo, UseSingularNounsConfiguration configuration)
+        internal UseSingularNouns(RuleInfo ruleInfo, UseSingularNounsConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

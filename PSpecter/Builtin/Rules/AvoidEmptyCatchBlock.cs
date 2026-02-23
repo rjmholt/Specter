@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidUsingEmptyCatchBlock", typeof(Strings), nameof(Strings.AvoidUsingEmptyCatchBlockDescription))]
     internal class AvoidEmptyCatchBlock : ScriptRule
     {
-        public AvoidEmptyCatchBlock(RuleInfo ruleInfo)
+        internal AvoidEmptyCatchBlock(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

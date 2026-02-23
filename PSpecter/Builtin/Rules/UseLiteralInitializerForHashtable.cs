@@ -17,7 +17,7 @@ namespace PSpecter.Builtin.Rules
             "hashtable",
         };
 
-        public UseLiteralInitializerForHashtable(RuleInfo ruleInfo)
+        internal UseLiteralInitializerForHashtable(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

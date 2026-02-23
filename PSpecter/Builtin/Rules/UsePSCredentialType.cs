@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UsePSCredentialType", typeof(Strings), nameof(Strings.UsePSCredentialTypeDescription))]
     internal class UsePSCredentialType : ScriptRule
     {
-        public UsePSCredentialType(RuleInfo ruleInfo)
+        internal UsePSCredentialType(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

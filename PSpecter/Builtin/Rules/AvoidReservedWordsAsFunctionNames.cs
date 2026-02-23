@@ -26,7 +26,7 @@ namespace PSpecter.Builtin.Rules
             "until", "using", "var", "while", "workflow"
         };
 
-        public AvoidReservedWordsAsFunctionNames(RuleInfo ruleInfo)
+        internal AvoidReservedWordsAsFunctionNames(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

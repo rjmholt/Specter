@@ -17,7 +17,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("AlignAssignmentStatement", Description = "Aligns assignment operators in multi-line hashtables")]
     internal sealed class AlignAssignmentStatementEditor : IScriptEditor, IConfigurableEditor<AlignAssignmentStatementEditorConfiguration>
     {
-        public AlignAssignmentStatementEditor(AlignAssignmentStatementEditorConfiguration configuration)
+        internal AlignAssignmentStatementEditor(AlignAssignmentStatementEditorConfiguration configuration)
         {
             Configuration = configuration ?? new AlignAssignmentStatementEditorConfiguration();
         }
@@ -131,7 +131,7 @@ namespace PSpecter.Builtin.Editors
 
         private readonly struct AssignmentInfo
         {
-            public AssignmentInfo(ExpressionAst key, Token equalsToken)
+            internal AssignmentInfo(ExpressionAst key, Token equalsToken)
             {
                 Key = key;
                 EqualsToken = equalsToken;

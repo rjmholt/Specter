@@ -25,7 +25,7 @@ namespace PSpecter.Builtin.Rules
             "PSCustomObject",
         };
 
-        public UseOutputTypeCorrectly(RuleInfo ruleInfo)
+        internal UseOutputTypeCorrectly(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
@@ -413,7 +413,7 @@ namespace PSpecter.Builtin.Rules
             public readonly string TypeName;
             public readonly IScriptExtent? Extent;
 
-            public ReturnTypeInfo(string typeName, IScriptExtent? extent)
+            internal ReturnTypeInfo(string typeName, IScriptExtent? extent)
             {
                 TypeName = typeName;
                 Extent = extent;

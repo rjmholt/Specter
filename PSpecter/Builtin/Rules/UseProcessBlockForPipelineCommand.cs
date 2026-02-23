@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseProcessBlockForPipelineCommand", typeof(Strings), nameof(Strings.UseProcessBlockForPipelineCommandDescription))]
     internal class UseProcessBlockForPipelineCommand : ScriptRule
     {
-        public UseProcessBlockForPipelineCommand(RuleInfo ruleInfo)
+        internal UseProcessBlockForPipelineCommand(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

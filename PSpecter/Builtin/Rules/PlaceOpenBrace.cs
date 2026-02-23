@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("PlaceOpenBrace", typeof(Strings), nameof(Strings.PlaceOpenBraceDescription), Severity = DiagnosticSeverity.Warning)]
     internal class PlaceOpenBrace : FormattingRule<PlaceOpenBraceEditorConfiguration>
     {
-        public PlaceOpenBrace(RuleInfo ruleInfo, PlaceOpenBraceEditorConfiguration configuration)
+        internal PlaceOpenBrace(RuleInfo ruleInfo, PlaceOpenBraceEditorConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

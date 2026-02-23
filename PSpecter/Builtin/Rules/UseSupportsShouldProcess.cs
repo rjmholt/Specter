@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseSupportsShouldProcess", typeof(Strings), nameof(Strings.UseSupportsShouldProcessDescription))]
     internal class UseSupportsShouldProcess : ScriptRule
     {
-        public UseSupportsShouldProcess(RuleInfo ruleInfo)
+        internal UseSupportsShouldProcess(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
@@ -301,7 +301,7 @@ namespace PSpecter.Builtin.Rules
             public readonly int EndOffset;
             public readonly string Replacement;
 
-            public TextEdit(int startOffset, int endOffset, string replacement)
+            internal TextEdit(int startOffset, int endOffset, string replacement)
             {
                 StartOffset = startOffset;
                 EndOffset = endOffset;

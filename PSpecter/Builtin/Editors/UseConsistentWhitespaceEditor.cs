@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("UseConsistentWhitespace", Description = "Enforces consistent whitespace around operators, braces, pipes, keywords, and separators")]
     internal sealed class UseConsistentWhitespaceEditor : IScriptEditor, IConfigurableEditor<UseConsistentWhitespaceEditorConfiguration>
     {
-        public UseConsistentWhitespaceEditor(UseConsistentWhitespaceEditorConfiguration configuration)
+        internal UseConsistentWhitespaceEditor(UseConsistentWhitespaceEditorConfiguration configuration)
         {
             Configuration = configuration ?? new UseConsistentWhitespaceEditorConfiguration();
         }
@@ -656,7 +656,7 @@ namespace PSpecter.Builtin.Editors
 
         private readonly struct OffsetRange
         {
-            public OffsetRange(int start, int end) { Start = start; End = end; }
+            internal OffsetRange(int start, int end) { Start = start; End = end; }
             public int Start { get; }
             public int End { get; }
         }

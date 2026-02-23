@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidUsingWriteHost", typeof(Strings), nameof(Strings.AvoidUsingWriteHostDescription))]
     internal class AvoidUsingWriteHost : ScriptRule
     {
-        public AvoidUsingWriteHost(RuleInfo ruleInfo)
+        internal AvoidUsingWriteHost(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
@@ -35,7 +35,7 @@ namespace PSpecter.Builtin.Rules
             private readonly string? _scriptPath;
             private readonly List<ScriptDiagnostic> _diagnostics = new List<ScriptDiagnostic>();
 
-            public WriteHostVisitor(AvoidUsingWriteHost rule, string? scriptPath)
+            internal WriteHostVisitor(AvoidUsingWriteHost rule, string? scriptPath)
             {
                 _rule = rule;
                 _scriptPath = scriptPath;

@@ -31,7 +31,7 @@ namespace PSpecter.CommandDatabase.Sqlite
         /// Opens a transactional writer on the given connection.
         /// The caller must dispose the returned writer when done.
         /// </summary>
-        public static CommandDatabaseWriter Begin(SqliteConnection connection)
+        internal static CommandDatabaseWriter Begin(SqliteConnection connection)
         {
             return new CommandDatabaseWriter(connection);
         }
@@ -40,7 +40,7 @@ namespace PSpecter.CommandDatabase.Sqlite
         /// Commits the transaction. Must be called explicitly;
         /// otherwise <see cref="Dispose"/> will roll back.
         /// </summary>
-        public void Commit()
+        internal void Commit()
         {
             _transaction.Commit();
             _committed = true;
@@ -49,7 +49,7 @@ namespace PSpecter.CommandDatabase.Sqlite
         /// <summary>
         /// Imports a batch of commands for a given platform.
         /// </summary>
-        public void ImportCommands(
+        internal void ImportCommands(
             IReadOnlyList<CommandMetadata> commands,
             PlatformInfo platform)
         {
@@ -110,7 +110,7 @@ namespace PSpecter.CommandDatabase.Sqlite
         /// with a platform in the database so the UseCompatibleCommands rule
         /// can resolve user-supplied profile names to platform identifiers.
         /// </summary>
-        public void RegisterProfileName(string profileName, PlatformInfo platform)
+        internal void RegisterProfileName(string profileName, PlatformInfo platform)
         {
             long platformId = EnsurePlatform(platform);
 
@@ -127,7 +127,7 @@ namespace PSpecter.CommandDatabase.Sqlite
         /// <summary>
         /// Writes the schema version marker.
         /// </summary>
-        public void WriteSchemaVersion(int version)
+        internal void WriteSchemaVersion(int version)
         {
             using SqliteCommand cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;

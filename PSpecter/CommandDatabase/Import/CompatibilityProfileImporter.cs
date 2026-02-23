@@ -18,7 +18,7 @@ namespace PSpecter.CommandDatabase.Import
         /// <summary>
         /// Imports all JSON profiles from a directory.
         /// </summary>
-        public static void ImportDirectory(SqliteConnection connection, string profileDirectory)
+        internal static void ImportDirectory(SqliteConnection connection, string profileDirectory)
         {
             ImportDirectory(connection, profileDirectory, registerProfileNames: false);
         }
@@ -28,7 +28,7 @@ namespace PSpecter.CommandDatabase.Import
         /// file stem as a profile name in the <c>ProfileName</c> table so the
         /// <c>UseCompatibleCommands</c> rule can resolve them.
         /// </summary>
-        public static void ImportDirectory(SqliteConnection connection, string profileDirectory, bool registerProfileNames)
+        internal static void ImportDirectory(SqliteConnection connection, string profileDirectory, bool registerProfileNames)
         {
             if (!Directory.Exists(profileDirectory))
             {
@@ -56,7 +56,7 @@ namespace PSpecter.CommandDatabase.Import
         /// <summary>
         /// Imports a single compatibility profile JSON string.
         /// </summary>
-        public static void ImportJson(CommandDatabaseWriter writer, string json)
+        internal static void ImportJson(CommandDatabaseWriter writer, string json)
         {
             var (platform, commands) = ParseJson(json);
             writer.ImportCommands(commands, platform);

@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("PossibleIncorrectUsageOfRedirectionOperator", typeof(Strings), nameof(Strings.PossibleIncorrectUsageOfRedirectionOperatorDescription))]
     internal class PossibleIncorrectUsageOfRedirectionOperator : ScriptRule
     {
-        public PossibleIncorrectUsageOfRedirectionOperator(RuleInfo ruleInfo)
+        internal PossibleIncorrectUsageOfRedirectionOperator(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

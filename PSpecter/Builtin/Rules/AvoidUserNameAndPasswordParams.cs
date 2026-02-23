@@ -26,7 +26,7 @@ namespace PSpecter.Builtin.Rules
             typeof(bool),
         };
 
-        public AvoidUserNameAndPasswordParams(RuleInfo ruleInfo)
+        internal AvoidUserNameAndPasswordParams(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

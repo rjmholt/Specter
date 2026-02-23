@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidMultipleTypeAttributes", typeof(Strings), nameof(Strings.AvoidMultipleTypeAttributesDescription))]
     internal class AvoidMultipleTypeAttributes : ScriptRule
     {
-        public AvoidMultipleTypeAttributes(RuleInfo ruleInfo)
+        internal AvoidMultipleTypeAttributes(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

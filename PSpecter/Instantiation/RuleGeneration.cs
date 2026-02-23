@@ -35,7 +35,7 @@ namespace PSpecter.Instantiation
             RuleComponentProvider ruleComponentProvider,
             out TypeRuleFactory<TRuleBase>? factory)
         {
-            ConstructorInfo[] ruleConstructors = ruleType.GetConstructors();
+            ConstructorInfo[] ruleConstructors = ruleType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (ruleConstructors.Length != 1)
             {
                 factory = null;

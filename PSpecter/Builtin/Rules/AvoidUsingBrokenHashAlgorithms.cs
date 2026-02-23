@@ -17,7 +17,7 @@ namespace PSpecter.Builtin.Rules
             "SHA1",
         };
 
-        public AvoidUsingBrokenHashAlgorithms(RuleInfo ruleInfo)
+        internal AvoidUsingBrokenHashAlgorithms(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -18,7 +18,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("PlaceOpenBrace", Description = "Enforces open brace placement style (K&R / Allman)")]
     internal sealed class PlaceOpenBraceEditor : IScriptEditor, IConfigurableEditor<PlaceOpenBraceEditorConfiguration>
     {
-        public PlaceOpenBraceEditor(PlaceOpenBraceEditorConfiguration configuration)
+        internal PlaceOpenBraceEditor(PlaceOpenBraceEditorConfiguration configuration)
         {
             Configuration = configuration ?? new PlaceOpenBraceEditorConfiguration();
         }

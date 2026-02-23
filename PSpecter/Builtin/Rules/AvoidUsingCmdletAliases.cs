@@ -83,7 +83,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             { "Verb", "Get-Verb" },
         };
 
-        public AvoidUsingCmdletAliases(RuleInfo ruleInfo, AvoidUsingCmdletAliasesConfiguration configuration, IPowerShellCommandDatabase commandDb)
+        internal AvoidUsingCmdletAliases(RuleInfo ruleInfo, AvoidUsingCmdletAliasesConfiguration configuration, IPowerShellCommandDatabase commandDb)
             : base(ruleInfo)
         {
             Configuration = configuration;

@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("ReservedParams", typeof(Strings), nameof(Strings.ReservedParamsDescription))]
     internal class AvoidReservedParams : ScriptRule
     {
-        public AvoidReservedParams(RuleInfo ruleInfo)
+        internal AvoidReservedParams(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

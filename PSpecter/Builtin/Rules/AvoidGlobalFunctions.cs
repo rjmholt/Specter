@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidGlobalFunctions", typeof(Strings), nameof(Strings.AvoidGlobalFunctionsDescription))]
     internal class AvoidGlobalFunctions : ScriptRule
     {
-        public AvoidGlobalFunctions(RuleInfo ruleInfo)
+        internal AvoidGlobalFunctions(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

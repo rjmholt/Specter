@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     {
         private static readonly Regex s_trailingEscapedWhitespace = new Regex(@"`(\s+)$", RegexOptions.Compiled);
 
-        public MisleadingBacktick(RuleInfo ruleInfo)
+        internal MisleadingBacktick(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

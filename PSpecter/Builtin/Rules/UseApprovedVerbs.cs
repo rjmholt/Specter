@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseApprovedVerbs", typeof(Strings), nameof(Strings.UseApprovedVerbsDescription))]
     internal class UseApprovedVerbs : ScriptRule
     {
-        public UseApprovedVerbs(RuleInfo ruleInfo)
+        internal UseApprovedVerbs(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

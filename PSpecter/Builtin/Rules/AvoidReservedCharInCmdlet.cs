@@ -16,7 +16,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("ReservedCmdletChar", typeof(Strings), nameof(Strings.ReservedCmdletCharDescription))]
     internal class AvoidReservedCharInCmdlet : ScriptRule
     {
-        public AvoidReservedCharInCmdlet(RuleInfo ruleInfo)
+        internal AvoidReservedCharInCmdlet(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidTrailingWhitespace", typeof(Strings), nameof(Strings.AvoidTrailingWhitespaceDescription), Severity = DiagnosticSeverity.Information)]
     internal class AvoidTrailingWhitespace : ScriptRule, IFormattingRule
     {
-        public AvoidTrailingWhitespace(RuleInfo ruleInfo)
+        internal AvoidTrailingWhitespace(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

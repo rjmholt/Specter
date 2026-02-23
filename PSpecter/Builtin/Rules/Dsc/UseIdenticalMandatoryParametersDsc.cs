@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [Rule("UseIdenticalMandatoryParametersForDSC", typeof(Strings), nameof(Strings.UseIdenticalMandatoryParametersDSCDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Error)]
     internal class UseIdenticalMandatoryParametersDsc : ScriptRule
     {
-        public UseIdenticalMandatoryParametersDsc(RuleInfo ruleInfo)
+        internal UseIdenticalMandatoryParametersDsc(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     {
         private static readonly string[] s_deprecatedFields = new[] { "ModuleToProcess" };
 
-        public AvoidUsingDeprecatedManifestFields(RuleInfo ruleInfo)
+        internal AvoidUsingDeprecatedManifestFields(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

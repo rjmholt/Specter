@@ -26,7 +26,7 @@ namespace PSpecter.Builtin.Rules
         private const int TabWidth = 4;
         private const int ContinuationIndentWidth = TabWidth * 2;
 
-        public UseToExportFieldsInManifest(RuleInfo ruleInfo)
+        internal UseToExportFieldsInManifest(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

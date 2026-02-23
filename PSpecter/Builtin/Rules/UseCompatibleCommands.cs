@@ -35,7 +35,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public UseCompatibleCommands(
+        internal UseCompatibleCommands(
             RuleInfo ruleInfo,
             UseCompatibleCommandsConfiguration configuration,
             IPowerShellCommandDatabase commandDb)
@@ -226,7 +226,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             public readonly string ProfileName;
             public readonly PlatformInfo Platform;
 
-            public ResolvedTarget(string profileName, PlatformInfo platform)
+            internal ResolvedTarget(string profileName, PlatformInfo platform)
             {
                 ProfileName = profileName;
                 Platform = platform;

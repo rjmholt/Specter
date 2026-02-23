@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("AvoidTrailingWhitespace", Description = "Removes trailing spaces and tabs from all lines")]
     internal sealed class AvoidTrailingWhitespaceEditor : IScriptEditor, IConfigurableEditor<AvoidTrailingWhitespaceEditorConfiguration>
     {
-        public AvoidTrailingWhitespaceEditor(AvoidTrailingWhitespaceEditorConfiguration configuration)
+        internal AvoidTrailingWhitespaceEditor(AvoidTrailingWhitespaceEditorConfiguration configuration)
         {
             Configuration = configuration ?? new AvoidTrailingWhitespaceEditorConfiguration();
         }

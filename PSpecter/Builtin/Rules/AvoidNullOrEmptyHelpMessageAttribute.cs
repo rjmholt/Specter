@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidNullOrEmptyHelpMessageAttribute", typeof(Strings), nameof(Strings.AvoidNullOrEmptyHelpMessageAttributeDescription))]
     internal class AvoidNullOrEmptyHelpMessageAttribute : ScriptRule
     {
-        public AvoidNullOrEmptyHelpMessageAttribute(RuleInfo ruleInfo)
+        internal AvoidNullOrEmptyHelpMessageAttribute(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

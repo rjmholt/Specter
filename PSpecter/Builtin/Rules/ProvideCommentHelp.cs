@@ -28,7 +28,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("ProvideCommentHelp", typeof(Strings), nameof(Strings.ProvideCommentHelpDescription))]
     internal class ProvideCommentHelp : ConfigurableScriptRule<ProvideCommentHelpConfiguration>
     {
-        public ProvideCommentHelp(RuleInfo ruleInfo, ProvideCommentHelpConfiguration configuration)
+        internal ProvideCommentHelp(RuleInfo ruleInfo, ProvideCommentHelpConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

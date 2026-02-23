@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Rules
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public UseCmdletCorrectly(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
+        internal UseCmdletCorrectly(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
             : base(ruleInfo)
         {
             _commandDb = commandDb;

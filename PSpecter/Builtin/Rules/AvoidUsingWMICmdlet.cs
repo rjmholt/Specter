@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Rules
             "Set-WmiInstance",
         };
 
-        public AvoidUsingWMICmdlet(RuleInfo ruleInfo)
+        internal AvoidUsingWMICmdlet(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

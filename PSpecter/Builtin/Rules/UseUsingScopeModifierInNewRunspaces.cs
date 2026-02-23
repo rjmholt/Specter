@@ -40,7 +40,7 @@ namespace PSpecter.Builtin.Rules
 
         private static readonly string[] s_dscScriptResourceCommandNames = { "GetScript", "TestScript", "SetScript" };
 
-        public UseUsingScopeModifierInNewRunspaces(RuleInfo ruleInfo)
+        internal UseUsingScopeModifierInNewRunspaces(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
@@ -68,7 +68,7 @@ namespace PSpecter.Builtin.Rules
             private readonly List<ScriptDiagnostic> _diagnostics = new List<ScriptDiagnostic>();
             private readonly Dictionary<string, HashSet<string>> _varsDeclaredPerSession = new Dictionary<string, HashSet<string>>();
 
-            public NewRunspaceVisitor(UseUsingScopeModifierInNewRunspaces rule, string? filePath)
+            internal NewRunspaceVisitor(UseUsingScopeModifierInNewRunspaces rule, string? filePath)
             {
                 _rule = rule;
                 _filePath = filePath;

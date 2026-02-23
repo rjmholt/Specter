@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AlignAssignmentStatement", typeof(Strings), nameof(Strings.AlignAssignmentStatementDescription), Severity = DiagnosticSeverity.Warning)]
     internal class AlignAssignmentStatement : FormattingRule<AlignAssignmentStatementEditorConfiguration>
     {
-        public AlignAssignmentStatement(RuleInfo ruleInfo, AlignAssignmentStatementEditorConfiguration configuration)
+        internal AlignAssignmentStatement(RuleInfo ruleInfo, AlignAssignmentStatementEditorConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

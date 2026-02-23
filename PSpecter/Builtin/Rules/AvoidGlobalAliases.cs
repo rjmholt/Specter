@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidGlobalAliases", typeof(Strings), nameof(Strings.AvoidGlobalAliasesDescription))]
     internal class AvoidGlobalAliases : ScriptRule
     {
-        public AvoidGlobalAliases(RuleInfo ruleInfo)
+        internal AvoidGlobalAliases(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

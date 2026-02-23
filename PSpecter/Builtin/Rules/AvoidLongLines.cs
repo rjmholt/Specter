@@ -21,7 +21,7 @@ namespace PSpecter.Builtin.Rules
     {
         private static readonly string[] s_lineSeparators = new[] { "\r\n", "\n" };
 
-        public AvoidLongLines(RuleInfo ruleInfo, AvoidLongLinesConfiguration configuration)
+        internal AvoidLongLines(RuleInfo ruleInfo, AvoidLongLinesConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

@@ -18,7 +18,7 @@ namespace PSpecter.CommandDatabase.Import
         /// <summary>
         /// Imports all JSON files from a settings directory into the database.
         /// </summary>
-        public static void ImportDirectory(SqliteConnection connection, string settingsDirectory)
+        internal static void ImportDirectory(SqliteConnection connection, string settingsDirectory)
         {
             if (!Directory.Exists(settingsDirectory))
             {
@@ -46,7 +46,7 @@ namespace PSpecter.CommandDatabase.Import
         /// <summary>
         /// Imports a single legacy settings JSON string for a given platform.
         /// </summary>
-        public static void ImportJson(CommandDatabaseWriter writer, string json, PlatformInfo platform)
+        internal static void ImportJson(CommandDatabaseWriter writer, string json, PlatformInfo platform)
         {
             var commands = ParseJson(json);
             writer.ImportCommands(commands, platform);

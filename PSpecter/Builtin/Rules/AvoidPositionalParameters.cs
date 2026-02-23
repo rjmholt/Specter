@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Rules
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public AvoidPositionalParameters(
+        internal AvoidPositionalParameters(
             RuleInfo ruleInfo,
             AvoidPositionalParametersConfiguration configuration,
             IPowerShellCommandDatabase commandDb)

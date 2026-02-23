@@ -17,7 +17,7 @@ namespace PSpecter.Configuration.Psd
         /// </summary>
         /// <param name="exprAst">The expression AST to try to evaluate.</param>
         /// <returns>The .NET value represented by the PowerShell expression.</returns>
-        public object? ConvertAstValue(ExpressionAst exprAst)
+        internal object? ConvertAstValue(ExpressionAst exprAst)
         {
             switch (exprAst)
             {
@@ -110,7 +110,7 @@ namespace PSpecter.Configuration.Psd
         /// </summary>
         /// <param name="arrLiteralAst">The PowerShell array AST to turn into a value.</param>
         /// <returns>The .NET value represented by PowerShell syntax.</returns>
-        public object[] ConvertAstValue(ArrayLiteralAst arrLiteralAst)
+        internal object[] ConvertAstValue(ArrayLiteralAst arrLiteralAst)
         {
             if (arrLiteralAst == null)
             {
@@ -137,7 +137,7 @@ namespace PSpecter.Configuration.Psd
         /// </summary>
         /// <param name="hashtableAst">The PowerShell representation of the hashtable value.</param>
         /// <returns>The Hashtable as a hydrated .NET value.</returns>
-        public Hashtable ConvertAstValue(HashtableAst hashtableAst)
+        internal Hashtable ConvertAstValue(HashtableAst hashtableAst)
         {
             if (hashtableAst == null)
             {

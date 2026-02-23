@@ -32,7 +32,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             s_v3, s_v4, s_v5, s_v6, s_v7,
         };
 
-        public UseCompatibleSyntax(RuleInfo ruleInfo, UseCompatibleSyntaxConfiguration configuration)
+        internal UseCompatibleSyntax(RuleInfo ruleInfo, UseCompatibleSyntaxConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }
@@ -96,7 +96,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             private readonly HashSet<Version> _targetVersions;
             private readonly List<ScriptDiagnostic> _diagnostics;
 
-            public SyntaxCompatibilityVisitor(
+            internal SyntaxCompatibilityVisitor(
                 UseCompatibleSyntax rule,
                 string filePath,
                 HashSet<Version> targetVersions)

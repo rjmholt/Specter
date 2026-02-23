@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidUsingAllowUnencryptedAuthentication", typeof(Strings), nameof(Strings.AvoidUsingAllowUnencryptedAuthenticationDescription))]
     internal class AvoidUsingAllowUnencryptedAuthentication : ScriptRule
     {
-        public AvoidUsingAllowUnencryptedAuthentication(RuleInfo ruleInfo)
+        internal AvoidUsingAllowUnencryptedAuthentication(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

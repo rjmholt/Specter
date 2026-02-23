@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [Rule("StandardDSCFunctionsInResource", typeof(Strings), nameof(Strings.UseStandardDSCFunctionsInResourceDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Error)]
     internal class UseStandardDscFunctionsInResource : ScriptRule
     {
-        public UseStandardDscFunctionsInResource(RuleInfo ruleInfo)
+        internal UseStandardDscFunctionsInResource(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -10,7 +10,7 @@ namespace PSpecter.Builtin
 {
     internal class BuiltinRuleProviderFactory : TypeRuleProviderFactory
     {
-        public BuiltinRuleProviderFactory(
+        internal BuiltinRuleProviderFactory(
             IReadOnlyDictionary<string, IRuleConfiguration>? ruleConfigurationCollection)
             : base(
                 ruleConfigurationCollection ?? (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration,

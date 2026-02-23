@@ -9,7 +9,7 @@ namespace PSpecter.Suppression
 {
     internal sealed class ReferenceEqualityComparerHelper<T> : IEqualityComparer<T> where T : class
     {
-        public static readonly ReferenceEqualityComparerHelper<T> Instance = new();
+        internal static readonly ReferenceEqualityComparerHelper<T> Instance = new();
 
         public bool Equals(T? x, T? y) => ReferenceEquals(x, y);
 
@@ -17,7 +17,7 @@ namespace PSpecter.Suppression
     }
     public sealed class RuleSuppression
     {
-        public RuleSuppression(
+        internal RuleSuppression(
             string ruleName,
             string? ruleSuppressionId,
             int startOffset,
@@ -35,24 +35,24 @@ namespace PSpecter.Suppression
             Justification = justification;
         }
 
-        public string RuleName { get; }
+        internal string RuleName { get; }
 
-        public string? RuleSuppressionId { get; }
+        internal string? RuleSuppressionId { get; }
 
-        public int StartOffset { get; }
+        internal int StartOffset { get; }
 
-        public int EndOffset { get; }
+        internal int EndOffset { get; }
 
-        public int StartLineNumber { get; }
+        internal int StartLineNumber { get; }
 
-        public int EndLineNumber { get; }
+        internal int EndLineNumber { get; }
 
-        public string? Justification { get; }
+        internal string? Justification { get; }
     }
 
     public sealed class SuppressedDiagnostic
     {
-        public SuppressedDiagnostic(
+        internal SuppressedDiagnostic(
             ScriptDiagnostic diagnostic,
             IReadOnlyList<RuleSuppression> suppressions)
         {
@@ -60,20 +60,20 @@ namespace PSpecter.Suppression
             Suppressions = suppressions;
         }
 
-        public ScriptDiagnostic Diagnostic { get; }
+        internal ScriptDiagnostic Diagnostic { get; }
 
-        public IReadOnlyList<RuleSuppression> Suppressions { get; }
+        internal IReadOnlyList<RuleSuppression> Suppressions { get; }
     }
 
     public sealed class AnalysisResult
     {
-        public static readonly AnalysisResult Empty = new(
+        internal static readonly AnalysisResult Empty = new(
             Array.Empty<ScriptDiagnostic>(),
             Array.Empty<SuppressedDiagnostic>(),
             Array.Empty<RuleSuppression>(),
             Array.Empty<RuleExecutionError>());
 
-        public AnalysisResult(
+        internal AnalysisResult(
             IReadOnlyList<ScriptDiagnostic> diagnostics,
             IReadOnlyList<SuppressedDiagnostic> suppressedDiagnostics,
             IReadOnlyList<RuleSuppression> unappliedSuppressions,
@@ -85,18 +85,18 @@ namespace PSpecter.Suppression
             RuleErrors = ruleErrors ?? Array.Empty<RuleExecutionError>();
         }
 
-        public IReadOnlyList<ScriptDiagnostic> Diagnostics { get; }
+        internal IReadOnlyList<ScriptDiagnostic> Diagnostics { get; }
 
-        public IReadOnlyList<SuppressedDiagnostic> SuppressedDiagnostics { get; }
+        internal IReadOnlyList<SuppressedDiagnostic> SuppressedDiagnostics { get; }
 
-        public IReadOnlyList<RuleSuppression> UnappliedSuppressions { get; }
+        internal IReadOnlyList<RuleSuppression> UnappliedSuppressions { get; }
 
-        public IReadOnlyList<RuleExecutionError> RuleErrors { get; }
+        internal IReadOnlyList<RuleExecutionError> RuleErrors { get; }
     }
 
     internal static class SuppressionParser
     {
-        public static Dictionary<string, List<RuleSuppression>> GetSuppressions(Ast scriptAst, Token[]? tokens = null)
+        internal static Dictionary<string, List<RuleSuppression>> GetSuppressions(Ast scriptAst, Token[]? tokens = null)
         {
             var suppressions = new Dictionary<string, List<RuleSuppression>>(StringComparer.OrdinalIgnoreCase);
 
@@ -379,7 +379,7 @@ namespace PSpecter.Suppression
 
     internal static class SuppressionApplier
     {
-        public static IReadOnlyCollection<ScriptDiagnostic> ApplySuppressions(
+        internal static IReadOnlyCollection<ScriptDiagnostic> ApplySuppressions(
             IReadOnlyCollection<ScriptDiagnostic> diagnostics,
             Dictionary<string, List<RuleSuppression>> suppressions)
         {
@@ -403,7 +403,7 @@ namespace PSpecter.Suppression
             return result;
         }
 
-        public static AnalysisResult ApplySuppressionsWithTracking(
+        internal static AnalysisResult ApplySuppressionsWithTracking(
             IReadOnlyCollection<ScriptDiagnostic> diagnostics,
             Dictionary<string, List<RuleSuppression>> suppressions,
             IReadOnlyList<RuleExecutionError>? ruleErrors = null)

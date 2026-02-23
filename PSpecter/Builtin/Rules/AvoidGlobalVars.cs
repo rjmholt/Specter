@@ -14,7 +14,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [Rule("AvoidGlobalVars", typeof(Strings), nameof(Strings.AvoidGlobalVarsDescription))]
     internal class AvoidGlobalVars : ScriptRule
     {
-        public AvoidGlobalVars(RuleInfo ruleInfo) : base(ruleInfo)
+        internal AvoidGlobalVars(RuleInfo ruleInfo) : base(ruleInfo)
         {
         }
 

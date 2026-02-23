@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Rules
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public AvoidUsingConvertToSecureStringWithPlainText(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
+        internal AvoidUsingConvertToSecureStringWithPlainText(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb)
             : base(ruleInfo)
         {
             _commandDb = commandDb;

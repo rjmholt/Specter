@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseUTF8EncodingForHelpFile", typeof(Strings), nameof(Strings.UseUTF8EncodingForHelpFileDescription))]
     internal class UseUTF8EncodingForHelpFile : ScriptRule
     {
-        public UseUTF8EncodingForHelpFile(RuleInfo ruleInfo)
+        internal UseUTF8EncodingForHelpFile(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

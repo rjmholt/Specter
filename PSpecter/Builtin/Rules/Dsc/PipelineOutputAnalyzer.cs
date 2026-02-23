@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         public readonly string? TypeName;
         public readonly IScriptExtent Extent;
 
-        public OutputInfo(string? typeName, IScriptExtent extent)
+        internal OutputInfo(string? typeName, IScriptExtent extent)
         {
             TypeName = typeName;
             Extent = extent;

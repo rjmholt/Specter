@@ -21,7 +21,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public UseDeclaredVarsMoreThanAssignments(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb) : base(ruleInfo)
+        internal UseDeclaredVarsMoreThanAssignments(RuleInfo ruleInfo, IPowerShellCommandDatabase commandDb) : base(ruleInfo)
         {
             _commandDb = commandDb;
         }

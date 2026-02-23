@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidExclaimOperator", typeof(Strings), nameof(Strings.AvoidExclaimOperatorDescription))]
     internal class AvoidExclaimOperator : ConfigurableScriptRule<AvoidExclaimOperatorConfiguration>
     {
-        public AvoidExclaimOperator(RuleInfo ruleInfo, AvoidExclaimOperatorConfiguration configuration)
+        internal AvoidExclaimOperator(RuleInfo ruleInfo, AvoidExclaimOperatorConfiguration configuration)
             : base(ruleInfo, configuration)
         {
         }

@@ -28,7 +28,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
         private readonly IPowerShellCommandDatabase _commandDb;
 
-        public UseCompatibleCmdlets(
+        internal UseCompatibleCmdlets(
             RuleInfo ruleInfo,
             UseCompatibleCmdletsConfiguration configuration,
             IPowerShellCommandDatabase commandDb)

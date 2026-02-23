@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("PossibleIncorrectUsageOfAssignmentOperator", typeof(Strings), nameof(Strings.PossibleIncorrectUsageOfAssignmentOperatorDescription), Severity = DiagnosticSeverity.Information)]
     internal class PossibleIncorrectUsageOfAssignmentOperator : ScriptRule
     {
-        public PossibleIncorrectUsageOfAssignmentOperator(RuleInfo ruleInfo)
+        internal PossibleIncorrectUsageOfAssignmentOperator(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

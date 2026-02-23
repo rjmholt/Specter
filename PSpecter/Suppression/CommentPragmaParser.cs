@@ -17,7 +17,7 @@ namespace PSpecter.Suppression
         private const string BlockBeginPrefix = "pspecter-suppress-begin";
         private const string BlockEndPrefix = "pspecter-suppress-end";
 
-        public static void CollectFromTokens(
+        internal static void CollectFromTokens(
             Token[] tokens,
             Dictionary<string, List<RuleSuppression>> suppressions)
         {

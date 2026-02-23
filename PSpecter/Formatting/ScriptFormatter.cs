@@ -178,7 +178,7 @@ namespace PSpecter.Formatting
                 // Try constructor with config + services
                 if (configType is not null)
                 {
-                    foreach (ConstructorInfo ctor in editorType.GetConstructors())
+                    foreach (ConstructorInfo ctor in editorType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                     {
                         ParameterInfo[] parameters = ctor.GetParameters();
                         if (parameters.Length == 0)
@@ -195,7 +195,7 @@ namespace PSpecter.Formatting
                 }
 
                 // Fall back to parameterless constructor
-                ConstructorInfo? defaultCtor = editorType.GetConstructor(Type.EmptyTypes);
+                ConstructorInfo? defaultCtor = editorType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, binder: null, Type.EmptyTypes, modifiers: null);
                 if (defaultCtor is not null)
                 {
                     return (IScriptEditor)defaultCtor.Invoke(null);

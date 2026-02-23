@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidDefaultValueSwitchParameter", typeof(Strings), nameof(Strings.AvoidDefaultValueSwitchParameterDescription))]
     internal class AvoidDefaultTrueValueSwitchParameter : ScriptRule
     {
-        public AvoidDefaultTrueValueSwitchParameter(RuleInfo ruleInfo)
+        internal AvoidDefaultTrueValueSwitchParameter(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

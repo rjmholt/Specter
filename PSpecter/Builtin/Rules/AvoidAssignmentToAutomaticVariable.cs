@@ -33,7 +33,7 @@ namespace PSpecter.Builtin.Rules
             "Sender", "StackTrace", "This"
         };
 
-        public AvoidAssignmentToAutomaticVariable(RuleInfo ruleInfo)
+        internal AvoidAssignmentToAutomaticVariable(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

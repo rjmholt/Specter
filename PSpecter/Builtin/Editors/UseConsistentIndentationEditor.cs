@@ -27,7 +27,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("UseConsistentIndentation", Description = "Enforces consistent indentation by walking the token stream and tracking nesting depth")]
     internal sealed class UseConsistentIndentationEditor : IScriptEditor, IConfigurableEditor<UseConsistentIndentationEditorConfiguration>
     {
-        public UseConsistentIndentationEditor(UseConsistentIndentationEditorConfiguration configuration)
+        internal UseConsistentIndentationEditor(UseConsistentIndentationEditorConfiguration configuration)
         {
             Configuration = configuration ?? new UseConsistentIndentationEditorConfiguration();
         }
@@ -357,7 +357,7 @@ namespace PSpecter.Builtin.Editors
 
         private readonly struct OffsetRange
         {
-            public OffsetRange(int start, int end) { Start = start; End = end; }
+            internal OffsetRange(int start, int end) { Start = start; End = end; }
             public int Start { get; }
             public int End { get; }
         }

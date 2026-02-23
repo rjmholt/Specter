@@ -21,7 +21,7 @@ namespace PSpecter.Builtin.Rules
                 defaultValue: "'1.0.0.0'"),
         };
 
-        public MissingModuleManifestField(RuleInfo ruleInfo)
+        internal MissingModuleManifestField(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
@@ -121,7 +121,7 @@ namespace PSpecter.Builtin.Rules
             public readonly string Comment;
             public readonly string DefaultValue;
 
-            public RequiredField(string name, string comment, string defaultValue)
+            internal RequiredField(string name, string comment, string defaultValue)
             {
                 Name = name;
                 Comment = comment;
@@ -135,7 +135,7 @@ namespace PSpecter.Builtin.Rules
             private readonly int _line;
             private readonly int _column;
 
-            public ScriptPosition(string file, int startLineNumber, int startColumnNumber)
+            internal ScriptPosition(string file, int startLineNumber, int startColumnNumber)
             {
                 _file = file;
                 _line = startLineNumber;
@@ -156,7 +156,7 @@ namespace PSpecter.Builtin.Rules
             private readonly IScriptPosition _start;
             private readonly IScriptPosition _end;
 
-            public ScriptExtent(IScriptPosition start, IScriptPosition end)
+            internal ScriptExtent(IScriptPosition start, IScriptPosition end)
             {
                 _start = start;
                 _end = end;

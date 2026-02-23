@@ -25,7 +25,7 @@ namespace PSpecter.Builtin.Rules
             { "Update-" }
         };
 
-        public UseShouldProcessForStateChangingFunctions(RuleInfo ruleInfo)
+        internal UseShouldProcessForStateChangingFunctions(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [Rule("UseVerboseMessageInDSCResource", typeof(Strings), nameof(Strings.UseVerboseMessageInDSCResourceDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Information)]
     internal class UseVerboseMessageInDscResource : ScriptRule
     {
-        public UseVerboseMessageInDscResource(RuleInfo ruleInfo)
+        internal UseVerboseMessageInDscResource(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

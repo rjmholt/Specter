@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [Rule("AvoidDefaultValueForMandatoryParameter", typeof(Strings), nameof(Strings.AvoidDefaultValueForMandatoryParameterDescription))]
     internal class AvoidDefaultValueForMandatoryParameter : ScriptRule
     {
-        public AvoidDefaultValueForMandatoryParameter(RuleInfo ruleInfo)
+        internal AvoidDefaultValueForMandatoryParameter(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }

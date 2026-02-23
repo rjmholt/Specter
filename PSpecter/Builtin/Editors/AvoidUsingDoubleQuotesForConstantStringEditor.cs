@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("AvoidUsingDoubleQuotesForConstantString", Description = "Replaces double-quoted constant strings with single-quoted equivalents")]
     internal sealed class AvoidUsingDoubleQuotesForConstantStringEditor : IScriptEditor, IConfigurableEditor<AvoidUsingDoubleQuotesForConstantStringEditorConfiguration>
     {
-        public AvoidUsingDoubleQuotesForConstantStringEditor(AvoidUsingDoubleQuotesForConstantStringEditorConfiguration configuration)
+        internal AvoidUsingDoubleQuotesForConstantStringEditor(AvoidUsingDoubleQuotesForConstantStringEditorConfiguration configuration)
         {
             Configuration = configuration ?? new AvoidUsingDoubleQuotesForConstantStringEditorConfiguration();
         }

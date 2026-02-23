@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Editors
     [Editor("AvoidExclaimOperator", Description = "Replaces ! with -not")]
     internal sealed class AvoidExclaimOperatorEditor : IScriptEditor, IConfigurableEditor<AvoidExclaimOperatorEditorConfiguration>
     {
-        public AvoidExclaimOperatorEditor(AvoidExclaimOperatorEditorConfiguration configuration)
+        internal AvoidExclaimOperatorEditor(AvoidExclaimOperatorEditorConfiguration configuration)
         {
             Configuration = configuration ?? new AvoidExclaimOperatorEditorConfiguration();
         }

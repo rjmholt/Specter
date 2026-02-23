@@ -19,7 +19,7 @@ namespace PSpecter.Builtin.Rules
             "127.0.0.1",
         };
 
-        public AvoidUsingComputerNameHardcoded(RuleInfo ruleInfo)
+        internal AvoidUsingComputerNameHardcoded(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
         }
