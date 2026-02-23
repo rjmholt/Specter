@@ -3,8 +3,10 @@ using Specter.Configuration;
 using Specter.Execution;
 using Specter.Instantiation;
 using Specter.Logging;
+using Specter.Security;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace Specter.Builder
@@ -19,6 +21,8 @@ namespace Specter.Builder
 
         private IAnalysisLogger? _logger;
 
+        private ExternalRulePolicy _externalRulePolicy = ExternalRulePolicy.Explicit;
+
         public ScriptAnalyzerBuilder()
         {
             _ruleProviderFactories = new List<IRuleProviderFactory>();
@@ -27,6 +31,12 @@ namespace Specter.Builder
         public ScriptAnalyzerBuilder WithLogger(IAnalysisLogger logger)
         {
             _logger = logger;
+            return this;
+        }
+
+        public ScriptAnalyzerBuilder WithExternalRulePolicy(ExternalRulePolicy policy)
+        {
+            _externalRulePolicy = policy;
             return this;
         }
 
@@ -86,6 +96,98 @@ namespace Specter.Builder
             return this;
         }
 
+        /// <summary>
+        /// Load rules from an absolute path to a .dll, .psm1, .psd1, or directory.
+        /// Applies path validation and ownership checks unless the policy is Unrestricted.
+        /// Throws if the policy is Disabled.
+        /// </summary>
+        public ScriptAnalyzerBuilder AddRulesFromPath(string absolutePath)
+            => AddRulesFromPath(absolutePath, (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
+
+        public ScriptAnalyzerBuilder AddRulesFromPath(
+            string absolutePath,
+            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+        {
+            EnsureExternalRulesAllowed();
+
+            if (!Path.IsPathRooted(absolutePath))
+            {
+                throw new ArgumentException(
+                    $"AddRulesFromPath requires an absolute path. Got: '{absolutePath}'",
+                    nameof(absolutePath));
+            }
+
+            bool skipOwnershipCheck = _externalRulePolicy == ExternalRulePolicy.Unrestricted;
+
+            IRuleProviderFactory? factory = ExternalRuleLoader.CreateProviderFactory(
+                absolutePath,
+                settingsFileDirectory: null,
+                ruleConfigurationCollection,
+                skipOwnershipCheck,
+                _logger);
+
+            if (factory is not null)
+            {
+                _ruleProviderFactories.Add(factory);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Load rules from an absolute path to a directory, optionally recursing.
+        /// </summary>
+        public ScriptAnalyzerBuilder AddRulesFromPath(
+            string absolutePath,
+            bool recurse)
+            => AddRulesFromPath(absolutePath, recurse, (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
+
+        public ScriptAnalyzerBuilder AddRulesFromPath(
+            string absolutePath,
+            bool recurse,
+            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+        {
+            EnsureExternalRulesAllowed();
+
+            if (!Path.IsPathRooted(absolutePath))
+            {
+                throw new ArgumentException(
+                    $"AddRulesFromPath requires an absolute path. Got: '{absolutePath}'",
+                    nameof(absolutePath));
+            }
+
+            bool skipOwnershipCheck = _externalRulePolicy == ExternalRulePolicy.Unrestricted;
+
+            List<IRuleProviderFactory> factories = ExternalRuleLoader.CreateProviderFactoriesForDirectory(
+                absolutePath,
+                settingsFileDirectory: null,
+                ruleConfigurationCollection,
+                recurse,
+                skipOwnershipCheck,
+                _logger);
+
+            _ruleProviderFactories.AddRange(factories);
+            return this;
+        }
+
+        /// <summary>
+        /// Load rules from a PowerShell module at an absolute path.
+        /// </summary>
+        public ScriptAnalyzerBuilder AddRulesFromModule(string absoluteModulePath)
+        {
+            EnsureExternalRulesAllowed();
+
+            if (!Path.IsPathRooted(absoluteModulePath))
+            {
+                throw new ArgumentException(
+                    $"AddRulesFromModule requires an absolute path. Got: '{absoluteModulePath}'",
+                    nameof(absoluteModulePath));
+            }
+
+            _ruleProviderFactories.Add(new PSModuleRuleProviderFactory(absoluteModulePath, _logger));
+            return this;
+        }
+
         public ScriptAnalyzerBuilder AddBuiltinRules(Action<BuiltinRulesBuilder> configureBuiltinRules)
         {
             var builtinRulesBuilder = new BuiltinRulesBuilder();
@@ -97,6 +199,16 @@ namespace Specter.Builder
         public ScriptAnalyzer Build()
         {
             return ScriptAnalyzer.Create(_ruleComponentProvider!, _ruleExecutorFactory!, _ruleProviderFactories, _logger);
+        }
+
+        private void EnsureExternalRulesAllowed()
+        {
+            if (_externalRulePolicy == ExternalRulePolicy.Disabled)
+            {
+                throw new InvalidOperationException(
+                    "External rule loading is disabled by the ExternalRules policy. " +
+                    "Set ExternalRules to 'explicit' or 'unrestricted' to allow loading external rules.");
+            }
         }
     }
 }

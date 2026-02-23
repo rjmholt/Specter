@@ -12,6 +12,7 @@ using Specter.Execution;
 using Specter.Formatting;
 using Specter.Logging;
 using Specter.Rules;
+using Specter.Security;
 using Specter.Suppression;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic;
@@ -85,6 +86,13 @@ namespace Specter.PssaCompatibility.Commands
 
         [Parameter]
         public SwitchParameter IncludeSuppressed { get; set; }
+
+        [Parameter]
+        [ValidateNotNull]
+        public string[]? CustomRulePath { get; set; }
+
+        [Parameter]
+        public SwitchParameter RecurseCustomRulePath { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -404,12 +412,87 @@ namespace Specter.PssaCompatibility.Commands
 
             var logger = new PowerShellAnalysisLogger(this);
 
-            return new ScriptAnalyzerBuilder()
+            var builder = new ScriptAnalyzerBuilder()
                 .WithLogger(logger)
                 .WithRuleComponentProvider(rcpb => rcpb.UseBuiltinDatabase())
                 .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory(logger))
-                .AddBuiltinRules(configDict)
-                .Build();
+                .AddBuiltinRules(configDict);
+
+            string[]? customRulePaths = CustomRulePath ?? parsedSettings?.CustomRulePath?.ToArray();
+            bool recurseCustom = RecurseCustomRulePath.IsPresent
+                || (parsedSettings?.RecurseCustomRulePath ?? false);
+
+            string? settingsDir = ResolveSettingsDirectory();
+
+            if (customRulePaths is not null)
+            {
+                foreach (string rulePath in customRulePaths)
+                {
+                    string resolvedRulePath = ResolveRulePath(rulePath, settingsDir);
+
+                    var factories = ExternalRuleLoader.CreateProviderFactoriesForDirectory(
+                        resolvedRulePath,
+                        settingsDir,
+                        configDict,
+                        recurseCustom,
+                        skipOwnershipCheck: false,
+                        logger);
+
+                    foreach (var factory in factories)
+                    {
+                        builder.AddRuleProviderFactory(factory);
+                    }
+                }
+            }
+
+            return builder.Build();
+        }
+
+        private string? ResolveSettingsDirectory()
+        {
+            if (Settings is string settingsPath)
+            {
+                try
+                {
+                    var resolved = SessionState.Path.GetResolvedPSPathFromPSPath(settingsPath);
+                    if (resolved.Count > 0)
+                    {
+                        return System.IO.Path.GetDirectoryName(resolved[0].Path);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return null;
+        }
+
+        private string ResolveRulePath(string rulePath, string? settingsDir)
+        {
+            if (System.IO.Path.IsPathRooted(rulePath))
+            {
+                return rulePath;
+            }
+
+            if (settingsDir is not null)
+            {
+                return System.IO.Path.GetFullPath(System.IO.Path.Combine(settingsDir, rulePath));
+            }
+
+            try
+            {
+                var resolved = SessionState.Path.GetResolvedPSPathFromPSPath(rulePath);
+                if (resolved.Count > 0)
+                {
+                    return resolved[0].Path;
+                }
+            }
+            catch
+            {
+            }
+
+            return System.IO.Path.GetFullPath(rulePath);
         }
 
         private static void ApplyRuleArguments(

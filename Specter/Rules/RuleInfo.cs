@@ -35,6 +35,7 @@ namespace Specter.Rules
         private static bool TryGetFromAttributeList(IEnumerable<Attribute> attributes, SourceType source, string ruleCollectionName, out RuleInfo? ruleInfo)
         {
             RuleAttribute? ruleAttribute = null;
+            SpecterRuleAttribute? specterRuleAttribute = null;
             ThreadsafeRuleAttribute? threadsafeAttribute = null;
             IdempotentRuleAttribute? idempotentAttribute = null;
             foreach (Attribute attribute in attributes)
@@ -43,6 +44,10 @@ namespace Specter.Rules
                 {
                     case RuleAttribute ruleAttr:
                         ruleAttribute = ruleAttr;
+                        continue;
+
+                    case SpecterRuleAttribute specterAttr:
+                        specterRuleAttribute = specterAttr;
                         continue;
 
                     case ThreadsafeRuleAttribute tsAttr:
@@ -55,22 +60,36 @@ namespace Specter.Rules
                 }
             }
 
-            if (ruleAttribute == null)
+            if (ruleAttribute is not null)
             {
-                ruleInfo = null;
-                return false;
+                string ruleNamespace = ruleAttribute.Namespace ?? ruleCollectionName;
+                ruleInfo = new RuleInfo(ruleAttribute.Name, ruleNamespace)
+                {
+                    DefaultSeverity = ruleAttribute.Severity,
+                    Description = ruleAttribute.Description,
+                    Source = source,
+                    IsIdempotent = idempotentAttribute != null,
+                    IsThreadsafe = threadsafeAttribute != null,
+                };
+                return true;
             }
 
-            string ruleNamespace = ruleAttribute!.Namespace ?? ruleCollectionName;
-            ruleInfo = new RuleInfo(ruleAttribute!.Name, ruleNamespace)
+            if (specterRuleAttribute is not null)
             {
-                DefaultSeverity = ruleAttribute.Severity,
-                Description = ruleAttribute.Description,
-                Source = source,
-                IsIdempotent = idempotentAttribute != null,
-                IsThreadsafe = threadsafeAttribute != null,
-            };
-            return true;
+                string ruleNamespace = specterRuleAttribute.Namespace ?? ruleCollectionName;
+                ruleInfo = new RuleInfo(specterRuleAttribute.Name, ruleNamespace)
+                {
+                    DefaultSeverity = specterRuleAttribute.Severity,
+                    Description = specterRuleAttribute.Description,
+                    Source = source == SourceType.Assembly ? SourceType.PowerShellModule : source,
+                    IsIdempotent = idempotentAttribute != null,
+                    IsThreadsafe = threadsafeAttribute != null,
+                };
+                return true;
+            }
+
+            ruleInfo = null;
+            return false;
         }
 
         private RuleInfo(

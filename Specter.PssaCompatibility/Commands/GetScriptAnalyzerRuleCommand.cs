@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Management.Automation;
 using Specter;
 using Specter.Builder;
@@ -8,6 +9,7 @@ using Specter.Configuration;
 using Specter.Execution;
 using Specter.Instantiation;
 using Specter.Rules;
+using Specter.Security;
 using CompatSeverity = Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticSeverity;
 using EngineSeverity = Specter.DiagnosticSeverity;
 
@@ -24,13 +26,53 @@ namespace Specter.PssaCompatibility.Commands
         [Parameter]
         public string[]? Severity { get; set; }
 
+        [Parameter]
+        [ValidateNotNull]
+        public string[]? CustomRulePath { get; set; }
+
+        [Parameter]
+        public SwitchParameter RecurseCustomRulePath { get; set; }
+
         protected override void ProcessRecord()
         {
-            ScriptAnalyzer analyzer = new ScriptAnalyzerBuilder()
+            var configDict = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in Specter.Builtin.Default.RuleConfiguration)
+            {
+                if (kvp.Value is not null)
+                {
+                    configDict[kvp.Key] = kvp.Value;
+                }
+            }
+
+            var builder = new ScriptAnalyzerBuilder()
                 .WithRuleComponentProvider(rcpb => rcpb.UseSessionDatabase(SessionState.InvokeCommand))
                 .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
-                .AddBuiltinRules()
-                .Build();
+                .AddBuiltinRules();
+
+            if (CustomRulePath is not null)
+            {
+                foreach (string rulePath in CustomRulePath)
+                {
+                    string resolvedPath = Path.IsPathRooted(rulePath)
+                        ? rulePath
+                        : Path.GetFullPath(rulePath);
+
+                    var factories = ExternalRuleLoader.CreateProviderFactoriesForDirectory(
+                        resolvedPath,
+                        settingsFileDirectory: null,
+                        configDict,
+                        RecurseCustomRulePath.IsPresent,
+                        skipOwnershipCheck: false,
+                        logger: null);
+
+                    foreach (var factory in factories)
+                    {
+                        builder.AddRuleProviderFactory(factory);
+                    }
+                }
+            }
+
+            ScriptAnalyzer analyzer = builder.Build();
 
             HashSet<string>? severityFilter = null;
             if (Severity is { Length: > 0 })

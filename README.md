@@ -17,6 +17,7 @@ Specter is a reimplementation of [PSScriptAnalyzer](https://github.com/PowerShel
 ```
 Specter/                   Core analysis library (rules, formatting, configuration, command database)
 Specter.Module/            PowerShell module exposing Specter cmdlets (Update-SpecterDatabase, etc.)
+Specter.RulePrimitives/    C# module providing cmdlets for custom rule authors
 Specter.PssaCompatibility/ Drop-in PSScriptAnalyzer-compatible PowerShell module
 Specter.Server/            Linting daemon with gRPC and LSP endpoints
 Specter.Test/              xUnit test suite
@@ -56,8 +57,14 @@ Specter ships two PowerShell modules: the native **Specter** module and a **comp
 The `Specter` module (`Specter.Module`) is the primary PowerShell interface. It exposes Specter-native cmdlets with an interface designed around the Specter engine rather than backward compatibility:
 
 - **`Invoke-Specter`** -- Analyse a script file or string. Returns `ScriptDiagnostic` objects from the Specter engine directly, with full fidelity (rule metadata, corrections, extent information).
-- **`Write-Diagnostic`** -- Emit a `ScriptDiagnostic` from a custom rule or pipeline. Useful for script-based rule authoring.
 - **`Update-SpecterDatabase`** -- Refresh the SQLite command database from a live PowerShell session or from legacy JSON compatibility profiles.
+
+The **Specter.RulePrimitives** module provides cmdlets for custom rule authors:
+
+- **`Write-Diagnostic`** -- Emit a `ScriptDiagnostic` from a rule function, auto-detecting the calling rule from the call stack. Use `-CorrectionText` for simple inline fixes.
+- **`New-ScriptCorrection`** -- Create a `Correction` object for advanced scenarios (different extent or multiple corrections). Pass to `Write-Diagnostic -Correction`.
+
+See [Writing Custom Rules](docs/writing-rules.md) for a full guide with examples.
 
 ```powershell
 Import-Module ./Specter/out/Specter/Specter.psd1
@@ -129,7 +136,8 @@ Top-level settings:
 |-----|--------|-------------|
 | `BuiltinRulePreference` | `"none"`, `"default"`, `"comprehensive"` | Which built-in rules to load |
 | `RuleExecutionMode` | `"default"`, `"parallel"`, `"sequential"` | How rules are executed |
-| `RulePaths` | `["/path/to/rules", ...]` | Additional rule module paths |
+| `RulePaths` | `["/path/to/rules", ...]` | Additional rule module paths (see security note below) |
+| `ExternalRules` | `"explicit"`, `"disabled"`, `"unrestricted"` | External rule loading policy (default: `explicit`) |
 | `Rules` | `{ "RuleName": { ... }, ... }` | Per-rule configuration |
 
 Each rule entry under `Rules` supports these shared keys alongside any rule-specific settings:
@@ -167,6 +175,17 @@ Invoke-ScriptAnalyzer -Path . -Settings @{
     }
 }
 ```
+
+### Custom Rule Security
+
+Loading external rules means executing third-party code in your process. Specter applies several safeguards automatically:
+
+- **Explicit opt-in** -- external rules are never loaded unless you pass `-CustomRulePath` or include `RulePaths` in your settings. Set `"ExternalRules": "disabled"` to block all external loading (recommended for CI/CD when only built-in rules are needed).
+- **File ownership checks** -- rule files and their parent directories must be owned by the current user or root/SYSTEM and must not be writable by other users.
+- **Manifest auditing** -- `.psd1` manifests are rejected if they contain `ScriptsToProcess`, `RequiredAssemblies`, or other fields that execute code at import time.
+- **Restricted runspace** -- PowerShell module rules run with a limited command allowlist and no access to the filesystem, registry, or network providers.
+
+See [SECURITY.md](SECURITY.md) for the full threat model and [Writing Custom Rules](docs/writing-rules.md) for best practices.
 
 ## Command Database
 

@@ -1,17 +1,21 @@
-﻿using Specter.Configuration;
+using Specter.Configuration;
 using Specter.Execution;
 using Specter.Instantiation;
-using Specter.Utils;
+using Specter.Security;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Specter.Builder
 {
     public static class ConfiguredBuilding
     {
         public static ScriptAnalyzer CreateScriptAnalyzer(this IScriptAnalyzerConfiguration configuration)
+            => CreateScriptAnalyzer(configuration, settingsFileDirectory: null);
+
+        public static ScriptAnalyzer CreateScriptAnalyzer(
+            this IScriptAnalyzerConfiguration configuration,
+            string? settingsFileDirectory)
         {
             var analyzerBuilder = new ScriptAnalyzerBuilder()
                 .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build());
@@ -36,16 +40,25 @@ namespace Specter.Builder
                     break;
             }
 
-            if (configuration.RulePaths != null)
+            ExternalRulePolicy policy = configuration.ExternalRules;
+            analyzerBuilder.WithExternalRulePolicy(policy);
+
+            if (policy != ExternalRulePolicy.Disabled && configuration.RulePaths is not null)
             {
+                bool skipOwnershipCheck = policy == ExternalRulePolicy.Unrestricted;
+
                 foreach (string rulePath in configuration.RulePaths)
                 {
-                    string extension = Path.GetExtension(rulePath);
+                    IRuleProviderFactory? factory = ExternalRuleLoader.CreateProviderFactory(
+                        rulePath,
+                        settingsFileDirectory,
+                        configuration.RuleConfiguration,
+                        skipOwnershipCheck,
+                        logger: null);
 
-                    if (extension.CaseInsensitiveEquals(".dll"))
+                    if (factory is not null)
                     {
-                        analyzerBuilder.AddRuleProviderFactory(TypeRuleProviderFactory.FromAssemblyFile(configuration.RuleConfiguration, rulePath));
-                        break;
+                        analyzerBuilder.AddRuleProviderFactory(factory);
                     }
                 }
             }

@@ -60,6 +60,8 @@ namespace Specter.Configuration.Json
         public IReadOnlyList<string> RulePaths { get; }
 
         public IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
+
+        public ExternalRulePolicy ExternalRules { get; set; } = ExternalRulePolicy.Explicit;
     }
 
     public class JsonRuleConfiguration : LazyConvertedRuleConfiguration<JObject>

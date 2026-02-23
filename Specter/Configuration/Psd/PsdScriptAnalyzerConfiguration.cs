@@ -75,6 +75,8 @@ namespace Specter.Configuration.Psd
         public IReadOnlyList<string> RulePaths { get; }
 
         public IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
+
+        public ExternalRulePolicy ExternalRules => ExternalRulePolicy.Explicit;
     }
 
     public class PsdRuleConfiguration : LazyConvertedRuleConfiguration<HashtableAst>

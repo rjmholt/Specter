@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Server", "Specter.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Module", "Specter.Module\Specter.Module.csproj", "{7CA946E8-8423-4412-8D5B-3E2CA306123A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.RulePrimitives", "Specter.RulePrimitives\Specter.RulePrimitives.csproj", "{6975432C-1654-4331-85CA-DADC99A95313}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{7CA946E8-8423-4412-8D5B-3E2CA306123A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CA946E8-8423-4412-8D5B-3E2CA306123A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CA946E8-8423-4412-8D5B-3E2CA306123A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6975432C-1654-4331-85CA-DADC99A95313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6975432C-1654-4331-85CA-DADC99A95313}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6975432C-1654-4331-85CA-DADC99A95313}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6975432C-1654-4331-85CA-DADC99A95313}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

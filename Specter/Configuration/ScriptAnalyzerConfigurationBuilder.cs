@@ -1,4 +1,4 @@
-﻿using Specter.Configuration.Json;
+using Specter.Configuration.Json;
 using Specter.Configuration.Psd;
 using System;
 using System.Collections.Generic;
@@ -149,5 +149,7 @@ namespace Specter.Configuration
         public IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
 
         public BuiltinRulePreference? BuiltinRules { get; }
+
+        public ExternalRulePolicy ExternalRules => ExternalRulePolicy.Explicit;
     }
 }
