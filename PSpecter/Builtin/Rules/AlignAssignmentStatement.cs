@@ -7,7 +7,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AlignAssignmentStatement", typeof(Strings), nameof(Strings.AlignAssignmentStatementDescription), Severity = DiagnosticSeverity.Warning)]
-    public class AlignAssignmentStatement : FormattingRule<AlignAssignmentStatementEditorConfiguration>
+    internal class AlignAssignmentStatement : FormattingRule<AlignAssignmentStatementEditorConfiguration>
     {
         public AlignAssignmentStatement(RuleInfo ruleInfo, AlignAssignmentStatementEditorConfiguration configuration)
             : base(ruleInfo, configuration)

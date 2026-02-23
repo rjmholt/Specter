@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidMultipleTypeAttributes", typeof(Strings), nameof(Strings.AvoidMultipleTypeAttributesDescription))]
-    public class AvoidMultipleTypeAttributes : ScriptRule
+    internal class AvoidMultipleTypeAttributes : ScriptRule
     {
         public AvoidMultipleTypeAttributes(RuleInfo ruleInfo)
             : base(ruleInfo)

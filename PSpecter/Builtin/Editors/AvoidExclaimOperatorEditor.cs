@@ -6,14 +6,14 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class AvoidExclaimOperatorEditorConfiguration : IEditorConfiguration
+    internal sealed class AvoidExclaimOperatorEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration { Enabled = false };
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(enabled: Common.Enabled);
     }
 
     [Editor("AvoidExclaimOperator", Description = "Replaces ! with -not")]
-    public sealed class AvoidExclaimOperatorEditor : IScriptEditor, IConfigurableEditor<AvoidExclaimOperatorEditorConfiguration>
+    internal sealed class AvoidExclaimOperatorEditor : IScriptEditor, IConfigurableEditor<AvoidExclaimOperatorEditorConfiguration>
     {
         public AvoidExclaimOperatorEditor(AvoidExclaimOperatorEditorConfiguration configuration)
         {

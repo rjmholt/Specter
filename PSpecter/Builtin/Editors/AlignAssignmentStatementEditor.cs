@@ -7,7 +7,7 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class AlignAssignmentStatementEditorConfiguration : IEditorConfiguration
+    internal sealed class AlignAssignmentStatementEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Editors
     }
 
     [Editor("AlignAssignmentStatement", Description = "Aligns assignment operators in multi-line hashtables")]
-    public sealed class AlignAssignmentStatementEditor : IScriptEditor, IConfigurableEditor<AlignAssignmentStatementEditorConfiguration>
+    internal sealed class AlignAssignmentStatementEditor : IScriptEditor, IConfigurableEditor<AlignAssignmentStatementEditorConfiguration>
     {
         public AlignAssignmentStatementEditor(AlignAssignmentStatementEditorConfiguration configuration)
         {

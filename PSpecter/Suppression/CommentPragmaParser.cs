@@ -11,7 +11,7 @@ namespace PSpecter.Suppression
     /// - Block begin: <c># pspecter-suppress-begin RuleName</c>
     /// - Block end: <c># pspecter-suppress-end RuleName</c>
     /// </summary>
-    public static class CommentPragmaParser
+    internal static class CommentPragmaParser
     {
         private const string PragmaPrefix = "pspecter-suppress";
         private const string BlockBeginPrefix = "pspecter-suppress-begin";

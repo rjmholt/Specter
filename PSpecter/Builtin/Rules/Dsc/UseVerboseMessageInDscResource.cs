@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseVerboseMessageInDSCResource", typeof(Strings), nameof(Strings.UseVerboseMessageInDSCResourceDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Information)]
-    public class UseVerboseMessageInDscResource : ScriptRule
+    internal class UseVerboseMessageInDscResource : ScriptRule
     {
         public UseVerboseMessageInDscResource(RuleInfo ruleInfo)
             : base(ruleInfo)

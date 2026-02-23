@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingWriteHost", typeof(Strings), nameof(Strings.AvoidUsingWriteHostDescription))]
-    public class AvoidUsingWriteHost : ScriptRule
+    internal class AvoidUsingWriteHost : ScriptRule
     {
         public AvoidUsingWriteHost(RuleInfo ruleInfo)
             : base(ruleInfo)

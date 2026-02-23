@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidUsingUsernameAndPasswordParams", typeof(Strings), nameof(Strings.AvoidUsernameAndPasswordParamsDescription), Severity = DiagnosticSeverity.Error)]
-    public class AvoidUserNameAndPasswordParams : ScriptRule
+    internal class AvoidUserNameAndPasswordParams : ScriptRule
     {
         private static readonly string[] s_passwordNames = { "Password", "Passphrase" };
         private static readonly string[] s_usernameNames = { "Username", "User" };

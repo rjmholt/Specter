@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidUsingPlainTextForPassword", typeof(Strings), nameof(Strings.AvoidUsingPlainTextForPasswordDescription))]
-    public class AvoidUsingPlainTextForPassword : ScriptRule
+    internal class AvoidUsingPlainTextForPassword : ScriptRule
     {
         private static readonly string[] s_passwordNames = { "Password", "Passphrase", "Cred", "Credential" };
 

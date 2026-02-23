@@ -10,7 +10,7 @@ using PSpecter.Tools;
 
 namespace PSpecter.Builtin.Rules
 {
-    public class UseSingularNounsConfiguration : IRuleConfiguration
+    internal class UseSingularNounsConfiguration : IRuleConfiguration
     {
         public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
 
@@ -20,7 +20,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseSingularNouns", typeof(Strings), nameof(Strings.UseSingularNounsDescription))]
-    public class UseSingularNouns : ConfigurableScriptRule<UseSingularNounsConfiguration>
+    internal class UseSingularNouns : ConfigurableScriptRule<UseSingularNounsConfiguration>
     {
         private static readonly Pluralizer s_pluralizer = new Pluralizer();
 

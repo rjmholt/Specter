@@ -6,14 +6,14 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class AvoidUsingDoubleQuotesForConstantStringEditorConfiguration : IEditorConfiguration
+    internal sealed class AvoidUsingDoubleQuotesForConstantStringEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration { Enabled = false };
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
     }
 
     [Editor("AvoidUsingDoubleQuotesForConstantString", Description = "Replaces double-quoted constant strings with single-quoted equivalents")]
-    public sealed class AvoidUsingDoubleQuotesForConstantStringEditor : IScriptEditor, IConfigurableEditor<AvoidUsingDoubleQuotesForConstantStringEditorConfiguration>
+    internal sealed class AvoidUsingDoubleQuotesForConstantStringEditor : IScriptEditor, IConfigurableEditor<AvoidUsingDoubleQuotesForConstantStringEditorConfiguration>
     {
         public AvoidUsingDoubleQuotesForConstantStringEditor(AvoidUsingDoubleQuotesForConstantStringEditorConfiguration configuration)
         {

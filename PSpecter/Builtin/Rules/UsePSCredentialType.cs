@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UsePSCredentialType", typeof(Strings), nameof(Strings.UsePSCredentialTypeDescription))]
-    public class UsePSCredentialType : ScriptRule
+    internal class UsePSCredentialType : ScriptRule
     {
         public UsePSCredentialType(RuleInfo ruleInfo)
             : base(ruleInfo)

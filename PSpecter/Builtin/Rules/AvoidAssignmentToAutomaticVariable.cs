@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidAssignmentToAutomaticVariable", typeof(Strings), nameof(Strings.AvoidAssignmentToReadOnlyAutomaticVariableDescription), Severity = DiagnosticSeverity.Warning)]
-    public class AvoidAssignmentToAutomaticVariable : ScriptRule
+    internal class AvoidAssignmentToAutomaticVariable : ScriptRule
     {
         private static readonly HashSet<string> s_readOnlyAutomaticVariables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

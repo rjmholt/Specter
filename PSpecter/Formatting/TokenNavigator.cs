@@ -9,7 +9,7 @@ namespace PSpecter.Formatting
     /// Editors should use this to detect comments in edit regions before
     /// producing edits that could displace them.
     /// </summary>
-    public sealed class TokenNavigator
+    internal sealed class TokenNavigator
     {
         private readonly IReadOnlyList<Token> _tokens;
 

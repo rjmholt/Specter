@@ -20,7 +20,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseCompatibleCommands", typeof(Strings), nameof(Strings.UseCompatibleCommandsDescription))]
-    public class UseCompatibleCommands : ConfigurableScriptRule<UseCompatibleCommandsConfiguration>
+    internal class UseCompatibleCommands : ConfigurableScriptRule<UseCompatibleCommandsConfiguration>
     {
         // Common parameters present since PS 2.0 that profiles don't enumerate.
         // Excludes PipelineVariable (PS 4.0), InformationAction/InformationVariable (PS 5.0)

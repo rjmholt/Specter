@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseUTF8EncodingForHelpFile", typeof(Strings), nameof(Strings.UseUTF8EncodingForHelpFileDescription))]
-    public class UseUTF8EncodingForHelpFile : ScriptRule
+    internal class UseUTF8EncodingForHelpFile : ScriptRule
     {
         public UseUTF8EncodingForHelpFile(RuleInfo ruleInfo)
             : base(ruleInfo)

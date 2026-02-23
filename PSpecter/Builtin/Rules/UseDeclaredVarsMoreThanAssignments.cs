@@ -17,7 +17,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseDeclaredVarsMoreThanAssignments", typeof(Strings), nameof(Strings.UseDeclaredVarsMoreThanAssignmentsDescription))]
-    public class UseDeclaredVarsMoreThanAssignments : ScriptRule
+    internal class UseDeclaredVarsMoreThanAssignments : ScriptRule
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 

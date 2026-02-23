@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("MisleadingBacktick", typeof(Strings), nameof(Strings.MisleadingBacktickDescription))]
-    public class MisleadingBacktick : ScriptRule
+    internal class MisleadingBacktick : ScriptRule
     {
         private static readonly Regex s_trailingEscapedWhitespace = new Regex(@"`(\s+)$", RegexOptions.Compiled);
 

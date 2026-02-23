@@ -7,7 +7,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseConsistentWhitespace", typeof(Strings), nameof(Strings.UseConsistentWhitespaceDescription), Severity = DiagnosticSeverity.Warning)]
-    public class UseConsistentWhitespace : FormattingRule<UseConsistentWhitespaceEditorConfiguration>
+    internal class UseConsistentWhitespace : FormattingRule<UseConsistentWhitespaceEditorConfiguration>
     {
         public UseConsistentWhitespace(RuleInfo ruleInfo, UseConsistentWhitespaceEditorConfiguration configuration)
             : base(ruleInfo, configuration)

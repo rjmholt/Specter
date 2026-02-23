@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("DscExamplesPresent", typeof(Strings), nameof(Strings.DscExamplesPresentDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Information)]
-    public class DscExamplesPresent : ScriptRule
+    internal class DscExamplesPresent : ScriptRule
     {
         public DscExamplesPresent(RuleInfo ruleInfo)
             : base(ruleInfo)

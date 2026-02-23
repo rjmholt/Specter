@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidUsingBrokenHashAlgorithms", typeof(Strings), nameof(Strings.AvoidUsingBrokenHashAlgorithmsDescription))]
-    public class AvoidUsingBrokenHashAlgorithms : ScriptRule
+    internal class AvoidUsingBrokenHashAlgorithms : ScriptRule
     {
         private static readonly HashSet<string> s_brokenAlgorithms = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

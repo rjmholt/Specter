@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("ReservedParams", typeof(Strings), nameof(Strings.ReservedParamsDescription))]
-    public class AvoidReservedParams : ScriptRule
+    internal class AvoidReservedParams : ScriptRule
     {
         public AvoidReservedParams(RuleInfo ruleInfo)
             : base(ruleInfo)

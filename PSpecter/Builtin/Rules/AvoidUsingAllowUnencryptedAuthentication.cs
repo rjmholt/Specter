@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingAllowUnencryptedAuthentication", typeof(Strings), nameof(Strings.AvoidUsingAllowUnencryptedAuthenticationDescription))]
-    public class AvoidUsingAllowUnencryptedAuthentication : ScriptRule
+    internal class AvoidUsingAllowUnencryptedAuthentication : ScriptRule
     {
         public AvoidUsingAllowUnencryptedAuthentication(RuleInfo ruleInfo)
             : base(ruleInfo)

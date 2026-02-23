@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     /// UseShouldProcessForStateChangingFunctions: Analyzes the ast to check if ShouldProcess is included in Advanced functions if the Verb of the function could change system state.
     /// </summary>
     [Rule("UseShouldProcessForStateChangingFunctions", typeof(Strings), nameof(Strings.UseShouldProcessForStateChangingFunctionsDescrption))]
-    public class UseShouldProcessForStateChangingFunctions : ScriptRule
+    internal class UseShouldProcessForStateChangingFunctions : ScriptRule
     {
         private static readonly IReadOnlyList<string> s_stateChangingVerbs = new List<string>
         {

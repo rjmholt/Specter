@@ -8,7 +8,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("PossibleIncorrectUsageOfRedirectionOperator", typeof(Strings), nameof(Strings.PossibleIncorrectUsageOfRedirectionOperatorDescription))]
-    public class PossibleIncorrectUsageOfRedirectionOperator : ScriptRule
+    internal class PossibleIncorrectUsageOfRedirectionOperator : ScriptRule
     {
         public PossibleIncorrectUsageOfRedirectionOperator(RuleInfo ruleInfo)
             : base(ruleInfo)

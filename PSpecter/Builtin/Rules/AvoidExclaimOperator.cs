@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidExclaimOperator", typeof(Strings), nameof(Strings.AvoidExclaimOperatorDescription))]
-    public class AvoidExclaimOperator : ConfigurableScriptRule<AvoidExclaimOperatorConfiguration>
+    internal class AvoidExclaimOperator : ConfigurableScriptRule<AvoidExclaimOperatorConfiguration>
     {
         public AvoidExclaimOperator(RuleInfo ruleInfo, AvoidExclaimOperatorConfiguration configuration)
             : base(ruleInfo, configuration)

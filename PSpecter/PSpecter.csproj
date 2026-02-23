@@ -10,6 +10,15 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="PSpecter.Test" />
+    <InternalsVisibleTo Include="PSpecter.Module" />
+    <InternalsVisibleTo Include="PSpecter.PssaCompatibility" />
+    <InternalsVisibleTo Include="PSpecter.Server" />
+    <InternalsVisibleTo Include="PSpecter.Server.Test" />
+    <InternalsVisibleTo Include="PSpecter.Benchmarks" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8'">
     <DefineConstants>$(DefineConstants);CORECLR</DefineConstants>
   </PropertyGroup>

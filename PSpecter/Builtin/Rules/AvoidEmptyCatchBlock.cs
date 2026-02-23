@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingEmptyCatchBlock", typeof(Strings), nameof(Strings.AvoidUsingEmptyCatchBlockDescription))]
-    public class AvoidEmptyCatchBlock : ScriptRule
+    internal class AvoidEmptyCatchBlock : ScriptRule
     {
         public AvoidEmptyCatchBlock(RuleInfo ruleInfo)
             : base(ruleInfo)

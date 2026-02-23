@@ -9,7 +9,7 @@ using PSpecter.Rules;
 
 namespace PSpecter.Builtin.Rules
 {
-    public class AvoidPositionalParametersConfiguration : IRuleConfiguration
+    internal class AvoidPositionalParametersConfiguration : IRuleConfiguration
     {
         public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
 
@@ -20,7 +20,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [Rule("AvoidUsingPositionalParameters", typeof(Strings), nameof(Strings.AvoidUsingPositionalParametersDescription),
         Severity = DiagnosticSeverity.Information)]
-    public class AvoidPositionalParameters : ConfigurableScriptRule<AvoidPositionalParametersConfiguration>
+    internal class AvoidPositionalParameters : ConfigurableScriptRule<AvoidPositionalParametersConfiguration>
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 

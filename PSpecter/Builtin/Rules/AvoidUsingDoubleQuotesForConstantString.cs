@@ -8,7 +8,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidUsingDoubleQuotesForConstantString", typeof(Strings), nameof(Strings.AvoidUsingDoubleQuotesForConstantStringDescription), Severity = DiagnosticSeverity.Information)]
-    public class AvoidUsingDoubleQuotesForConstantString : ScriptRule
+    internal class AvoidUsingDoubleQuotesForConstantString : ScriptRule
     {
         public AvoidUsingDoubleQuotesForConstantString(RuleInfo ruleInfo)
             : base(ruleInfo)

@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("ShouldProcess", typeof(Strings), nameof(Strings.ShouldProcessDescription))]
-    public class UseShouldProcessCorrectly : ScriptRule
+    internal class UseShouldProcessCorrectly : ScriptRule
     {
         private static readonly HashSet<string> s_cmdletsWithShouldProcess = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

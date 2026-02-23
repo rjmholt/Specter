@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidSemicolonsAsLineTerminators", typeof(Strings), nameof(Strings.AvoidSemicolonsAsLineTerminatorsDescription))]
-    public class AvoidSemicolonsAsLineTerminators : ScriptRule
+    internal class AvoidSemicolonsAsLineTerminators : ScriptRule
     {
         public AvoidSemicolonsAsLineTerminators(RuleInfo ruleInfo)
             : base(ruleInfo)

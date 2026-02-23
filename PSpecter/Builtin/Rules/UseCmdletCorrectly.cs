@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseCmdletCorrectly", typeof(Strings), nameof(Strings.UseCmdletCorrectlyDescription))]
-    public class UseCmdletCorrectly : ScriptRule
+    internal class UseCmdletCorrectly : ScriptRule
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 

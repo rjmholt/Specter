@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingConvertToSecureStringWithPlainText", typeof(Strings), nameof(Strings.AvoidUsingConvertToSecureStringWithPlainTextDescription), Severity = DiagnosticSeverity.Error)]
-    public class AvoidUsingConvertToSecureStringWithPlainText : ScriptRule
+    internal class AvoidUsingConvertToSecureStringWithPlainText : ScriptRule
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 

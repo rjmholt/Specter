@@ -10,7 +10,7 @@ using PSpecter.Tools;
 
 namespace PSpecter.Builtin.Rules
 {
-    public class ProvideCommentHelpConfiguration : IRuleConfiguration
+    internal class ProvideCommentHelpConfiguration : IRuleConfiguration
     {
         public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
 
@@ -26,7 +26,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("ProvideCommentHelp", typeof(Strings), nameof(Strings.ProvideCommentHelpDescription))]
-    public class ProvideCommentHelp : ConfigurableScriptRule<ProvideCommentHelpConfiguration>
+    internal class ProvideCommentHelp : ConfigurableScriptRule<ProvideCommentHelpConfiguration>
     {
         public ProvideCommentHelp(RuleInfo ruleInfo, ProvideCommentHelpConfiguration configuration)
             : base(ruleInfo, configuration)

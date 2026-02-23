@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseApprovedVerbs", typeof(Strings), nameof(Strings.UseApprovedVerbsDescription))]
-    public class UseApprovedVerbs : ScriptRule
+    internal class UseApprovedVerbs : ScriptRule
     {
         public UseApprovedVerbs(RuleInfo ruleInfo)
             : base(ruleInfo)

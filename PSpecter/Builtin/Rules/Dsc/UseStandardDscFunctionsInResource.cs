@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("StandardDSCFunctionsInResource", typeof(Strings), nameof(Strings.UseStandardDSCFunctionsInResourceDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Error)]
-    public class UseStandardDscFunctionsInResource : ScriptRule
+    internal class UseStandardDscFunctionsInResource : ScriptRule
     {
         public UseStandardDscFunctionsInResource(RuleInfo ruleInfo)
             : base(ruleInfo)

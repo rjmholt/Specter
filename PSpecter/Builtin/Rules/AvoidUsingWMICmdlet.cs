@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidUsingWMICmdlet", typeof(Strings), nameof(Strings.AvoidUsingWMICmdletDescription))]
-    public class AvoidUsingWMICmdlet : ScriptRule
+    internal class AvoidUsingWMICmdlet : ScriptRule
     {
         private static readonly HashSet<string> s_wmiCmdlets = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

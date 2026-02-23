@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidShouldContinueWithoutForce", typeof(Strings), nameof(Strings.AvoidShouldContinueWithoutForceDescription))]
-    public class AvoidShouldContinueWithoutForce : ScriptRule
+    internal class AvoidShouldContinueWithoutForce : ScriptRule
     {
         public AvoidShouldContinueWithoutForce(RuleInfo ruleInfo)
             : base(ruleInfo)

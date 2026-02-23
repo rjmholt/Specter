@@ -13,7 +13,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseToExportFieldsInManifest", typeof(Strings), nameof(Strings.UseToExportFieldsInManifestDescription))]
-    public class UseToExportFieldsInManifest : ScriptRule
+    internal class UseToExportFieldsInManifest : ScriptRule
     {
         private static readonly string[] s_exportFields = new[]
         {

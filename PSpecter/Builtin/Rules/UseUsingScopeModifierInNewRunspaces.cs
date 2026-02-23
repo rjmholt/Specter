@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseUsingScopeModifierInNewRunspaces", typeof(Strings), nameof(Strings.UseUsingScopeModifierInNewRunspacesDescription))]
-    public class UseUsingScopeModifierInNewRunspaces : ScriptRule
+    internal class UseUsingScopeModifierInNewRunspaces : ScriptRule
     {
         private static readonly HashSet<string> s_jobCmdletNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

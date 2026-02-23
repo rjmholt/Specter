@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidUsingComputerNameHardcoded", typeof(Strings), nameof(Strings.AvoidComputerNameHardcodedDescription), Severity = DiagnosticSeverity.Error)]
-    public class AvoidUsingComputerNameHardcoded : ScriptRule
+    internal class AvoidUsingComputerNameHardcoded : ScriptRule
     {
         private static readonly HashSet<string> s_localhostRepresentations = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

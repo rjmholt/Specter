@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseSupportsShouldProcess", typeof(Strings), nameof(Strings.UseSupportsShouldProcessDescription))]
-    public class UseSupportsShouldProcess : ScriptRule
+    internal class UseSupportsShouldProcess : ScriptRule
     {
         public UseSupportsShouldProcess(RuleInfo ruleInfo)
             : base(ruleInfo)

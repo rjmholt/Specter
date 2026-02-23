@@ -8,7 +8,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidNullOrEmptyHelpMessageAttribute", typeof(Strings), nameof(Strings.AvoidNullOrEmptyHelpMessageAttributeDescription))]
-    public class AvoidNullOrEmptyHelpMessageAttribute : ScriptRule
+    internal class AvoidNullOrEmptyHelpMessageAttribute : ScriptRule
     {
         public AvoidNullOrEmptyHelpMessageAttribute(RuleInfo ruleInfo)
             : base(ruleInfo)

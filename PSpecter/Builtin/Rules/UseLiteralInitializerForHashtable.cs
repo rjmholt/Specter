@@ -8,7 +8,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseLiteralInitializerForHashtable", typeof(Strings), nameof(Strings.UseLiteralInitilializerForHashtableDescription))]
-    public class UseLiteralInitializerForHashtable : ScriptRule
+    internal class UseLiteralInitializerForHashtable : ScriptRule
     {
         private static readonly HashSet<string> s_hashtableTypeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

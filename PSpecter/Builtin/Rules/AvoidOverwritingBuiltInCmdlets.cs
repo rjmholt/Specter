@@ -9,7 +9,7 @@ using PSpecter.Rules;
 
 namespace PSpecter.Builtin.Rules
 {
-    public class AvoidOverwritingBuiltInCmdletsConfiguration : IRuleConfiguration
+    internal class AvoidOverwritingBuiltInCmdletsConfiguration : IRuleConfiguration
     {
         public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
 
@@ -19,7 +19,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidOverwritingBuiltInCmdlets", typeof(Strings), nameof(Strings.AvoidOverwritingBuiltInCmdletsDescription))]
-    public class AvoidOverwritingBuiltInCmdlets : ConfigurableScriptRule<AvoidOverwritingBuiltInCmdletsConfiguration>
+    internal class AvoidOverwritingBuiltInCmdlets : ConfigurableScriptRule<AvoidOverwritingBuiltInCmdletsConfiguration>
     {
         public AvoidOverwritingBuiltInCmdlets(RuleInfo ruleInfo, AvoidOverwritingBuiltInCmdletsConfiguration configuration)
             : base(ruleInfo, configuration)

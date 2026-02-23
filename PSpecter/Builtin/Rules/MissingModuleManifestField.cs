@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("MissingModuleManifestField", typeof(Strings), nameof(Strings.MissingModuleManifestFieldDescription))]
-    public class MissingModuleManifestField : ScriptRule
+    internal class MissingModuleManifestField : ScriptRule
     {
         private static readonly RequiredField[] s_requiredFields = new[]
         {

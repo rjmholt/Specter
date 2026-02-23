@@ -7,7 +7,7 @@ using System.Management.Automation.Language;
 
 namespace PSpecter.Configuration.Psd
 {
-    public class PsdDataParser
+    internal class PsdDataParser
     {
         /// <summary>
         /// Evaluates all statically evaluable, side-effect-free expressions under an

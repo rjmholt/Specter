@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("ReservedCmdletChar", typeof(Strings), nameof(Strings.ReservedCmdletCharDescription))]
-    public class AvoidReservedCharInCmdlet : ScriptRule
+    internal class AvoidReservedCharInCmdlet : ScriptRule
     {
         public AvoidReservedCharInCmdlet(RuleInfo ruleInfo)
             : base(ruleInfo)

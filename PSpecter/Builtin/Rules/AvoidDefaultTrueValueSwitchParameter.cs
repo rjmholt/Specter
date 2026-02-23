@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidDefaultValueSwitchParameter", typeof(Strings), nameof(Strings.AvoidDefaultValueSwitchParameterDescription))]
-    public class AvoidDefaultTrueValueSwitchParameter : ScriptRule
+    internal class AvoidDefaultTrueValueSwitchParameter : ScriptRule
     {
         public AvoidDefaultTrueValueSwitchParameter(RuleInfo ruleInfo)
             : base(ruleInfo)

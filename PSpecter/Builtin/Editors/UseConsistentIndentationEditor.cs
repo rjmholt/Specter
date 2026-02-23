@@ -15,7 +15,7 @@ namespace PSpecter.Builtin.Editors
         None,
     }
 
-    public sealed class UseConsistentIndentationEditorConfiguration : IEditorConfiguration
+    internal sealed class UseConsistentIndentationEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
@@ -25,7 +25,7 @@ namespace PSpecter.Builtin.Editors
     }
 
     [Editor("UseConsistentIndentation", Description = "Enforces consistent indentation by walking the token stream and tracking nesting depth")]
-    public sealed class UseConsistentIndentationEditor : IScriptEditor, IConfigurableEditor<UseConsistentIndentationEditorConfiguration>
+    internal sealed class UseConsistentIndentationEditor : IScriptEditor, IConfigurableEditor<UseConsistentIndentationEditorConfiguration>
     {
         public UseConsistentIndentationEditor(UseConsistentIndentationEditorConfiguration configuration)
         {

@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidDefaultValueForMandatoryParameter", typeof(Strings), nameof(Strings.AvoidDefaultValueForMandatoryParameterDescription))]
-    public class AvoidDefaultValueForMandatoryParameter : ScriptRule
+    internal class AvoidDefaultValueForMandatoryParameter : ScriptRule
     {
         public AvoidDefaultValueForMandatoryParameter(RuleInfo ruleInfo)
             : base(ruleInfo)

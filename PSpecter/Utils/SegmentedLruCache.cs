@@ -24,7 +24,7 @@ namespace PSpecter.Utils
     /// All operations are O(1). Not thread-safe; callers must synchronize if
     /// accessed concurrently.
     /// </remarks>
-    public sealed class SegmentedLruCache<TKey, TValue> where TKey : notnull
+    internal sealed class SegmentedLruCache<TKey, TValue> where TKey : notnull
     {
         private readonly int _probationCapacity;
         private readonly int _protectedCapacity;

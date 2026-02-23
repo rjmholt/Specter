@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidReservedWordsAsFunctionNames", typeof(Strings), nameof(Strings.AvoidReservedWordsAsFunctionNamesDescription))]
-    public class AvoidReservedWordsAsFunctionNames : ScriptRule
+    internal class AvoidReservedWordsAsFunctionNames : ScriptRule
     {
         private static readonly HashSet<string> s_reservedWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

@@ -18,7 +18,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingCmdletAliases", typeof(Strings), nameof(Strings.AvoidUsingCmdletAliasesDescription))]
-    public class AvoidUsingCmdletAliases : ScriptRule, IConfigurableRule<AvoidUsingCmdletAliasesConfiguration>
+    internal class AvoidUsingCmdletAliases : ScriptRule, IConfigurableRule<AvoidUsingCmdletAliasesConfiguration>
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 
@@ -246,7 +246,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         }
     }
 
-    public record AvoidUsingCmdletAliasesConfiguration : IRuleConfiguration
+    internal record AvoidUsingCmdletAliasesConfiguration : IRuleConfiguration
     {
         public IReadOnlyCollection<string> AllowList { get; init; } = Array.Empty<string>();
 

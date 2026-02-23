@@ -94,7 +94,7 @@ namespace PSpecter.Suppression
         public IReadOnlyList<RuleExecutionError> RuleErrors { get; }
     }
 
-    public static class SuppressionParser
+    internal static class SuppressionParser
     {
         public static Dictionary<string, List<RuleSuppression>> GetSuppressions(Ast scriptAst, Token[]? tokens = null)
         {
@@ -377,7 +377,7 @@ namespace PSpecter.Suppression
         }
     }
 
-    public static class SuppressionApplier
+    internal static class SuppressionApplier
     {
         public static IReadOnlyCollection<ScriptDiagnostic> ApplySuppressions(
             IReadOnlyCollection<ScriptDiagnostic> diagnostics,

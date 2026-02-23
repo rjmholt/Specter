@@ -19,7 +19,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseCompatibleSyntax", typeof(Strings), nameof(Strings.UseCompatibleSyntaxDescription), Severity = DiagnosticSeverity.Error)]
-    public class UseCompatibleSyntax : ConfigurableScriptRule<UseCompatibleSyntaxConfiguration>
+    internal class UseCompatibleSyntax : ConfigurableScriptRule<UseCompatibleSyntaxConfiguration>
     {
         private static readonly Version s_v3 = new Version(3, 0);
         private static readonly Version s_v4 = new Version(4, 0);

@@ -7,7 +7,7 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class UseCorrectCasingEditorConfiguration : IEditorConfiguration
+    internal sealed class UseCorrectCasingEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
@@ -16,7 +16,7 @@ namespace PSpecter.Builtin.Editors
     }
 
     [Editor("UseCorrectCasing", Description = "Normalizes casing for PowerShell keywords, operators, commands, and parameters")]
-    public sealed class UseCorrectCasingEditor : IScriptEditor, IConfigurableEditor<UseCorrectCasingEditorConfiguration>
+    internal sealed class UseCorrectCasingEditor : IScriptEditor, IConfigurableEditor<UseCorrectCasingEditorConfiguration>
     {
         private readonly IPowerShellCommandDatabase? _commandDb;
 

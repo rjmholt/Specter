@@ -6,7 +6,7 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class PlaceCloseBraceEditorConfiguration : IEditorConfiguration
+    internal sealed class PlaceCloseBraceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
@@ -16,7 +16,7 @@ namespace PSpecter.Builtin.Editors
     }
 
     [Editor("PlaceCloseBrace", Description = "Enforces close brace placement: own line, no empty lines before, newline-after vs cuddled branches")]
-    public sealed class PlaceCloseBraceEditor : IScriptEditor, IConfigurableEditor<PlaceCloseBraceEditorConfiguration>
+    internal sealed class PlaceCloseBraceEditor : IScriptEditor, IConfigurableEditor<PlaceCloseBraceEditorConfiguration>
     {
         public PlaceCloseBraceEditor(PlaceCloseBraceEditorConfiguration configuration)
         {

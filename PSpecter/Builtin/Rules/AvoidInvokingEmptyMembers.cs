@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidInvokingEmptyMembers", typeof(Strings), nameof(Strings.AvoidInvokingEmptyMembersDescription))]
-    public class AvoidInvokingEmptyMembers : ScriptRule
+    internal class AvoidInvokingEmptyMembers : ScriptRule
     {
         public AvoidInvokingEmptyMembers(RuleInfo ruleInfo)
             : base(ruleInfo)

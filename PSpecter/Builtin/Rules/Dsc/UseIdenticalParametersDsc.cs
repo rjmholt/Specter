@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseIdenticalParametersForDSC", typeof(Strings), nameof(Strings.UseIdenticalParametersDSCDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Error)]
-    public class UseIdenticalParametersDsc : ScriptRule
+    internal class UseIdenticalParametersDsc : ScriptRule
     {
         public UseIdenticalParametersDsc(RuleInfo ruleInfo)
             : base(ruleInfo)

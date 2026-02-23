@@ -6,7 +6,7 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class UseConsistentWhitespaceEditorConfiguration : IEditorConfiguration
+    internal sealed class UseConsistentWhitespaceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
@@ -22,7 +22,7 @@ namespace PSpecter.Builtin.Editors
     }
 
     [Editor("UseConsistentWhitespace", Description = "Enforces consistent whitespace around operators, braces, pipes, keywords, and separators")]
-    public sealed class UseConsistentWhitespaceEditor : IScriptEditor, IConfigurableEditor<UseConsistentWhitespaceEditorConfiguration>
+    internal sealed class UseConsistentWhitespaceEditor : IScriptEditor, IConfigurableEditor<UseConsistentWhitespaceEditorConfiguration>
     {
         public UseConsistentWhitespaceEditor(UseConsistentWhitespaceEditorConfiguration configuration)
         {

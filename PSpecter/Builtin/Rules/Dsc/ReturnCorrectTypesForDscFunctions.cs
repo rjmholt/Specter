@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules.Dsc
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("ReturnCorrectTypesForDSCFunctions", typeof(Strings), nameof(Strings.ReturnCorrectTypesForDSCFunctionsDescription), Namespace = "PSDSC", Severity = DiagnosticSeverity.Information)]
-    public class ReturnCorrectTypesForDscFunctions : ScriptRule
+    internal class ReturnCorrectTypesForDscFunctions : ScriptRule
     {
         private static readonly Dictionary<string, string> s_resourceFunctionExpectedTypes = new(StringComparer.OrdinalIgnoreCase)
         {

@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseProcessBlockForPipelineCommand", typeof(Strings), nameof(Strings.UseProcessBlockForPipelineCommandDescription))]
-    public class UseProcessBlockForPipelineCommand : ScriptRule
+    internal class UseProcessBlockForPipelineCommand : ScriptRule
     {
         public UseProcessBlockForPipelineCommand(RuleInfo ruleInfo)
             : base(ruleInfo)

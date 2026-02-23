@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidTrailingWhitespace", typeof(Strings), nameof(Strings.AvoidTrailingWhitespaceDescription), Severity = DiagnosticSeverity.Information)]
-    public class AvoidTrailingWhitespace : ScriptRule, IFormattingRule
+    internal class AvoidTrailingWhitespace : ScriptRule, IFormattingRule
     {
         public AvoidTrailingWhitespace(RuleInfo ruleInfo)
             : base(ruleInfo)

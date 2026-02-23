@@ -10,7 +10,7 @@ namespace PSpecter.CommandDatabase.Sqlite
     /// <see cref="Begin"/>; call <see cref="Commit"/> when done.
     /// If disposed without committing, the transaction is rolled back.
     /// </summary>
-    public sealed class CommandDatabaseWriter : IDisposable
+    internal sealed class CommandDatabaseWriter : IDisposable
     {
         private readonly SqliteConnection _connection;
         private readonly SqliteTransaction _transaction;

@@ -6,7 +6,7 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class PlaceOpenBraceEditorConfiguration : IEditorConfiguration
+    internal sealed class PlaceOpenBraceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
@@ -16,7 +16,7 @@ namespace PSpecter.Builtin.Editors
     }
 
     [Editor("PlaceOpenBrace", Description = "Enforces open brace placement style (K&R / Allman)")]
-    public sealed class PlaceOpenBraceEditor : IScriptEditor, IConfigurableEditor<PlaceOpenBraceEditorConfiguration>
+    internal sealed class PlaceOpenBraceEditor : IScriptEditor, IConfigurableEditor<PlaceOpenBraceEditorConfiguration>
     {
         public PlaceOpenBraceEditor(PlaceOpenBraceEditorConfiguration configuration)
         {

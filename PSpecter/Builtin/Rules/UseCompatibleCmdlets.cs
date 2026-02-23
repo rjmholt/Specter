@@ -21,7 +21,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseCompatibleCmdlets", typeof(Strings), nameof(Strings.UseCompatibleCmdletsDescription))]
-    public class UseCompatibleCmdlets : ConfigurableScriptRule<UseCompatibleCmdletsConfiguration>
+    internal class UseCompatibleCmdlets : ConfigurableScriptRule<UseCompatibleCmdletsConfiguration>
     {
         private const string DefaultReference = "desktop-5.1.14393.206-windows";
         private const string AlternativeDefaultReference = "core-6.1.0-windows";

@@ -9,7 +9,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("PossibleIncorrectUsageOfAssignmentOperator", typeof(Strings), nameof(Strings.PossibleIncorrectUsageOfAssignmentOperatorDescription), Severity = DiagnosticSeverity.Information)]
-    public class PossibleIncorrectUsageOfAssignmentOperator : ScriptRule
+    internal class PossibleIncorrectUsageOfAssignmentOperator : ScriptRule
     {
         public PossibleIncorrectUsageOfAssignmentOperator(RuleInfo ruleInfo)
             : base(ruleInfo)

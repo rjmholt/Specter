@@ -7,14 +7,14 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class AvoidSemicolonsAsLineTerminatorsEditorConfiguration : IEditorConfiguration
+    internal sealed class AvoidSemicolonsAsLineTerminatorsEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
     }
 
     [Editor("AvoidSemicolonsAsLineTerminators", Description = "Removes semicolons used as line terminators")]
-    public sealed class AvoidSemicolonsAsLineTerminatorsEditor : IScriptEditor, IConfigurableEditor<AvoidSemicolonsAsLineTerminatorsEditorConfiguration>
+    internal sealed class AvoidSemicolonsAsLineTerminatorsEditor : IScriptEditor, IConfigurableEditor<AvoidSemicolonsAsLineTerminatorsEditorConfiguration>
     {
         public AvoidSemicolonsAsLineTerminatorsEditor(AvoidSemicolonsAsLineTerminatorsEditorConfiguration configuration)
         {

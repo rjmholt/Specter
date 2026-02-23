@@ -11,7 +11,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingInvokeExpression", typeof(Strings), nameof(Strings.AvoidUsingInvokeExpressionRuleDescription))]
-    public class AvoidUsingInvokeExpression : ScriptRule
+    internal class AvoidUsingInvokeExpression : ScriptRule
     {
         private readonly IPowerShellCommandDatabase _commandDb;
 

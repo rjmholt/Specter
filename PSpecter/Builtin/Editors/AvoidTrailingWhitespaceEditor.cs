@@ -6,14 +6,14 @@ using PSpecter.Formatting;
 
 namespace PSpecter.Builtin.Editors
 {
-    public sealed class AvoidTrailingWhitespaceEditorConfiguration : IEditorConfiguration
+    internal sealed class AvoidTrailingWhitespaceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
         CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
     }
 
     [Editor("AvoidTrailingWhitespace", Description = "Removes trailing spaces and tabs from all lines")]
-    public sealed class AvoidTrailingWhitespaceEditor : IScriptEditor, IConfigurableEditor<AvoidTrailingWhitespaceEditorConfiguration>
+    internal sealed class AvoidTrailingWhitespaceEditor : IScriptEditor, IConfigurableEditor<AvoidTrailingWhitespaceEditorConfiguration>
     {
         public AvoidTrailingWhitespaceEditor(AvoidTrailingWhitespaceEditorConfiguration configuration)
         {

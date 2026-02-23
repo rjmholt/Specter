@@ -7,7 +7,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseCorrectCasing", typeof(Strings), nameof(Strings.UseCorrectCasingDescription), Severity = DiagnosticSeverity.Information)]
-    public class UseCorrectCasing : FormattingRule<UseCorrectCasingEditorConfiguration>
+    internal class UseCorrectCasing : FormattingRule<UseCorrectCasingEditorConfiguration>
     {
         public UseCorrectCasing(RuleInfo ruleInfo, UseCorrectCasingEditorConfiguration configuration)
             : base(ruleInfo, configuration)

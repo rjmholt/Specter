@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidGlobalAliases", typeof(Strings), nameof(Strings.AvoidGlobalAliasesDescription))]
-    public class AvoidGlobalAliases : ScriptRule
+    internal class AvoidGlobalAliases : ScriptRule
     {
         public AvoidGlobalAliases(RuleInfo ruleInfo)
             : base(ruleInfo)

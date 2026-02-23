@@ -10,7 +10,7 @@ namespace PSpecter.Builtin
     /// Registry of built-in formatting editors.
     /// The list order defines the default execution order for the formatter.
     /// </summary>
-    public static class BuiltinEditors
+    internal static class BuiltinEditors
     {
         /// <summary>
         /// Built-in editor types in their canonical execution order.

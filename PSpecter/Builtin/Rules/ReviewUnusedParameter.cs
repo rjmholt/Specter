@@ -8,7 +8,7 @@ using PSpecter.Rules;
 
 namespace PSpecter.Builtin.Rules
 {
-    public class ReviewUnusedParameterConfiguration : IRuleConfiguration
+    internal class ReviewUnusedParameterConfiguration : IRuleConfiguration
     {
         public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
 
@@ -18,7 +18,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("ReviewUnusedParameter", typeof(Strings), nameof(Strings.ReviewUnusedParameterDescription))]
-    public class ReviewUnusedParameter : ConfigurableScriptRule<ReviewUnusedParameterConfiguration>
+    internal class ReviewUnusedParameter : ConfigurableScriptRule<ReviewUnusedParameterConfiguration>
     {
         public ReviewUnusedParameter(RuleInfo ruleInfo, ReviewUnusedParameterConfiguration configuration)
             : base(ruleInfo, configuration)

@@ -12,7 +12,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidGlobalVars", typeof(Strings), nameof(Strings.AvoidGlobalVarsDescription))]
-    public class AvoidGlobalVars : ScriptRule
+    internal class AvoidGlobalVars : ScriptRule
     {
         public AvoidGlobalVars(RuleInfo ruleInfo) : base(ruleInfo)
         {

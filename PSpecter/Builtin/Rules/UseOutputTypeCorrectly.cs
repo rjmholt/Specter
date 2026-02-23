@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("UseOutputTypeCorrectly", typeof(Strings), nameof(Strings.UseOutputTypeCorrectlyDescription))]
-    public class UseOutputTypeCorrectly : ScriptRule
+    internal class UseOutputTypeCorrectly : ScriptRule
     {
         private static readonly HashSet<string> s_ignoredTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

@@ -7,7 +7,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("UseConsistentIndentation", typeof(Strings), nameof(Strings.UseConsistentIndentationDescription), Severity = DiagnosticSeverity.Warning)]
-    public class UseConsistentIndentation : FormattingRule<UseConsistentIndentationEditorConfiguration>
+    internal class UseConsistentIndentation : FormattingRule<UseConsistentIndentationEditorConfiguration>
     {
         public UseConsistentIndentation(RuleInfo ruleInfo, UseConsistentIndentationEditorConfiguration configuration)
             : base(ruleInfo, configuration)

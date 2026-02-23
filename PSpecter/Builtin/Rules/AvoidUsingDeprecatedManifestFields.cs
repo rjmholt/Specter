@@ -10,7 +10,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidUsingDeprecatedManifestFields", typeof(Strings), nameof(Strings.AvoidUsingDeprecatedManifestFieldsDescription))]
-    public class AvoidUsingDeprecatedManifestFields : ScriptRule
+    internal class AvoidUsingDeprecatedManifestFields : ScriptRule
     {
         private static readonly string[] s_deprecatedFields = new[] { "ModuleToProcess" };
 

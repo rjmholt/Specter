@@ -7,7 +7,7 @@ using PSpecter.Rules;
 
 namespace PSpecter.Builtin.Rules
 {
-    public class AvoidLongLinesConfiguration : IRuleConfiguration
+    internal class AvoidLongLinesConfiguration : IRuleConfiguration
     {
         public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
 
@@ -17,7 +17,7 @@ namespace PSpecter.Builtin.Rules
     [ThreadsafeRule]
     [IdempotentRule]
     [Rule("AvoidLongLines", typeof(Strings), nameof(Strings.AvoidLongLinesDescription))]
-    public class AvoidLongLines : ConfigurableScriptRule<AvoidLongLinesConfiguration>
+    internal class AvoidLongLines : ConfigurableScriptRule<AvoidLongLinesConfiguration>
     {
         private static readonly string[] s_lineSeparators = new[] { "\r\n", "\n" };
 

@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("PossibleIncorrectComparisonWithNull", typeof(Strings), nameof(Strings.PossibleIncorrectComparisonWithNullDescription))]
-    public class PossibleIncorrectComparisonWithNull : ScriptRule
+    internal class PossibleIncorrectComparisonWithNull : ScriptRule
     {
         private static readonly HashSet<TokenKind> s_equalityOperators = new HashSet<TokenKind>
         {

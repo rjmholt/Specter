@@ -13,7 +13,7 @@ namespace PSpecter.CommandDatabase.Import
     /// used by UseCompatibleCmdlets). File names encode the platform:
     /// {edition}-{version}-{os}.json, e.g. "core-6.1.0-windows.json".
     /// </summary>
-    public static class LegacySettingsImporter
+    internal static class LegacySettingsImporter
     {
         /// <summary>
         /// Imports all JSON files from a settings directory into the database.

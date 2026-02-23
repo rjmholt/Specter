@@ -12,7 +12,7 @@ namespace PSpecter.Builtin.Rules
     [IdempotentRule]
     [ThreadsafeRule]
     [Rule("AvoidGlobalFunctions", typeof(Strings), nameof(Strings.AvoidGlobalFunctionsDescription))]
-    public class AvoidGlobalFunctions : ScriptRule
+    internal class AvoidGlobalFunctions : ScriptRule
     {
         public AvoidGlobalFunctions(RuleInfo ruleInfo)
             : base(ruleInfo)

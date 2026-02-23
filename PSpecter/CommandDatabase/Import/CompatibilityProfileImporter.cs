@@ -13,7 +13,7 @@ namespace PSpecter.CommandDatabase.Import
     /// Deserializes into typed DTOs and converts to <see cref="CommandMetadata"/>
     /// for the coarse-grained writer API.
     /// </summary>
-    public static class CompatibilityProfileImporter
+    internal static class CompatibilityProfileImporter
     {
         /// <summary>
         /// Imports all JSON profiles from a directory.
