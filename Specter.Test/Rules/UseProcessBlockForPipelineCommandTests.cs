@@ -1,0 +1,62 @@
+using System.Collections.Generic;
+using System.Linq;
+using Specter;
+using Specter.Builder;
+using Specter.Builtin.Rules;
+using Specter.Execution;
+using Xunit;
+
+namespace Specter.Test.Rules
+{
+    public class UseProcessBlockForPipelineCommandTests
+    {
+        private readonly ScriptAnalyzer _scriptAnalyzer;
+
+        public UseProcessBlockForPipelineCommandTests()
+        {
+            _scriptAnalyzer = new ScriptAnalyzerBuilder()
+                .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
+                .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
+                .AddRules(ruleProvider => ruleProvider.AddRule<UseProcessBlockForPipelineCommand>())
+                .Build();
+        }
+
+        [Fact]
+        public void ValueFromPipelineWithoutProcessBlock_ShouldReturnViolation()
+        {
+            var script = @"
+function Test-Foo {
+    param(
+        [Parameter(ValueFromPipeline)]
+        [string]$Input
+    )
+    Write-Output $Input
+}";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            ScriptDiagnostic violation = Assert.Single(violations);
+            Assert.Equal("UseProcessBlockForPipelineCommand", violation.Rule!.Name);
+            Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
+        }
+
+        [Fact]
+        public void ValueFromPipelineWithProcessBlock_ShouldNotReturnViolation()
+        {
+            var script = @"
+function Test-Foo {
+    param(
+        [Parameter(ValueFromPipeline)]
+        [string]$Input
+    )
+    process {
+        Write-Output $Input
+    }
+}";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
+        }
+    }
+}
