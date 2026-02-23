@@ -8,8 +8,8 @@ namespace Specter.Builtin.Editors
 {
     internal sealed class AvoidExclaimOperatorEditorConfiguration : IEditorConfiguration
     {
-        public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration { Enabled = false };
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(enabled: Common.Enabled);
+        public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration { Enable = false };
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(enable: Common.Enable);
     }
 
     [Editor("AvoidExclaimOperator", Description = "Replaces ! with -not")]

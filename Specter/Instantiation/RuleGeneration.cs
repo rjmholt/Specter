@@ -44,7 +44,7 @@ namespace Specter.Instantiation
             ConstructorInfo ruleConstructor = ruleConstructors[0];
 
             ruleConfigurationCollection.TryGetValue(ruleInfo.FullName, out IRuleConfiguration? ruleConfiguration);
-            bool isEnabled = ruleConfiguration?.Common?.Enabled ?? true;
+            bool isEnabled = ruleConfiguration?.Common?.Enable ?? true;
 
             if (ruleInfo.IsIdempotent)
             {

@@ -10,7 +10,7 @@ namespace Specter.Builtin.Editors
     internal sealed class UseCorrectCasingEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enable);
         public bool CheckKeyword { get; set; } = true;
         public bool CheckOperator { get; set; } = true;
     }

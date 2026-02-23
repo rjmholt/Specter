@@ -10,7 +10,7 @@ namespace Specter.Builtin.Rules
 {
     internal class ReviewUnusedParameterConfiguration : IRuleConfiguration
     {
-        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
+        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enable: true);
 
         public string[] CommandsToTraverse { get; set; } = { "Where-Object", "ForEach-Object" };
     }

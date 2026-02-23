@@ -15,7 +15,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     {
         public string[] Compatibility { get; init; } = Array.Empty<string>();
         public string? Reference { get; init; }
-        public CommonConfiguration Common { get; init; } = new CommonConfiguration(enabled: false);
+        public CommonConfiguration Common { get; init; } = new CommonConfiguration(enable: false);
     }
 
     [IdempotentRule]

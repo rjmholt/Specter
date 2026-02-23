@@ -53,10 +53,16 @@ namespace Specter.Configuration.Psd
             var ruleConfigDict = new Dictionary<string, IRuleConfiguration>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in ruleConfigurations)
             {
-                var ruleConfig = psdConverter.Convert<IReadOnlyDictionary<string, ExpressionAst>>(kvp.Value);
-                var common = ruleConfig.TryGetValue(ConfigurationKeys.CommonConfiguration, out var commonAst)
-                    ? psdConverter.Convert<CommonConfiguration>(commonAst)
-                    : CommonConfiguration.Default;
+                CommonConfiguration common;
+                try
+                {
+                    common = psdConverter.Convert<CommonConfiguration>(kvp.Value);
+                }
+                catch
+                {
+                    common = CommonConfiguration.Default;
+                }
+
                 ruleConfigDict[kvp.Key] = new PsdRuleConfiguration(psdConverter, common, kvp.Value);
             }
             RuleConfiguration = ruleConfigDict;

@@ -9,7 +9,7 @@ namespace Specter.Builtin.Rules
 {
     internal class AvoidLongLinesConfiguration : IRuleConfiguration
     {
-        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
+        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enable: true);
 
         public int MaximumLineLength { get; set; } = 120;
     }

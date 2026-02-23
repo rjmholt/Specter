@@ -9,7 +9,7 @@ namespace Specter.Formatting
     {
         public static CommonEditorConfiguration Default { get; } = new CommonEditorConfiguration();
 
-        public bool Enabled { get; set; } = true;
+        public bool Enable { get; set; } = true;
     }
 
     /// <summary>

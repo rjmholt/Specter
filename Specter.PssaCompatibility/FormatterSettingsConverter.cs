@@ -92,7 +92,7 @@ namespace Specter.PssaCompatibility
             }
 
             bool enabled = GetBool(pssaArgs, "Enable", true);
-            config.Common.Enabled = enabled;
+            config.Common.Enable = enabled;
 
             foreach (var kvp in pssaArgs)
             {

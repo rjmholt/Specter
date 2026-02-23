@@ -9,7 +9,7 @@ namespace Specter.Builtin.Editors
     internal sealed class UseConsistentWhitespaceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enable);
         public bool CheckOpenBrace { get; set; } = true;
         public bool CheckInnerBrace { get; set; } = true;
         public bool CheckPipe { get; set; } = true;

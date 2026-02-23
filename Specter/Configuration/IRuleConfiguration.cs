@@ -9,15 +9,15 @@ namespace Specter.Configuration
 {
     public class CommonConfiguration : IRuleConfiguration
     {
-        public static CommonConfiguration Default = new CommonConfiguration(enabled: true);
+        public static CommonConfiguration Default = new CommonConfiguration(enable: true);
 
         [JsonConstructor]
-        public CommonConfiguration(bool enabled)
+        public CommonConfiguration(bool enable = true)
         {
-            Enabled = enabled;
+            Enable = enable;
         }
 
-        public bool Enabled { get; set; } = true;
+        public bool Enable { get; set; } = true;
 
         public string[]? ExcludePaths { get; set; }
 

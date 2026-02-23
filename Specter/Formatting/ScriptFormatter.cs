@@ -22,7 +22,7 @@ namespace Specter.Formatting
         /// <summary>
         /// Creates a formatter from a config dictionary, using the built-in editor types
         /// in their canonical execution order. Editors whose config has
-        /// <see cref="CommonEditorConfiguration.Enabled"/> = false are skipped.
+        /// <see cref="CommonEditorConfiguration.Enable"/> = false are skipped.
         /// </summary>
         public static ScriptFormatter FromEditorConfigs(
             IReadOnlyDictionary<string, IEditorConfiguration> configs,
@@ -36,7 +36,7 @@ namespace Specter.Formatting
         /// <summary>
         /// Creates a formatter from a config dictionary and an explicit list of editor types.
         /// The list order determines execution order. Editors whose config has
-        /// <see cref="CommonEditorConfiguration.Enabled"/> = false are skipped.
+        /// <see cref="CommonEditorConfiguration.Enable"/> = false are skipped.
         /// Editors without a matching config entry are skipped.
         /// </summary>
         public static ScriptFormatter FromEditorConfigs(
@@ -132,7 +132,7 @@ namespace Specter.Formatting
                         continue;
                     }
 
-                    if (editorConfig.Common is not null && !editorConfig.Common.Enabled)
+                    if (editorConfig.Common is not null && !editorConfig.Common.Enable)
                     {
                         continue;
                     }

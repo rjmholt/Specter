@@ -11,7 +11,7 @@ namespace Specter.Builtin.Rules
 {
     internal class AvoidOverwritingBuiltInCmdletsConfiguration : IRuleConfiguration
     {
-        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
+        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enable: true);
 
         public string[] PowerShellVersion { get; set; } = Array.Empty<string>();
     }

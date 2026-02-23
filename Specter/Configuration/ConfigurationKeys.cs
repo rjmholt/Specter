@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -13,7 +13,5 @@ namespace Specter.Configuration
         public const string RulePaths = "RulePaths";
 
         public const string RuleConfigurations = "Rules";
-
-        public const string CommonConfiguration = "Common";
     }
 }

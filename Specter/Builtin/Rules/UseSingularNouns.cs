@@ -12,7 +12,7 @@ namespace Specter.Builtin.Rules
 {
     internal class UseSingularNounsConfiguration : IRuleConfiguration
     {
-        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enabled: true);
+        public CommonConfiguration Common { get; set; } = new CommonConfiguration(enable: true);
 
         public string[] NounAllowList { get; set; } = { "Data", "Windows" };
     }

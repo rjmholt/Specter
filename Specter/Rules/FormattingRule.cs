@@ -30,7 +30,7 @@ namespace Specter.Rules
         {
             if (ast is null) { throw new ArgumentNullException(nameof(ast)); }
 
-            if (!Configuration.Common.Enabled)
+            if (!Configuration.Common.Enable)
             {
                 return Enumerable.Empty<ScriptDiagnostic>();
             }

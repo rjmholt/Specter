@@ -464,11 +464,11 @@ namespace Specter.PssaCompatibility.Commands
                         bool enabled = Convert.ToBoolean(arg.Value);
                         if (config is IEditorConfiguration editorConfig)
                         {
-                            editorConfig.Common.Enabled = enabled;
+                            editorConfig.Common.Enable = enabled;
                         }
                         else if (config is IRuleConfiguration ruleConfig)
                         {
-                            ruleConfig.Common.Enabled = enabled;
+                            ruleConfig.Common.Enable = enabled;
                         }
 
                         continue;
@@ -497,11 +497,11 @@ namespace Specter.PssaCompatibility.Commands
                 {
                     if (config is IEditorConfiguration editorCfg)
                     {
-                        editorCfg.Common.Enabled = true;
+                        editorCfg.Common.Enable = true;
                     }
                     else if (config is IRuleConfiguration ruleCfg)
                     {
-                        ruleCfg.Common.Enabled = true;
+                        ruleCfg.Common.Enable = true;
                     }
                 }
 

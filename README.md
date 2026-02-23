@@ -108,20 +108,20 @@ Create a `specter.json` file in your project root:
     "RuleExecutionMode": "parallel",
     "Rules": {
         "PSAvoidUsingCmdletAliases": {
-            "Common": { "Enabled": true },
             "AllowList": ["cd", "ls"]
         },
         "PSUseConsistentIndentation": {
-            "Common": { "Enabled": true },
             "IndentationSize": 4,
             "PipelineIndentation": "IncreaseIndentationForFirstPipeline"
         },
         "PSAvoidUsingWriteHost": {
-            "Common": { "Enabled": false }
+            "Enable": false
         }
     }
 }
 ```
+
+Rules are enabled by default -- including a rule in the `Rules` section with configuration is enough to activate it. Set `"Enable": false` to explicitly disable a rule.
 
 Top-level settings:
 
@@ -132,14 +132,12 @@ Top-level settings:
 | `RulePaths` | `["/path/to/rules", ...]` | Additional rule module paths |
 | `Rules` | `{ "RuleName": { ... }, ... }` | Per-rule configuration |
 
-Each rule entry under `Rules` supports a `Common` object with shared settings:
+Each rule entry under `Rules` supports these shared keys alongside any rule-specific settings:
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `Enabled` | `bool` | Enable or disable the rule |
+| `Enable` | `bool` | Disable the rule (`false`); defaults to `true` |
 | `ExcludePaths` | `string[]` | Glob patterns for paths to skip |
-
-Any additional fields in a rule entry are deserialized into the rule's own typed configuration (e.g. `AllowList`, `IndentationSize`).
 
 Pass the configuration file to `Invoke-Specter` or the server:
 

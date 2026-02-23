@@ -10,7 +10,7 @@ namespace Specter.Builtin.Editors
     internal sealed class AlignAssignmentStatementEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enable);
         public bool CheckHashtable { get; set; } = true;
     }
 

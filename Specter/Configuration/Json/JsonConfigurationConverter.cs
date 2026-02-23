@@ -30,7 +30,7 @@ namespace Specter.Configuration.Json
                     continue;
                 }
 
-                var commonConfiguration = ruleConfigObject[ConfigurationKeys.CommonConfiguration]?.ToObject<CommonConfiguration>() ?? CommonConfiguration.Default;
+                var commonConfiguration = ruleConfigObject.ToObject<CommonConfiguration>() ?? CommonConfiguration.Default;
 
                 configDictionary[configEntry.Key] = new JsonRuleConfiguration(commonConfiguration, ruleConfigObject);
             }

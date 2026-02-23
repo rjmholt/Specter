@@ -8,8 +8,8 @@ namespace Specter.Builtin.Editors
 {
     internal sealed class AvoidUsingDoubleQuotesForConstantStringEditorConfiguration : IEditorConfiguration
     {
-        public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration { Enabled = false };
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
+        public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration { Enable = false };
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enable);
     }
 
     [Editor("AvoidUsingDoubleQuotesForConstantString", Description = "Replaces double-quoted constant strings with single-quoted equivalents")]

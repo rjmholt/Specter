@@ -29,7 +29,7 @@ namespace Specter.Builtin.Rules
                 throw new ArgumentNullException(Strings.NullAstErrorMessage);
             }
 
-            if (!Configuration.Common.Enabled)
+            if (!Configuration.Common.Enable)
             {
                 yield break;
             }
@@ -50,6 +50,6 @@ namespace Specter.Builtin.Rules
 
     public record AvoidExclaimOperatorConfiguration : IRuleConfiguration
     {
-        public CommonConfiguration Common { get; init; } = new CommonConfiguration(enabled: false);
+        public CommonConfiguration Common { get; init; } = new CommonConfiguration(enable: false);
     }
 }

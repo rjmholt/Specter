@@ -13,7 +13,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     public record UseCompatibleSyntaxConfiguration : IRuleConfiguration
     {
         public string[] TargetVersions { get; init; } = Array.Empty<string>();
-        public CommonConfiguration Common { get; init; } = new CommonConfiguration(enabled: false);
+        public CommonConfiguration Common { get; init; } = new CommonConfiguration(enable: false);
     }
 
     [IdempotentRule]

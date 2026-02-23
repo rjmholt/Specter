@@ -96,7 +96,7 @@ namespace Specter.Builtin
         private static IEditorConfiguration DisabledEditorConfig<T>() where T : IEditorConfiguration, new()
         {
             var config = new T();
-            config.Common.Enabled = false;
+            config.Common.Enable = false;
             return config;
         }
 
@@ -105,7 +105,7 @@ namespace Specter.Builtin
             { "PS/AlignAssignmentStatement", DisabledEditorConfig<AlignAssignmentStatementEditorConfiguration>() },
             { "PS/AvoidDefaultValueForMandatoryParameter", null },
             { "PS/AvoidDefaultValueSwitchParameter", null },
-            { "PS/AvoidExclaimOperator", new AvoidExclaimOperatorConfiguration { Common = new CommonConfiguration(enabled: false) } },
+            { "PS/AvoidExclaimOperator", new AvoidExclaimOperatorConfiguration { Common = new CommonConfiguration(enable: false) } },
             { "PS/AvoidGlobalAliases", null },
             { "PS/AvoidGlobalFunctions", null },
             { "PS/AvoidMultipleTypeAttributes", null },
@@ -119,10 +119,10 @@ namespace Specter.Builtin
             { "PS/AvoidUsingWriteHost", null },
             { "PS/AvoidAssignmentToAutomaticVariable", null },
             { "PS/AvoidInvokingEmptyMembers", null },
-            { "PS/AvoidLongLines", new AvoidLongLinesConfiguration { Common = new CommonConfiguration(enabled: false) } },
-            { "PS/AvoidSemicolonsAsLineTerminators", new CommonConfiguration(enabled: false) },
+            { "PS/AvoidLongLines", new AvoidLongLinesConfiguration { Common = new CommonConfiguration(enable: false) } },
+            { "PS/AvoidSemicolonsAsLineTerminators", new CommonConfiguration(enable: false) },
             { "PS/AvoidUsingBrokenHashAlgorithms", null },
-            { "PS/AvoidUsingDoubleQuotesForConstantString", new CommonConfiguration(enabled: false) },
+            { "PS/AvoidUsingDoubleQuotesForConstantString", new CommonConfiguration(enable: false) },
             { "PS/AvoidUsingComputerNameHardcoded", null },
             { "PS/AvoidUsingPlainTextForPassword", null },
             { "PS/AvoidUsingUsernameAndPasswordParams", null },

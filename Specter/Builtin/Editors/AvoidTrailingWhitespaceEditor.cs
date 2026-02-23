@@ -9,7 +9,7 @@ namespace Specter.Builtin.Editors
     internal sealed class AvoidTrailingWhitespaceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enable);
     }
 
     [Editor("AvoidTrailingWhitespace", Description = "Removes trailing spaces and tabs from all lines")]

@@ -9,7 +9,7 @@ namespace Specter.Builtin.Editors
     internal sealed class PlaceOpenBraceEditorConfiguration : IEditorConfiguration
     {
         public CommonEditorConfiguration Common { get; set; } = new CommonEditorConfiguration();
-        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enabled);
+        CommonConfiguration IRuleConfiguration.Common => new CommonConfiguration(Common.Enable);
         public bool OnSameLine { get; set; } = true;
         public bool NewLineAfter { get; set; } = true;
         public bool IgnoreOneLineBlock { get; set; } = true;
