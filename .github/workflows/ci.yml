@@ -38,6 +38,9 @@ jobs:
       - name: Run xUnit tests
         run: dotnet test PSpecter.Test/PSpecter.Test.csproj -c Release --no-build --verbosity normal
 
+      - name: Run server tests
+        run: dotnet test PSpecter.Server.Test/PSpecter.Server.Test.csproj -c Release --no-build --verbosity normal
+
       - name: Install Pester
         shell: pwsh
         run: |
@@ -48,12 +51,12 @@ jobs:
         run: |
           dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -c Release -f net8.0
 
-      - name: Run Pester tests
+      - name: Run Pester compatibility tests
         shell: pwsh
         run: |
-          $config = New-PesterConfiguration
-          $config.Run.Path = './Tests/Rules'
-          $config.Run.Exit = $true
-          $config.Output.Verbosity = 'Detailed'
-          $config.Filter.ExcludeTag = @('DSC', 'SkipCI')
-          Invoke-Pester -Configuration $config
+          ./Tests/RunCompatibilityTests.ps1 -Configuration Release
+
+      - name: Check for vulnerable packages
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet list PSpecter.sln package --vulnerable --include-transitive 2>&1 | tee /dev/stderr | grep -q "has no vulnerable packages" || echo "::warning::Vulnerable packages detected"

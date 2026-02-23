@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (skip publish steps)'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  CONFIGURATION: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore
+        run: dotnet restore PSpecter.sln
+
+      - name: Build
+        run: dotnet build PSpecter.sln -c ${{ env.CONFIGURATION }} --no-restore -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Run xUnit tests
+        run: dotnet test PSpecter.Test/PSpecter.Test.csproj -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
+
+      - name: Run server tests
+        run: dotnet test PSpecter.Server.Test/PSpecter.Server.Test.csproj -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
+
+      - name: Pack NuGet
+        run: |
+          dotnet pack PSpecter/PSpecter.csproj -c ${{ env.CONFIGURATION }} --no-build -p:Version=${{ steps.version.outputs.version }} -o ./artifacts/nupkg
+          dotnet pack PSpecter.Server/PSpecter.Server.csproj -c ${{ env.CONFIGURATION }} --no-build -p:Version=${{ steps.version.outputs.version }} -o ./artifacts/nupkg
+
+      - name: Build module layout
+        shell: pwsh
+        run: |
+          dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -c ${{ env.CONFIGURATION }} -f net8.0 -p:Version=${{ steps.version.outputs.version }}
+          # TODO: Assemble publishable module directory under ./artifacts/module/
+
+      - name: Upload NuGet artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: ./artifacts/nupkg/*.nupkg
+
+      # --- Publish steps (skipped on dry run) ---
+
+      - name: Publish to NuGet.org
+        if: github.ref_type == 'tag' && inputs.dry_run != 'true'
+        run: |
+          echo "TODO: dotnet nuget push ./artifacts/nupkg/*.nupkg --api-key \$NUGET_API_KEY --source https://api.nuget.org/v3/index.json"
+        # Uncomment when ready:
+        # run: dotnet nuget push ./artifacts/nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+      - name: Publish to PSGallery
+        if: github.ref_type == 'tag' && inputs.dry_run != 'true'
+        shell: pwsh
+        run: |
+          Write-Host "TODO: Publish-Module -Path ./artifacts/module/PSpecter -NuGetApiKey `$env:PSGALLERY_API_KEY"
+          # Uncomment when ready:
+          # Publish-Module -Path ./artifacts/module/PSpecter -NuGetApiKey $env:PSGALLERY_API_KEY
