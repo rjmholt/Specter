@@ -14,6 +14,11 @@ namespace PSpecter.Formatting
         }
 
         public ScriptEdit(int startOffset, int endOffset, string newText, int diagnosticStartOffset, int diagnosticEndOffset)
+            : this(startOffset, endOffset, newText, diagnosticStartOffset, diagnosticEndOffset, diagnosticMessage: null)
+        {
+        }
+
+        public ScriptEdit(int startOffset, int endOffset, string newText, int diagnosticStartOffset, int diagnosticEndOffset, string? diagnosticMessage)
         {
             if (startOffset < 0) { throw new ArgumentOutOfRangeException(nameof(startOffset)); }
             if (endOffset < startOffset) { throw new ArgumentOutOfRangeException(nameof(endOffset)); }
@@ -23,6 +28,7 @@ namespace PSpecter.Formatting
             NewText = newText ?? string.Empty;
             DiagnosticStartOffset = diagnosticStartOffset;
             DiagnosticEndOffset = diagnosticEndOffset;
+            DiagnosticMessage = diagnosticMessage;
         }
 
         /// <summary>Inclusive start offset in the original script content.</summary>
@@ -45,6 +51,12 @@ namespace PSpecter.Formatting
         /// When -1, the edit's EndOffset is used.
         /// </summary>
         public int DiagnosticEndOffset { get; }
+
+        /// <summary>
+        /// Optional context-specific diagnostic message set by the editor.
+        /// When non-null, formatting rules may use this instead of a generic message.
+        /// </summary>
+        public string? DiagnosticMessage { get; }
 
         public bool HasDiagnosticExtent => DiagnosticStartOffset >= 0 && DiagnosticEndOffset >= 0;
 

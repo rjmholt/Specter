@@ -118,10 +118,14 @@ namespace PSpecter.Builtin.Editors
                         }
                     }
 
+                    string message = $"Function/Cmdlet '{nameElement.Extent.Text}' does not match its exact casing '{canonicalName}'.";
                     edits.Add(new ScriptEdit(
                         nameElement.Extent.StartOffset,
                         nameElement.Extent.EndOffset,
-                        replacement));
+                        replacement,
+                        diagnosticStartOffset: -1,
+                        diagnosticEndOffset: -1,
+                        diagnosticMessage: message));
                 }
 
                 AddParameterCasingEdits(cmdAst, commandName, edits, db);
@@ -158,10 +162,14 @@ namespace PSpecter.Builtin.Editors
                 {
                     int dashOffset = paramAst.Extent.StartOffset;
                     int nameEnd = dashOffset + 1 + paramName.Length;
+                    string message = $"Parameter '-{paramName}' of function/cmdlet '{commandName}' does not match its exact casing '{canonical}'.";
                     edits.Add(new ScriptEdit(
                         dashOffset + 1,
                         nameEnd,
-                        canonical));
+                        canonical,
+                        diagnosticStartOffset: -1,
+                        diagnosticEndOffset: -1,
+                        diagnosticMessage: message));
                 }
             }
         }
@@ -256,10 +264,16 @@ namespace PSpecter.Builtin.Editors
 
             if (text != lower)
             {
+                string message = IsOperator(token)
+                    ? $"Operator '{text}' does not match the expected case '{lower}'."
+                    : $"Keyword '{text}' does not match the expected case '{lower}'.";
                 edits.Add(new ScriptEdit(
                     token.Extent.StartOffset,
                     token.Extent.EndOffset,
-                    lower));
+                    lower,
+                    diagnosticStartOffset: -1,
+                    diagnosticEndOffset: -1,
+                    diagnosticMessage: message));
             }
         }
 

@@ -111,6 +111,9 @@ namespace PSpecter.Builtin.Editors
                 || prev.Kind == TokenKind.LParen
                 || prev.Kind == TokenKind.DotDot
                 || prev.Kind == TokenKind.Dot
+#if CORECLR
+                || prev.Kind == TokenKind.QuestionDot
+#endif
                 || prev.Extent.StartLineNumber != brace.Extent.StartLineNumber)
             {
                 return;
@@ -571,7 +574,11 @@ namespace PSpecter.Builtin.Editors
             {
                 Token t = tokens[i];
 
-                if (t.Kind != TokenKind.Dot)
+                if (t.Kind != TokenKind.Dot
+#if CORECLR
+                    && t.Kind != TokenKind.QuestionDot
+#endif
+                    )
                 {
                     continue;
                 }
@@ -581,8 +588,28 @@ namespace PSpecter.Builtin.Editors
                     continue;
                 }
 
-                Token left = tokens[i - 1];
-                if (left.Extent.EndOffset != t.Extent.StartOffset)
+                int leftIdx = i - 1;
+                while (leftIdx > 0 && tokens[leftIdx].Kind == TokenKind.Comment)
+                {
+                    leftIdx--;
+                }
+
+                Token left = tokens[leftIdx];
+
+                // Verify the chain from left through any intervening comments to the
+                // dot is contiguous (no whitespace gaps). This avoids false positives
+                // with dot-sourcing like `$a .{blah}`.
+                bool contiguous = true;
+                for (int c = leftIdx; c < i; c++)
+                {
+                    if (tokens[c].Extent.EndOffset != tokens[c + 1].Extent.StartOffset)
+                    {
+                        contiguous = false;
+                        break;
+                    }
+                }
+
+                if (!contiguous)
                 {
                     continue;
                 }
@@ -593,6 +620,8 @@ namespace PSpecter.Builtin.Editors
                     case TokenKind.Identifier:
                     case TokenKind.StringLiteral:
                     case TokenKind.StringExpandable:
+                    case TokenKind.HereStringLiteral:
+                    case TokenKind.HereStringExpandable:
                     case TokenKind.RParen:
                     case TokenKind.RCurly:
                     case TokenKind.RBracket:

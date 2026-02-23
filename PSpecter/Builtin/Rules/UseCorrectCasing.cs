@@ -1,4 +1,5 @@
 using PSpecter.Builtin.Editors;
+using PSpecter.CommandDatabase;
 using PSpecter.Formatting;
 using PSpecter.Rules;
 
@@ -9,14 +10,20 @@ namespace PSpecter.Builtin.Rules
     [Rule("UseCorrectCasing", typeof(Strings), nameof(Strings.UseCorrectCasingDescription), Severity = DiagnosticSeverity.Information)]
     internal class UseCorrectCasing : FormattingRule<UseCorrectCasingEditorConfiguration>
     {
-        internal UseCorrectCasing(RuleInfo ruleInfo, UseCorrectCasingEditorConfiguration configuration)
+        private readonly IPowerShellCommandDatabase? _commandDb;
+
+        internal UseCorrectCasing(
+            RuleInfo ruleInfo,
+            UseCorrectCasingEditorConfiguration configuration,
+            IPowerShellCommandDatabase? commandDb)
             : base(ruleInfo, configuration)
         {
+            _commandDb = commandDb;
         }
 
-        public override IScriptEditor CreateEditor() => new UseCorrectCasingEditor(Configuration);
+        public override IScriptEditor CreateEditor() => new UseCorrectCasingEditor(Configuration, _commandDb);
 
         protected override string GetDiagnosticMessage(ScriptEdit edit, string scriptContent)
-            => Strings.UseCorrectCasingError;
+            => edit.DiagnosticMessage ?? Strings.UseCorrectCasingError;
     }
 }
