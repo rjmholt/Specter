@@ -17,7 +17,9 @@ namespace Specter.Test.Rules
             _scriptAnalyzer = new ScriptAnalyzerBuilder()
                 .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
                 .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
-                .AddRules(ruleProvider => ruleProvider.AddRule<AvoidUsingInvokeExpression>())
+                .AddRules(ruleProvider =>
+                    ruleProvider.AddRule<AvoidUsingInvokeExpression, AvoidUsingInvokeExpressionConfiguration>(
+                        new AvoidUsingInvokeExpressionConfiguration()))
                 .Build();
         }
 
@@ -73,6 +75,71 @@ iex 'Invoke me'";
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             Assert.Single(violations);
+        }
+
+        [Fact]
+        public void AllowConstantArguments_ConstantString_ShouldNotReturnViolation()
+        {
+            var analyzer = new ScriptAnalyzerBuilder()
+                .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
+                .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
+                .AddRules(ruleProvider =>
+                    ruleProvider.AddRule<AvoidUsingInvokeExpression, AvoidUsingInvokeExpressionConfiguration>(
+                        new AvoidUsingInvokeExpressionConfiguration { AllowConstantArguments = true }))
+                .Build();
+
+            var script = @"Invoke-Expression 'Get-Process'";
+
+            IReadOnlyList<ScriptDiagnostic> violations = analyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void AllowConstantArguments_Variable_ShouldReturnViolation()
+        {
+            var analyzer = new ScriptAnalyzerBuilder()
+                .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
+                .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
+                .AddRules(ruleProvider =>
+                    ruleProvider.AddRule<AvoidUsingInvokeExpression, AvoidUsingInvokeExpressionConfiguration>(
+                        new AvoidUsingInvokeExpressionConfiguration { AllowConstantArguments = true }))
+                .Build();
+
+            var script = @"Invoke-Expression $cmd";
+
+            IReadOnlyList<ScriptDiagnostic> violations = analyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Single(violations);
+        }
+
+        [Fact]
+        public void AllowConstantArguments_ExpandableString_ShouldReturnViolation()
+        {
+            var analyzer = new ScriptAnalyzerBuilder()
+                .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
+                .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
+                .AddRules(ruleProvider =>
+                    ruleProvider.AddRule<AvoidUsingInvokeExpression, AvoidUsingInvokeExpressionConfiguration>(
+                        new AvoidUsingInvokeExpressionConfiguration { AllowConstantArguments = true }))
+                .Build();
+
+            var script = "Invoke-Expression \"Get-Process $name\"";
+
+            IReadOnlyList<ScriptDiagnostic> violations = analyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Single(violations);
+        }
+
+        [Fact]
+        public void UpdatedErrorMessage_ShouldSuggestAlternatives()
+        {
+            var script = @"Invoke-Expression 'Get-Process'";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            ScriptDiagnostic violation = Assert.Single(violations);
+            Assert.Contains("invocation operator", violation.Message);
         }
     }
 }

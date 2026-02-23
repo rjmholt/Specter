@@ -3797,5 +3797,29 @@ namespace Specter.Builtin.Rules {
                 return ResourceManager.GetString("AvoidFilterKeywordCommonName", resourceCulture);
             }
         }
+
+        internal static string AvoidUnsafeDeserializationDescription {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeDeserializationDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeDeserializationError {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeDeserializationError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeDeserializationName {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeDeserializationName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeDeserializationCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeDeserializationCommonName", resourceCulture);
+            }
+        }
     }
 }

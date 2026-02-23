@@ -517,7 +517,7 @@
     <value>'{0}' is an alias of '{1}'. Alias can introduce possible problems and make scripts hard to maintain. Please consider changing alias to its full content.</value>
   </data>
   <data name="AvoidUsingInvokeExpressionError" xml:space="preserve">
-    <value>Invoke-Expression is used. Please remove Invoke-Expression from script and find other options instead.</value>
+    <value>Invoke-Expression is used. Consider using the invocation operator (&amp;), splatting, or [CodeGeneration]::EscapeSingleQuotedStringContent() instead.</value>
   </data>
   <data name="AvoidUsingPositionalParametersError" xml:space="preserve">
     <value>Cmdlet '{0}' has positional parameter. Please use named parameters instead of positional parameters when calling a command.</value>
@@ -1451,5 +1451,17 @@
   </data>
   <data name="AvoidFilterKeywordCommonName" xml:space="preserve">
     <value>Avoid Filter Keyword</value>
+  </data>
+  <data name="AvoidUnsafeDeserializationDescription" xml:space="preserve">
+    <value>Avoid deserializing data from untrusted sources. Import-Clixml, PSSerializer.Deserialize, XmlDocument.Load, and XamlReader.Parse can execute arbitrary code when processing crafted input.</value>
+  </data>
+  <data name="AvoidUnsafeDeserializationError" xml:space="preserve">
+    <value>Potentially unsafe deserialization via '{0}' with a non-constant argument. Ensure the input comes from a trusted source.</value>
+  </data>
+  <data name="AvoidUnsafeDeserializationName" xml:space="preserve">
+    <value>AvoidUnsafeDeserialization</value>
+  </data>
+  <data name="AvoidUnsafeDeserializationCommonName" xml:space="preserve">
+    <value>Avoid Unsafe Deserialization</value>
   </data>
 </root>
