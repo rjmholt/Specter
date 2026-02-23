@@ -1224,4 +1224,136 @@
   <data name="AvoidReservedWordsAsFunctionNamesName" xml:space="preserve">
     <value>AvoidReservedWordsAsFunctionNames</value>
   </data>
+  <data name="AvoidUnsafeAddTypeDescription" xml:space="preserve">
+    <value>Avoid using Add-Type with non-constant -TypeDefinition or -MemberDefinition arguments. Non-constant type definitions can be used to inject arbitrary code at runtime.</value>
+  </data>
+  <data name="AvoidUnsafeAddTypeError" xml:space="preserve">
+    <value>Add-Type is called with a non-constant type or member definition. Use a string literal to prevent code injection.</value>
+  </data>
+  <data name="AvoidUnsafeAddTypeName" xml:space="preserve">
+    <value>AvoidUnsafeAddType</value>
+  </data>
+  <data name="AvoidUnsafeAddTypeCommonName" xml:space="preserve">
+    <value>Avoid Unsafe Add-Type</value>
+  </data>
+  <data name="AvoidDangerousMethodDescription" xml:space="preserve">
+    <value>Avoid calling methods that execute arbitrary code from string input, such as InvokeScript, AddScript, NewScriptBlock, ExpandString, CreateNestedPipeline, and ScriptBlock.Create. These methods can enable code injection if the input is not fully trusted.</value>
+  </data>
+  <data name="AvoidDangerousMethodError" xml:space="preserve">
+    <value>'{0}' executes arbitrary code from string input. Avoid calling it with untrusted data.</value>
+  </data>
+  <data name="AvoidDangerousMethodName" xml:space="preserve">
+    <value>AvoidDangerousMethod</value>
+  </data>
+  <data name="AvoidDangerousMethodCommonName" xml:space="preserve">
+    <value>Avoid Dangerous Method Call</value>
+  </data>
+  <data name="AvoidCommandInjectionDescription" xml:space="preserve">
+    <value>Avoid passing expandable strings (containing variable interpolation) as command arguments to shell processes like cmd, powershell, pwsh, bash, or sh. Variable values can be manipulated to inject arbitrary commands.</value>
+  </data>
+  <data name="AvoidCommandInjectionError" xml:space="preserve">
+    <value>'{0}' is invoked with an expandable string argument. Use direct variable arguments instead of string interpolation to prevent command injection.</value>
+  </data>
+  <data name="AvoidCommandInjectionName" xml:space="preserve">
+    <value>AvoidCommandInjection</value>
+  </data>
+  <data name="AvoidCommandInjectionCommonName" xml:space="preserve">
+    <value>Avoid Command Injection</value>
+  </data>
+  <data name="AvoidDynamicMemberAccessDescription" xml:space="preserve">
+    <value>Avoid accessing properties or invoking methods using a non-constant member name (e.g. $obj.$prop or $obj.$method()). Dynamic member access can be exploited for property or method injection if the member name comes from untrusted input.</value>
+  </data>
+  <data name="AvoidDynamicMemberAccessError" xml:space="preserve">
+    <value>Dynamic {0} access uses a non-constant member name. This can enable injection if the name comes from untrusted input.</value>
+  </data>
+  <data name="AvoidDynamicMemberAccessName" xml:space="preserve">
+    <value>AvoidDynamicMemberAccess</value>
+  </data>
+  <data name="AvoidDynamicMemberAccessCommonName" xml:space="preserve">
+    <value>Avoid Dynamic Member Access</value>
+  </data>
+  <data name="AvoidForeachObjectInjectionDescription" xml:space="preserve">
+    <value>Avoid using ForEach-Object -MemberName with a non-constant argument. A variable member name can be manipulated to invoke arbitrary methods on pipeline objects.</value>
+  </data>
+  <data name="AvoidForeachObjectInjectionError" xml:space="preserve">
+    <value>ForEach-Object -MemberName is called with a non-constant argument. Use a constant string or a script block instead.</value>
+  </data>
+  <data name="AvoidForeachObjectInjectionName" xml:space="preserve">
+    <value>AvoidForeachObjectInjection</value>
+  </data>
+  <data name="AvoidForeachObjectInjectionCommonName" xml:space="preserve">
+    <value>Avoid ForEach-Object Injection</value>
+  </data>
+  <data name="AvoidUnsafeEscapingDescription" xml:space="preserve">
+    <value>Avoid using manual backtick or quote-doubling escaping patterns in -replace operations. Use [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent() or EscapeVariableName() instead, which handle all edge cases correctly.</value>
+  </data>
+  <data name="AvoidUnsafeEscapingError" xml:space="preserve">
+    <value>Manual escaping pattern detected in -replace operation. Use [CodeGeneration]::EscapeSingleQuotedStringContent() or EscapeVariableName() for safe escaping.</value>
+  </data>
+  <data name="AvoidUnsafeEscapingName" xml:space="preserve">
+    <value>AvoidUnsafeEscaping</value>
+  </data>
+  <data name="AvoidUnsafeEscapingCommonName" xml:space="preserve">
+    <value>Avoid Unsafe Escaping</value>
+  </data>
+  <data name="MeasureFunctionComplexityDescription" xml:space="preserve">
+    <value>Measure the cyclomatic complexity of functions and report when the complexity exceeds a configurable threshold. High complexity makes functions harder to test and maintain.</value>
+  </data>
+  <data name="MeasureFunctionComplexityError" xml:space="preserve">
+    <value>Function '{0}' has a cyclomatic complexity of {1}, which exceeds the configured threshold of {2}.</value>
+  </data>
+  <data name="MeasureFunctionComplexityName" xml:space="preserve">
+    <value>MeasureFunctionComplexity</value>
+  </data>
+  <data name="MeasureFunctionComplexityCommonName" xml:space="preserve">
+    <value>Measure Function Complexity</value>
+  </data>
+  <data name="AvoidUnreachableCodeDescription" xml:space="preserve">
+    <value>Avoid unreachable code after unconditional return, throw, exit, break, or continue statements. Unreachable code is never executed and usually indicates a logic error or leftover code.</value>
+  </data>
+  <data name="AvoidUnreachableCodeError" xml:space="preserve">
+    <value>Unreachable code detected after a terminating statement.</value>
+  </data>
+  <data name="AvoidUnreachableCodeName" xml:space="preserve">
+    <value>AvoidUnreachableCode</value>
+  </data>
+  <data name="AvoidUnreachableCodeCommonName" xml:space="preserve">
+    <value>Avoid Unreachable Code</value>
+  </data>
+  <data name="AvoidUsingUninitializedVariableDescription" xml:space="preserve">
+    <value>Avoid using variables that have not been assigned in the current scope. Uninitialized variables may silently inherit values from parent scopes due to PowerShell's dynamic scoping, which is a common source of bugs.</value>
+  </data>
+  <data name="AvoidUsingUninitializedVariableError" xml:space="preserve">
+    <value>Variable '{0}' is used but has not been assigned in the current scope.</value>
+  </data>
+  <data name="AvoidUsingUninitializedVariableName" xml:space="preserve">
+    <value>AvoidUsingUninitializedVariable</value>
+  </data>
+  <data name="AvoidUsingUninitializedVariableCommonName" xml:space="preserve">
+    <value>Avoid Using Uninitialized Variable</value>
+  </data>
+  <data name="AvoidUnusedVariableDescription" xml:space="preserve">
+    <value>Avoid assigning to variables that are never read in the same scope. Unused variables indicate dead code or incomplete refactoring.</value>
+  </data>
+  <data name="AvoidUnusedVariableError" xml:space="preserve">
+    <value>Variable '{0}' is assigned but never used.</value>
+  </data>
+  <data name="AvoidUnusedVariableName" xml:space="preserve">
+    <value>AvoidUnusedVariable</value>
+  </data>
+  <data name="AvoidUnusedVariableCommonName" xml:space="preserve">
+    <value>Avoid Unused Variable</value>
+  </data>
+  <data name="AvoidEmptyNamedBlocksDescription" xml:space="preserve">
+    <value>Avoid empty begin, process, end, or dynamicparam blocks in functions. Empty named blocks add noise and may indicate incomplete implementations.</value>
+  </data>
+  <data name="AvoidEmptyNamedBlocksError" xml:space="preserve">
+    <value>Empty '{0}' block in function definition.</value>
+  </data>
+  <data name="AvoidEmptyNamedBlocksName" xml:space="preserve">
+    <value>AvoidEmptyNamedBlocks</value>
+  </data>
+  <data name="AvoidEmptyNamedBlocksCommonName" xml:space="preserve">
+    <value>Avoid Empty Named Blocks</value>
+  </data>
 </root>

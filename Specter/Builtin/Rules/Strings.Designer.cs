@@ -3341,5 +3341,269 @@ namespace Specter.Builtin.Rules {
                 return ResourceManager.GetString("UseUsingScopeModifierInNewRunspacesCorrectionDescription", resourceCulture);
             }
         }
+
+        internal static string AvoidUnsafeAddTypeDescription {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeAddTypeDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeAddTypeError {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeAddTypeError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeAddTypeName {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeAddTypeName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeAddTypeCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeAddTypeCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDangerousMethodDescription {
+            get {
+                return ResourceManager.GetString("AvoidDangerousMethodDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDangerousMethodError {
+            get {
+                return ResourceManager.GetString("AvoidDangerousMethodError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDangerousMethodName {
+            get {
+                return ResourceManager.GetString("AvoidDangerousMethodName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDangerousMethodCommonName {
+            get {
+                return ResourceManager.GetString("AvoidDangerousMethodCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidCommandInjectionDescription {
+            get {
+                return ResourceManager.GetString("AvoidCommandInjectionDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidCommandInjectionError {
+            get {
+                return ResourceManager.GetString("AvoidCommandInjectionError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidCommandInjectionName {
+            get {
+                return ResourceManager.GetString("AvoidCommandInjectionName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidCommandInjectionCommonName {
+            get {
+                return ResourceManager.GetString("AvoidCommandInjectionCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDynamicMemberAccessDescription {
+            get {
+                return ResourceManager.GetString("AvoidDynamicMemberAccessDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDynamicMemberAccessError {
+            get {
+                return ResourceManager.GetString("AvoidDynamicMemberAccessError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDynamicMemberAccessName {
+            get {
+                return ResourceManager.GetString("AvoidDynamicMemberAccessName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidDynamicMemberAccessCommonName {
+            get {
+                return ResourceManager.GetString("AvoidDynamicMemberAccessCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidForeachObjectInjectionDescription {
+            get {
+                return ResourceManager.GetString("AvoidForeachObjectInjectionDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidForeachObjectInjectionError {
+            get {
+                return ResourceManager.GetString("AvoidForeachObjectInjectionError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidForeachObjectInjectionName {
+            get {
+                return ResourceManager.GetString("AvoidForeachObjectInjectionName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidForeachObjectInjectionCommonName {
+            get {
+                return ResourceManager.GetString("AvoidForeachObjectInjectionCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeEscapingDescription {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeEscapingDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeEscapingError {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeEscapingError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeEscapingName {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeEscapingName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnsafeEscapingCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUnsafeEscapingCommonName", resourceCulture);
+            }
+        }
+
+        internal static string MeasureFunctionComplexityDescription {
+            get {
+                return ResourceManager.GetString("MeasureFunctionComplexityDescription", resourceCulture);
+            }
+        }
+
+        internal static string MeasureFunctionComplexityError {
+            get {
+                return ResourceManager.GetString("MeasureFunctionComplexityError", resourceCulture);
+            }
+        }
+
+        internal static string MeasureFunctionComplexityName {
+            get {
+                return ResourceManager.GetString("MeasureFunctionComplexityName", resourceCulture);
+            }
+        }
+
+        internal static string MeasureFunctionComplexityCommonName {
+            get {
+                return ResourceManager.GetString("MeasureFunctionComplexityCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnreachableCodeDescription {
+            get {
+                return ResourceManager.GetString("AvoidUnreachableCodeDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnreachableCodeError {
+            get {
+                return ResourceManager.GetString("AvoidUnreachableCodeError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnreachableCodeName {
+            get {
+                return ResourceManager.GetString("AvoidUnreachableCodeName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnreachableCodeCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUnreachableCodeCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUsingUninitializedVariableDescription {
+            get {
+                return ResourceManager.GetString("AvoidUsingUninitializedVariableDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUsingUninitializedVariableError {
+            get {
+                return ResourceManager.GetString("AvoidUsingUninitializedVariableError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUsingUninitializedVariableName {
+            get {
+                return ResourceManager.GetString("AvoidUsingUninitializedVariableName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUsingUninitializedVariableCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUsingUninitializedVariableCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnusedVariableDescription {
+            get {
+                return ResourceManager.GetString("AvoidUnusedVariableDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnusedVariableError {
+            get {
+                return ResourceManager.GetString("AvoidUnusedVariableError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnusedVariableName {
+            get {
+                return ResourceManager.GetString("AvoidUnusedVariableName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidUnusedVariableCommonName {
+            get {
+                return ResourceManager.GetString("AvoidUnusedVariableCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidEmptyNamedBlocksDescription {
+            get {
+                return ResourceManager.GetString("AvoidEmptyNamedBlocksDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidEmptyNamedBlocksError {
+            get {
+                return ResourceManager.GetString("AvoidEmptyNamedBlocksError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidEmptyNamedBlocksName {
+            get {
+                return ResourceManager.GetString("AvoidEmptyNamedBlocksName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidEmptyNamedBlocksCommonName {
+            get {
+                return ResourceManager.GetString("AvoidEmptyNamedBlocksCommonName", resourceCulture);
+            }
+        }
     }
 }
