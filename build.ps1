@@ -8,7 +8,9 @@
       - Specter.PssaCompatibility (drop-in PSSA replacement)
       - Specter.RulePrimitives   (cmdlets for rule authors)
 
-    Also packs NuGet packages for the Specter library when -Pack is set.
+    When -Pack is set, also produces .nupkg files under out/nupkg/:
+      - PSGallery-compatible packages for each module (for Install-PSResource / GitHub releases)
+      - NuGet library package for Specter (for C# consumers via dotnet add package)
 
 .PARAMETER Configuration
     Build configuration. Defaults to Release.
@@ -166,16 +168,36 @@ foreach ($proj in $projects) {
     Write-Host "  -> $moduleOutPath" -ForegroundColor Green
 }
 
-# --- NuGet pack ---
+# --- pack ---
 
 if ($Pack) {
-    Write-Host "Packing NuGet packages..." -ForegroundColor Cyan
     New-Dir $nupkgDir
 
+    # PSGallery-compatible .nupkg for each PowerShell module (for Install-Module / GitHub releases).
+    # Uses a temporary local PSResourceRepository to produce the packages.
+    Write-Host "Packing PowerShell module nupkgs..." -ForegroundColor Cyan
+    $repoName = "SpecterLocalBuild_$([guid]::NewGuid().ToString('N')[0..7] -join '')"
+    try {
+        Register-PSResourceRepository -Name $repoName -Uri $nupkgDir -Trusted
+        foreach ($proj in $projects) {
+            $modulePath = Join-Path $outRoot $proj.OutName
+            if (-not (Test-Path $modulePath)) {
+                Write-Warning "Module not found at $modulePath, skipping."
+                continue
+            }
+            Write-Host "  Packing $($proj.OutName)..." -ForegroundColor Cyan
+            Publish-PSResource -Path $modulePath -Repository $repoName
+        }
+    }
+    finally {
+        Unregister-PSResourceRepository -Name $repoName -ErrorAction Ignore
+    }
+
+    # NuGet library package for C# consumers (dotnet add package Specter).
+    Write-Host "Packing NuGet library packages..." -ForegroundColor Cyan
     $packableProjects = @(
         'Specter/Specter.csproj'
     )
-
     foreach ($csproj in $packableProjects) {
         $fullPath = Join-Path $repoRoot $csproj
         Invoke-DotNet pack $fullPath -c $Configuration -o $nupkgDir --no-restore -p:NuGetAudit=false
@@ -191,6 +213,7 @@ Write-Host "Modules staged in: $outRoot"
 
 if ($Pack) {
     Write-Host "NuGet packages in: $nupkgDir"
+    Write-Host "  (attach .nupkg files to GitHub releases for Install-PSResource)"
 }
 
 Write-Host "`nTo import the Specter module:"
