@@ -1,5 +1,7 @@
 using PSpecter.Builder;
+using PSpecter.Builtin;
 using PSpecter.Execution;
+using PSpecter.Formatting;
 using PSpecter.Instantiation;
 using PSpecter.Logging;
 using PSpecter.Rules;
@@ -37,11 +39,6 @@ public sealed class AnalysisService : IDisposable
 
     public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScriptContent(string content, string? filePath = null)
     {
-        if (filePath is not null)
-        {
-            return _analyzer.AnalyzeScriptInput(content);
-        }
-
         return _analyzer.AnalyzeScriptInput(content);
     }
 
@@ -61,6 +58,36 @@ public sealed class AnalysisService : IDisposable
             }
         }
         return rules;
+    }
+
+    public FormatResult FormatScript(string content, string? filePath, string? presetName)
+    {
+        IReadOnlyDictionary<string, IEditorConfiguration> configs = ResolveFormatterConfigs(presetName);
+        ScriptFormatter formatter = ScriptFormatter.FromEditorConfigs(configs);
+        string formatted = formatter.Format(content, filePath);
+        return new FormatResult(formatted, !string.Equals(content, formatted, StringComparison.Ordinal));
+    }
+
+    private static IReadOnlyDictionary<string, IEditorConfiguration> ResolveFormatterConfigs(string? presetName)
+    {
+        if (string.IsNullOrEmpty(presetName)
+            || string.Equals(presetName, "Default", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(presetName, "Stroustrup", StringComparison.OrdinalIgnoreCase))
+        {
+            return FormatterPresets.Default;
+        }
+
+        if (string.Equals(presetName, "OTBS", StringComparison.OrdinalIgnoreCase))
+        {
+            return FormatterPresets.OTBS;
+        }
+
+        if (string.Equals(presetName, "Allman", StringComparison.OrdinalIgnoreCase))
+        {
+            return FormatterPresets.Allman;
+        }
+
+        return FormatterPresets.Default;
     }
 
     public void OpenDocument(string uri, string content, int version)
@@ -89,3 +116,5 @@ public sealed class AnalysisService : IDisposable
 }
 
 public sealed record DocumentState(string Content, int Version);
+
+public sealed record FormatResult(string FormattedContent, bool Changed);

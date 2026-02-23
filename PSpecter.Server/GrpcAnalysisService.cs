@@ -47,10 +47,17 @@ public sealed class GrpcAnalysisService : PSpecterAnalysis.PSpecterAnalysisBase
 
     public override Task<FormatScriptResponse> FormatScript(FormatScriptRequest request, ServerCallContext context)
     {
+        request.Settings.TryGetValue("preset", out string? preset);
+
+        FormatResult result = _analysisService.FormatScript(
+            request.ScriptContent,
+            string.IsNullOrEmpty(request.FilePath) ? null : request.FilePath,
+            preset);
+
         return Task.FromResult(new FormatScriptResponse
         {
-            FormattedContent = request.ScriptContent,
-            Changed = false,
+            FormattedContent = result.FormattedContent,
+            Changed = result.Changed,
         });
     }
 
