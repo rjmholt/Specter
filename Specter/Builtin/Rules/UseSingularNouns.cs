@@ -88,7 +88,7 @@ namespace Specter.Builtin.Rules
                 return null;
             }
 
-            if (!char.IsLower(cmdletName[cmdletName.Length - 1]))
+            if (!char.IsLower(cmdletName![cmdletName.Length - 1]))
             {
                 return null;
             }

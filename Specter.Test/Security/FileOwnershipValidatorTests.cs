@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using Specter.Security;
 using Xunit;
 
+#pragma warning disable CA1416 // Test methods are guarded by [FactOnUnix]
+
 namespace Specter.Test.Security
 {
     public class FileOwnershipValidatorTests : IDisposable

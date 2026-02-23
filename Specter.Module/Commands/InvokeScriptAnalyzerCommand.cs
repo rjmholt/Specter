@@ -102,7 +102,7 @@ namespace Specter.Module.Commands
                 return HashCode.Combine(ConfigurationPath);
 #else
                 return HashCodeCombinator.Create()
-                    .Add(ConfigurationPath)
+                    .Add(ConfigurationPath!)
                     .GetHashCode();
 #endif
             }

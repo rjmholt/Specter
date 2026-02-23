@@ -120,7 +120,7 @@ namespace Specter.Builtin.Rules
                     string? name = command["Name"]?.ToString();
                     if (!string.IsNullOrEmpty(name))
                     {
-                        cmdlets.Add(name);
+                        cmdlets.Add(name!);
                     }
                 }
             }

@@ -79,7 +79,7 @@ namespace Specter.CommandDatabase.Import
                         }
 
                         result.Add(new CommandMetadata(
-                            name: cmd.Name,
+                            name: cmd!.Name!,
                             commandType: cmd.CommandType ?? "Cmdlet",
                             moduleName: moduleName,
                             defaultParameterSet: null,

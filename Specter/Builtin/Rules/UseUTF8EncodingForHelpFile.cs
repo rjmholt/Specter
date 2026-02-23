@@ -24,12 +24,12 @@ namespace Specter.Builtin.Rules
                 yield break;
             }
 
-            if (!IsHelpFile(scriptPath))
+            if (!IsHelpFile(scriptPath!))
             {
                 yield break;
             }
 
-            using (var fileStream = File.Open(scriptPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fileStream = File.Open(scriptPath!, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var reader = new StreamReader(fileStream, detectEncodingFromByteOrderMarks: true))
             {
                 reader.ReadToEnd();

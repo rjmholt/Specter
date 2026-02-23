@@ -73,7 +73,7 @@ namespace Specter.Tools
         public static bool IsModuleScript(string? filePath)
         {
             return !string.IsNullOrEmpty(filePath)
-                && filePath.EndsWith(".psm1", StringComparison.OrdinalIgnoreCase);
+                && filePath!.EndsWith(".psm1", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Specter.Tools
         public static bool IsModuleManifest(string? filePath)
         {
             return !string.IsNullOrEmpty(filePath)
-                && filePath.EndsWith(".psd1", StringComparison.OrdinalIgnoreCase);
+                && filePath!.EndsWith(".psd1", StringComparison.OrdinalIgnoreCase);
         }
 
         internal static string? StripScopePrefix(string? name)

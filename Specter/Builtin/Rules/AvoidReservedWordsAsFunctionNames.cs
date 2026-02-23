@@ -48,7 +48,7 @@ namespace Specter.Builtin.Rules
                 }
 
                 string? nameWithoutScope = funcAst.GetNameWithoutScope();
-                if (string.IsNullOrEmpty(nameWithoutScope) || !s_reservedWords.Contains(nameWithoutScope))
+                if (string.IsNullOrEmpty(nameWithoutScope) || !s_reservedWords.Contains(nameWithoutScope!))
                 {
                     continue;
                 }

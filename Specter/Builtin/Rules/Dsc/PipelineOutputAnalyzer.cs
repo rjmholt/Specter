@@ -65,7 +65,7 @@ namespace Specter.Builtin.Rules.Dsc
         internal static bool ShouldSkipType(string? typeName, string expectedType)
         {
             return string.IsNullOrEmpty(typeName)
-                   || s_skipTypes.Contains(typeName)
+                   || s_skipTypes.Contains(typeName!)
                    || string.Equals(typeName, expectedType, StringComparison.OrdinalIgnoreCase);
         }
 

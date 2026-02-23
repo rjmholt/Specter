@@ -21,26 +21,28 @@ namespace Specter.PssaCompatibility
                 return pssaRuleName!;
             }
 
-            if (pssaRuleName.Contains("/"))
+            string name = pssaRuleName!;
+
+            if (name.Contains("/"))
             {
-                return pssaRuleName;
+                return name;
             }
 
-            if (pssaRuleName.StartsWith("PSDSC", StringComparison.OrdinalIgnoreCase)
-                && pssaRuleName.Length > 5
-                && char.IsUpper(pssaRuleName[5]))
+            if (name.StartsWith("PSDSC", StringComparison.OrdinalIgnoreCase)
+                && name.Length > 5
+                && char.IsUpper(name[5]))
             {
-                return "PSDSC/" + pssaRuleName.Substring(5);
+                return "PSDSC/" + name.Substring(5);
             }
 
-            if (pssaRuleName.StartsWith("PS", StringComparison.OrdinalIgnoreCase)
-                && pssaRuleName.Length > 2
-                && char.IsUpper(pssaRuleName[2]))
+            if (name.StartsWith("PS", StringComparison.OrdinalIgnoreCase)
+                && name.Length > 2
+                && char.IsUpper(name[2]))
             {
-                return "PS/" + pssaRuleName.Substring(2);
+                return "PS/" + name.Substring(2);
             }
 
-            return pssaRuleName;
+            return name;
         }
 
         /// <summary>
@@ -54,13 +56,14 @@ namespace Specter.PssaCompatibility
                 return engineFullName!;
             }
 
-            int slashIndex = engineFullName.IndexOf('/');
+            string name = engineFullName!;
+            int slashIndex = name.IndexOf('/');
             if (slashIndex >= 0)
             {
-                return engineFullName.Substring(0, slashIndex) + engineFullName.Substring(slashIndex + 1);
+                return name.Substring(0, slashIndex) + name.Substring(slashIndex + 1);
             }
 
-            return engineFullName;
+            return name;
         }
 
         /// <summary>
@@ -74,12 +77,14 @@ namespace Specter.PssaCompatibility
                 return engineShortName!;
             }
 
-            if (engineShortName.StartsWith("PS", StringComparison.OrdinalIgnoreCase))
+            string name = engineShortName!;
+
+            if (name.StartsWith("PS", StringComparison.OrdinalIgnoreCase))
             {
-                return engineShortName;
+                return name;
             }
 
-            return "PS" + engineShortName;
+            return "PS" + name;
         }
 
         /// <summary>
