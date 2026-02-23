@@ -34,6 +34,21 @@ Specter.Benchmarks/        BenchmarkDotNet performance suite
 
 ## Building
 
+The unified build script compiles all assemblies and stages the three PowerShell modules under `out/`:
+
+```powershell
+# Debug build (default)
+./build.ps1
+
+# Release build with NuGet package
+./build.ps1 -Configuration Release -Pack -Clean
+
+# Import the built module
+Import-Module ./out/Specter/Specter.psd1
+```
+
+Or build individual projects with `dotnet` directly:
+
 ```bash
 dotnet build Specter.sln
 ```
@@ -47,6 +62,28 @@ dotnet test Specter.Test/Specter.Test.csproj
 # Pester compatibility tests (requires pwsh and Pester 5+)
 pwsh -NoProfile -Command "./Tests/RunCompatibilityTests.ps1"
 ```
+
+## Publishing
+
+The publish script builds in Release mode, runs tests, and pushes to the PowerShell Gallery and nuget.org:
+
+```powershell
+# Publish everything (requires API keys)
+./publish.ps1 -PSGalleryApiKey $galleryKey -NuGetApiKey $nugetKey
+
+# Or use environment variables
+$env:PSGALLERY_API_KEY = '...'
+$env:NUGET_API_KEY = '...'
+./publish.ps1
+
+# Dry run
+./publish.ps1 -WhatIf
+
+# PSGallery only (skip NuGet)
+./publish.ps1 -PSGalleryApiKey $key -SkipNuGet
+```
+
+The current version is **0.1.0-preview.1**, signalling that the API is not yet stable.
 
 ## PowerShell Modules
 

@@ -18,7 +18,7 @@ RootModule = if ($PSEdition -eq 'Core')
     }
 
 # Version number of this module.
-ModuleVersion = '2.0.0'
+ModuleVersion = '0.1.0'
 
 # ID used to uniquely identify this module
 GUID = 'd6245802-193d-4068-a631-8863a4342a18'
@@ -48,7 +48,7 @@ FormatsToProcess = @()
 FunctionsToExport = @()
 
 # Cmdlets to export from this module
-CmdletsToExport = @('Invoke-Specter', 'Write-Diagnostic', 'Update-SpecterDatabase')
+CmdletsToExport = @('Invoke-Specter', 'Update-SpecterDatabase')
 
 # Variables to export from this module
 VariablesToExport = @()

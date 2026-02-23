@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <ModuleVersion>1.24.0</ModuleVersion>
+    <ModuleVersion>0.1.0</ModuleVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <Authors>Robert Holt</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
