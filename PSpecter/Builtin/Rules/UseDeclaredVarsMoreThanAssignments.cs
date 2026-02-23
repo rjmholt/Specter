@@ -110,6 +110,13 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             {
                 foreach (VariableExpressionAst varAst in varAsts)
                 {
+                    if (varAst.VariablePath.IsGlobal
+                        || varAst.VariablePath.IsScript
+                        || varAst.VariablePath.DriveName != null)
+                    {
+                        continue;
+                    }
+
                     varKey = varAst.GetNameWithoutScope();
                     inAssignment = false;
 
