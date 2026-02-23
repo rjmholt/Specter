@@ -655,6 +655,42 @@ namespace PSpecter.Builtin.Rules {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid reserved words as function names.
+        /// </summary>
+        internal static string AvoidReservedWordsAsFunctionNamesCommonName {
+            get {
+                return ResourceManager.GetString("AvoidReservedWordsAsFunctionNamesCommonName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reserved words should not be used as function names. Using reserved words as function names can cause confusion and unexpected behavior..
+        /// </summary>
+        internal static string AvoidReservedWordsAsFunctionNamesDescription {
+            get {
+                return ResourceManager.GetString("AvoidReservedWordsAsFunctionNamesDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The reserved word &apos;{0}&apos; was used as a function name. This should be avoided..
+        /// </summary>
+        internal static string AvoidReservedWordsAsFunctionNamesError {
+            get {
+                return ResourceManager.GetString("AvoidReservedWordsAsFunctionNamesError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AvoidReservedWordsAsFunctionNames.
+        /// </summary>
+        internal static string AvoidReservedWordsAsFunctionNamesName {
+            get {
+                return ResourceManager.GetString("AvoidReservedWordsAsFunctionNamesName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Avoid Using ShouldContinue Without Boolean Force Parameter.
         /// </summary>
         internal static string AvoidShouldContinueWithoutForceCommonName {
