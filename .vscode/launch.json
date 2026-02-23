@@ -4,44 +4,24 @@
         {
             "type": "PowerShell",
             "request": "launch",
-            "name": "Build",
-            "script": "./build.ps1",
-            "args": [
-                ""
-            ],
+            "name": "Build & Import PSpecter",
+            "script": "dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -f net8; Import-Module ./PSpecter.PssaCompatibility/bin/Debug/net8/publish/PSpecter.PssaCompatibility.psd1",
             "cwd": "${workspaceFolder}",
             "createTemporaryIntegratedConsole": true
         },
         {
             "type": "PowerShell",
             "request": "launch",
-            "name": "Build & Import PSSA",
-            "script": "./build.ps1; Import-Module ./out/PSScriptAnalyzer/*/PSScriptAnalyzer.psd1",
-            "args": [
-                ""
-            ],
+            "name": "Run Pester compatibility tests",
+            "script": "./Tests/RunCompatibilityTests.ps1 -Detailed",
             "cwd": "${workspaceFolder}",
             "createTemporaryIntegratedConsole": true
         },
         {
             "type": "PowerShell",
             "request": "launch",
-            "name": "Build & Run all tests",
-            "script": "./build.ps1; ./build.ps1 -Test",
-            "args": [
-                ""
-            ],
-            "cwd": "${workspaceFolder}",
-            "createTemporaryIntegratedConsole": true
-        },
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "Run current Pester file with PSScriptAnalyzer development build",
-            "script": "Import-Module ./out/PSScriptAnalyzer/*/PSScriptAnalyzer.psd1; Invoke-Pester -Path '${file}'; $PID",
-            "args": [
-                ""
-            ],
+            "name": "Run current Pester file",
+            "script": "dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -f net8; Import-Module ./PSpecter.PssaCompatibility/bin/Debug/net8/publish/PSpecter.PssaCompatibility.psd1; Invoke-Pester -Path '${file}'",
             "cwd": "${workspaceFolder}",
             "createTemporaryIntegratedConsole": true
         },
@@ -54,12 +34,6 @@
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
-        },
-        {
-            "name": ".NET Full Attach",
-            "type": "clr",
             "request": "attach",
             "processId": "${command:pickProcess}"
         }

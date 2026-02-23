@@ -1,68 +1,23 @@
-# PSScriptAnalyzer 2.0
+# PSpecter
 
-PSScriptAnalyzer 2.0 seeks to re-architect the core of the PSScriptAnalyzer engine
-with the following goals:
+Core analysis engine library. This is the main project that provides:
 
-- Performance: both startup and repeated use should be fast
-- Hostability: it should be possible to embed PSScriptAnalyzer in other projects with a minimum of difficulty or overhead
-- Code reuse: problems should be solved once and shared, solutions that are applicable to other projects should ideally go upstream
-- Static reproducibility: analysis should work the same everywhere when possible and not depend on the analysis host's state
-- No PowerShell runtime dependency: the core engine must never execute PowerShell code or require a PowerShell runspace. All analysis is performed purely over the AST and token data. External knowledge (such as known command names, aliases, and module metadata) is supplied through static data sources like a bundled database, not through live session queries
-- Configurability: configuration should be preferred over opinion, and configuration mechanisms should be discoverable and self-validating
+- Script rules and configurable editors
+- PowerShell AST-based analysis with no runtime dependency
+- SQLite-backed command/alias/parameter database
+- Formatting engine with preset styles (Default/Stroustrup, OTBS, Allman)
+- Rule suppression (attribute-based and comment pragmas)
+- Configuration via PSD1/JSON settings files
 
-## Building
-
-To build the project, run:
-
-```powershell
-./build.ps1
-```
-
-For now this will just produce the module.
-
-## Support
-
-PSScriptAnalyzer 2.0 supports PowerShell 5.1 and 7,
-and also seeks to support PowerShell versions post-7.
-
-There is no plan to support older versions of PowerShell to host PSScriptAnalyzer,
-but analyzing scripts with PowerShell 3 or 4 as a target platform is a goal.
-
-## Defining rules
-
-A rule can currently be defined like this:
-
-```csharp
-[RuleDescription("<Description of rule>")]
-[Rule("<RuleName>")]
-public class MyRule : ScriptRule
-{
-    public MyRule(RuleInfo ruleInfo)
-        : base(ruleInfo)
-    {
-    }
-
-    public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string fileName)
-    {
-        // Implementation
-    }
-}
-```
-
-To improve performance with a `TypeRuleProvider`, it's possible to add other hints about the lifetime of a rule:
-
-- The `[IdempotentRule]` attribute indicates that a rule instance can be reused, rather than reinstantiated each time
-- The `[ThreadsafeRule]` attribute indicates that a rule instance can be run in parallel with other rules in an analysis run
-- Implementing the `IResettable` interface will mean that a rule's `Reset()` method is called before the same instance is reused for runs
-- Implementing the `IDisposable` interface will mean that the rule will be disposed after an analysis run
+See the [root README](../README.md) for project overview and usage.
 
 ## Architecture
 
-The main entry point of PSScriptAnalyzer is the `ScriptAnalyzer` class.
-This composes:
+The entry point is the `ScriptAnalyzer` class, composed via `ScriptAnalyzerBuilder`:
 
-- An `IRuleExecutorFactory`, which produces `IRuleExecutor`s,
-  which provide an execution strategy for rules (such as executing them in parallel).
-- An `IRuleProvider`, which provides rule instances.
-  Currently the main form of this is `TypeRuleProvider`,
-  which wraps a rule type and creates a factory internally to instantiate rules of that type.
+- **`IRuleProvider`** supplies rule instances (built-in rules via `TypeRuleProvider`)
+- **`IRuleExecutor`** provides execution strategy (sequential or parallel)
+- **`RuleComponentProvider`** resolves dependencies injected into rule constructors (database, services)
+- **`ScriptFormatter`** applies editor transformations for code formatting
+
+Rules are C# classes annotated with `[Rule]` and `[RuleDescription]` attributes that implement `ScriptRule.AnalyzeScript()`.
