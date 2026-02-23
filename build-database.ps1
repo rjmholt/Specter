@@ -29,6 +29,11 @@ if (-not (Test-Path $modulePath)) {
 Write-Host "Importing module from: $modulePath" -ForegroundColor Cyan
 Import-Module $modulePath -Force
 
+$pspecterDll = Join-Path (Split-Path $modulePath) 'PSpecter.dll'
+if (Test-Path $pspecterDll) {
+    [System.Reflection.Assembly]::LoadFrom((Resolve-Path $pspecterDll)) | Out-Null
+}
+
 # Remove existing DB if present
 if (Test-Path $DatabasePath) {
     Write-Host "Removing existing database: $DatabasePath" -ForegroundColor Yellow
@@ -66,12 +71,25 @@ if (-not $SkipSession) {
 if ($CompatibilityProfileDir -and (Test-Path $CompatibilityProfileDir)) {
     Write-Host "Importing PSCompatibilityCollector profiles from: $CompatibilityProfileDir" -ForegroundColor Cyan
 
-    $conn = [Microsoft.Data.Sqlite.SqliteConnection]::new("Data Source=$DatabasePath")
+    $pspecterAsm = [System.Reflection.Assembly]::LoadFrom((Resolve-Path $pspecterDll))
+    $schemaType = $pspecterAsm.GetType('PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema')
+    $importerType = $pspecterAsm.GetType('PSpecter.CommandDatabase.Import.CompatibilityProfileImporter')
+
+    $sqliteAsm = [System.Reflection.Assembly]::LoadFrom(
+        (Resolve-Path (Join-Path (Split-Path $modulePath) 'Microsoft.Data.Sqlite.dll')))
+    $connType = $sqliteAsm.GetType('Microsoft.Data.Sqlite.SqliteConnection')
+
+    $conn = [Activator]::CreateInstance($connType, @("Data Source=$DatabasePath"))
     $conn.Open()
     try {
-        [PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema]::CreateTables($conn)
-        [PSpecter.CommandDatabase.Import.CompatibilityProfileImporter]::ImportDirectory(
-            $conn, $CompatibilityProfileDir, [bool]$RegisterProfileNames)
+        $schemaType.GetMethod('CreateTables').Invoke($null, @($conn))
+        $importMethod = $importerType.GetMethod(
+            'ImportDirectory',
+            [Type[]]@($connType, [string], [bool]))
+        $importMethod.Invoke($null, @(
+            $conn,
+            (Resolve-Path $CompatibilityProfileDir).Path,
+            [bool]$RegisterProfileNames))
     } finally {
         $conn.Close()
         $conn.Dispose()

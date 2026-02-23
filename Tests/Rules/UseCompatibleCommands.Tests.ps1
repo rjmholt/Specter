@@ -1,4 +1,4 @@
-﻿# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 BeforeDiscovery {
@@ -427,7 +427,10 @@ Describe 'UseCompatibleCommands' {
         }
     }
 
-    Context 'Targeting new-form Az profiles alongside older profiles' {
+    # Azure Functions/Automation optional profiles are not shipped with PSpecter.
+    # These tests require profiles from PSCompatibilityCollector/optional_profiles/ which
+    # were part of the original PSSA repo but are not included in the PSpecter repository.
+    Context 'Targeting new-form Az profiles alongside older profiles' -Tag 'SkipCI' {
         BeforeAll {
             $settings = @{
                 Rules = @{
@@ -443,7 +446,7 @@ Describe 'UseCompatibleCommands' {
             }
         }
 
-        It "Finds AzF problems with a script" {
+        It "Finds AzF problems with a script" -Skip:(-not (Test-Path $AzF_profile)) {
             $diagnostics = Invoke-ScriptAnalyzer -IncludeRule $RuleName -Settings $settings -ScriptDefinition '
                 Get-WmiObject Win32_Process
                 New-SelfSignedCertificate

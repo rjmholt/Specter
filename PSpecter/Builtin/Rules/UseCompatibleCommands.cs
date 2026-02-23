@@ -22,6 +22,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [Rule("UseCompatibleCommands", typeof(Strings), nameof(Strings.UseCompatibleCommandsDescription))]
     public class UseCompatibleCommands : ConfigurableScriptRule<UseCompatibleCommandsConfiguration>
     {
+        // Common parameters present since PS 2.0 that profiles don't enumerate.
+        // Excludes PipelineVariable (PS 4.0), InformationAction/InformationVariable (PS 5.0)
+        // which must be checked for version compatibility.
+        private static readonly HashSet<string> s_universalCommonParameters = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Debug", "ErrorAction", "ErrorVariable",
+            "OutVariable", "OutBuffer", "Verbose",
+            "WarningAction", "WarningVariable",
+            "WhatIf", "Confirm",
+        };
+
         private readonly IPowerShellCommandDatabase _commandDb;
 
         public UseCompatibleCommands(
@@ -53,8 +64,6 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 yield break;
             }
 
-            var unionPlatforms = BuildUnionPlatforms(resolvedTargets);
-
             foreach (Ast foundAst in ast.FindAll(node => node is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)foundAst;
@@ -69,18 +78,24 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     continue;
                 }
 
-                string resolvedName = ResolveAlias(commandName!);
-
-                if (!_commandDb.CommandExistsOnPlatform(resolvedName, unionPlatforms))
+                // Skip commands not known to any platform in the DB (user-defined functions).
+                // Check both the raw name and alias-resolved name so we catch aliases that
+                // exist on some platforms but not others.
+                if (!_commandDb.CommandExistsOnPlatform(commandName!, platforms: null))
                 {
-                    continue;
+                    string resolvedGlobal = ResolveAlias(commandName!);
+                    if (string.Equals(resolvedGlobal, commandName, StringComparison.OrdinalIgnoreCase)
+                        || !_commandDb.CommandExistsOnPlatform(resolvedGlobal, platforms: null))
+                    {
+                        continue;
+                    }
                 }
 
                 foreach (var target in resolvedTargets)
                 {
                     var targetPlatforms = new HashSet<PlatformInfo> { target.Platform };
 
-                    if (!_commandDb.CommandExistsOnPlatform(resolvedName, targetPlatforms))
+                    if (!_commandDb.CommandExistsOnPlatform(commandName!, targetPlatforms))
                     {
                         string message = string.Format(
                             CultureInfo.CurrentCulture,
@@ -95,6 +110,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                         continue;
                     }
 
+                    // For parameter checking, resolve aliases so we check against the real command
+                    string resolvedName = ResolveAlias(commandName!);
                     if (_commandDb.TryGetCommand(resolvedName, targetPlatforms, out CommandMetadata? targetCmd)
                         && targetCmd is not null)
                     {
@@ -124,6 +141,11 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             for (int i = 0; i < cmdAst.CommandElements.Count; i++)
             {
                 if (cmdAst.CommandElements[i] is not CommandParameterAst paramAst)
+                {
+                    continue;
+                }
+
+                if (s_universalCommonParameters.Contains(paramAst.ParameterName))
                 {
                     continue;
                 }
@@ -160,16 +182,6 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             }
 
             return targets;
-        }
-
-        private static HashSet<PlatformInfo> BuildUnionPlatforms(List<ResolvedTarget> targets)
-        {
-            var union = new HashSet<PlatformInfo>();
-            foreach (var target in targets)
-            {
-                union.Add(target.Platform);
-            }
-            return union;
         }
 
         private static HashSet<string>? BuildIgnoreSet(string[]? ignoreCommands)
