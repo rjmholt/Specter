@@ -30,26 +30,26 @@ jobs:
           dotnet tool install --global PowerShell || true
 
       - name: Restore
-        run: dotnet restore PSpecter.sln
+        run: dotnet restore Specter.sln
 
       - name: Build
-        run: dotnet build PSpecter.sln -c Release --no-restore
+        run: dotnet build Specter.sln -c Release --no-restore
 
       - name: Run xUnit tests
-        run: dotnet test PSpecter.Test/PSpecter.Test.csproj -c Release --no-build --verbosity normal
+        run: dotnet test Specter.Test/Specter.Test.csproj -c Release --no-build --verbosity normal
 
       - name: Run server tests
-        run: dotnet test PSpecter.Server.Test/PSpecter.Server.Test.csproj -c Release --no-build --verbosity normal
+        run: dotnet test Specter.Server.Test/Specter.Server.Test.csproj -c Release --no-build --verbosity normal
 
       - name: Install Pester
         shell: pwsh
         run: |
           Install-Module -Name Pester -MinimumVersion 5.0 -Force -Scope CurrentUser
 
-      - name: Publish PSpecter module
+      - name: Publish Specter module
         shell: pwsh
         run: |
-          dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -c Release -f net8.0
+          dotnet publish Specter.PssaCompatibility/Specter.PssaCompatibility.csproj -c Release -f net8.0
 
       - name: Run Pester compatibility tests
         shell: pwsh
@@ -59,4 +59,4 @@ jobs:
       - name: Check for vulnerable packages
         if: matrix.os == 'ubuntu-latest'
         run: |
-          dotnet list PSpecter.sln package --vulnerable --include-transitive 2>&1 | tee /dev/stderr | grep -q "has no vulnerable packages" || echo "::warning::Vulnerable packages detected"
+          dotnet list Specter.sln package --vulnerable --include-transitive 2>&1 | tee /dev/stderr | grep -q "has no vulnerable packages" || echo "::warning::Vulnerable packages detected"

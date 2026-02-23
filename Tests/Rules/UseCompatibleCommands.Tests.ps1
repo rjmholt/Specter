@@ -429,9 +429,9 @@ Describe 'UseCompatibleCommands' {
         }
     }
 
-    # Azure Functions/Automation optional profiles are not shipped with PSpecter.
+    # Azure Functions/Automation optional profiles are not shipped with Specter.
     # These tests require profiles from PSCompatibilityCollector/optional_profiles/ which
-    # were part of the original PSSA repo but are not included in the PSpecter repository.
+    # were part of the original PSSA repo but are not included in the Specter repository.
     Context 'Targeting new-form Az profiles alongside older profiles' -Tag 'SkipCI' {
         BeforeAll {
             $settings = @{

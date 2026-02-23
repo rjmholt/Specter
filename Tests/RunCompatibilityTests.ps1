@@ -33,13 +33,13 @@ $ErrorActionPreference = 'Stop'
 # than [FAIL], and do not count towards the failure total.
 #
 # Categories:
-#   unsupported  -- intentionally not implemented in PSpecter
+#   unsupported  -- intentionally not implemented in Specter
 #   dependency   -- depends on an unsupported or missing feature
 #   ordering     -- fails due to test-ordering side effects in the full suite
 #   pending      -- not yet implemented; will be removed when support is added
 
 $ExcludedFiles = @{
-    # UseCompatibleTypes requires runtime type resolution which PSpecter does
+    # UseCompatibleTypes requires runtime type resolution which Specter does
     # not support (all analysis is AST-only with no PowerShell runspace).
     'UseCompatibleTypes.Tests.ps1' = 'unsupported: runtime type resolution not implemented'
 
@@ -53,13 +53,13 @@ $ExcludedFiles = @{
 $ExcludedTests = @{
     'AvoidUsingAlias.tests.ps1' = @{
         # Test checks if a native Unix command (date) shadows a PS alias at
-        # runtime via Get-Command. PSpecter uses a static database and cannot
+        # runtime via Get-Command. Specter uses a static database and cannot
         # detect native commands on the analysis host.
         'do not warn when about Get-* completed cmdlets' = 'pending: requires runtime native command detection'
     }
     'AvoidPositionalParameters.tests.ps1' = @{
         # Test expects Invoke-ScriptAnalyzer to return both PSAvoidUsingPositionalParameters
-        # and PSAvoidUsingCmdletAliases violations from a single call. PSpecter's compat shim
+        # and PSAvoidUsingCmdletAliases violations from a single call. Specter's compat shim
         # currently runs rules independently per Invoke-ScriptAnalyzer call, so cross-rule
         # results within one invocation don't aggregate the same way.
         'Triggers on alias' = 'pending: cross-rule aggregation in single Invoke-ScriptAnalyzer call'
@@ -67,16 +67,16 @@ $ExcludedTests = @{
 }
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
-$compatModulePath = "$repoRoot/PSpecter/out/PSpecter.PssaCompatibility"
+$compatModulePath = "$repoRoot/Specter/out/Specter.PssaCompatibility"
 
-if ($Build -or -not (Test-Path "$compatModulePath/PSpecter.PssaCompatibility.psd1"))
+if ($Build -or -not (Test-Path "$compatModulePath/Specter.PssaCompatibility.psd1"))
 {
-    Write-Host "Building PSpecter.PssaCompatibility..." -ForegroundColor Cyan
-    & "$repoRoot/PSpecter.PssaCompatibility/build.ps1" -Configuration $Configuration -TargetFramework $TargetFramework
+    Write-Host "Building Specter.PssaCompatibility..." -ForegroundColor Cyan
+    & "$repoRoot/Specter.PssaCompatibility/build.ps1" -Configuration $Configuration -TargetFramework $TargetFramework
     Write-Host ""
 }
 
-if (-not (Test-Path "$compatModulePath/PSpecter.PssaCompatibility.psd1"))
+if (-not (Test-Path "$compatModulePath/Specter.PssaCompatibility.psd1"))
 {
     throw "Compatibility module not found at $compatModulePath. Run with -Build or run the compat build first."
 }
@@ -85,17 +85,17 @@ if (Get-Module PSScriptAnalyzer -ErrorAction SilentlyContinue)
 {
     Remove-Module PSScriptAnalyzer -Force
 }
-if (Get-Module PSpecter.PssaCompatibility -ErrorAction SilentlyContinue)
+if (Get-Module Specter.PssaCompatibility -ErrorAction SilentlyContinue)
 {
-    Remove-Module PSpecter.PssaCompatibility -Force
+    Remove-Module Specter.PssaCompatibility -Force
 }
 
-Import-Module $compatModulePath/PSpecter.PssaCompatibility.psd1 -Force
+Import-Module $compatModulePath/Specter.PssaCompatibility.psd1 -Force
 
-$importedModule = Get-Module PSpecter.PssaCompatibility
+$importedModule = Get-Module Specter.PssaCompatibility
 if (-not $importedModule)
 {
-    throw "Failed to import PSpecter.PssaCompatibility module"
+    throw "Failed to import Specter.PssaCompatibility module"
 }
 
 Write-Host "Module: $($importedModule.Name) v$($importedModule.Version)" -ForegroundColor Green

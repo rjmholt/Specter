@@ -9,6 +9,6 @@ testResults.xml
 BenchmarkDotNet.Artifacts/
 
 # Generated SQLite database and WAL files
-PSpecter/Data/
+Specter/Data/
 *.db-shm
 *.db-wal

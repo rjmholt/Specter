@@ -4,8 +4,8 @@
         {
             "type": "PowerShell",
             "request": "launch",
-            "name": "Build & Import PSpecter",
-            "script": "dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -f net8; Import-Module ./PSpecter.PssaCompatibility/bin/Debug/net8/publish/PSpecter.PssaCompatibility.psd1",
+            "name": "Build & Import Specter",
+            "script": "dotnet publish Specter.PssaCompatibility/Specter.PssaCompatibility.csproj -f net8; Import-Module ./Specter.PssaCompatibility/bin/Debug/net8/publish/Specter.PssaCompatibility.psd1",
             "cwd": "${workspaceFolder}",
             "createTemporaryIntegratedConsole": true
         },
@@ -21,7 +21,7 @@
             "type": "PowerShell",
             "request": "launch",
             "name": "Run current Pester file",
-            "script": "dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -f net8; Import-Module ./PSpecter.PssaCompatibility/bin/Debug/net8/publish/PSpecter.PssaCompatibility.psd1; Invoke-Pester -Path '${file}'",
+            "script": "dotnet publish Specter.PssaCompatibility/Specter.PssaCompatibility.csproj -f net8; Import-Module ./Specter.PssaCompatibility/bin/Debug/net8/publish/Specter.PssaCompatibility.psd1; Invoke-Pester -Path '${file}'",
             "cwd": "${workspaceFolder}",
             "createTemporaryIntegratedConsole": true
         },

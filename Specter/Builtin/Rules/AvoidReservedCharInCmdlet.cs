@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Management.Automation.Language;
+using Specter.Rules;
+using Specter.Tools;
+
+namespace Specter.Builtin.Rules
+{
+    /// <summary>
+    /// AvoidReservedCharInCmdlet: Analyzes script to check for reserved characters in cmdlet names.
+    /// </summary>
+    [IdempotentRule]
+    [ThreadsafeRule]
+    [Rule("ReservedCmdletChar", typeof(Strings), nameof(Strings.ReservedCmdletCharDescription))]
+    internal class AvoidReservedCharInCmdlet : ScriptRule
+    {
+        internal AvoidReservedCharInCmdlet(RuleInfo ruleInfo)
+            : base(ruleInfo)
+        {
+        }
+
+        public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
+        {
+            if (ast == null)
+            {
+                throw new ArgumentNullException(nameof(ast));
+            }
+
+            IEnumerable<Ast> funcAsts = ast.FindAll(static testAst => testAst is FunctionDefinitionAst, true);
+            if (funcAsts == null)
+            {
+                yield break;
+            }
+
+            string reservedChars = Strings.ReserverCmdletChars ?? "";
+            HashSet<string>? exportedFunctions = AstExtensions.GetExportedFunctionNames(ast);
+
+            foreach (FunctionDefinitionAst funcAst in funcAsts)
+            {
+                if (funcAst.Body?.ParamBlock == null || !funcAst.Body.ParamBlock.HasCmdletBinding())
+                {
+                    continue;
+                }
+
+                string? funcName = funcAst.GetNameWithoutScope();
+
+                // Only flag functions that are explicitly exported
+                if (exportedFunctions != null
+                    && !exportedFunctions.Contains(funcAst.Name)
+                    && (funcName is null || !exportedFunctions.Contains(funcName)))
+                {
+                    continue;
+                }
+
+                // If no Export-ModuleMember is found, skip entirely (matches PSSA behavior)
+                if (exportedFunctions == null)
+                {
+                    continue;
+                }
+
+                if (funcName != null && funcName.Intersect(reservedChars).Any())
+                {
+                    yield return CreateDiagnostic(
+                        string.Format(CultureInfo.CurrentCulture, Strings.ReservedCmdletCharError, funcAst.Name),
+                        funcAst);
+                }
+            }
+        }
+    }
+}

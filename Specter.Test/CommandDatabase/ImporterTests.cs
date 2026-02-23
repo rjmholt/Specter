@@ -1,0 +1,511 @@
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Data.Sqlite;
+using Xunit;
+using Specter.CommandDatabase;
+using Specter.CommandDatabase.Import;
+using Specter.CommandDatabase.Sqlite;
+
+namespace Specter.Test.CommandDatabase
+{
+    public class LegacySettingsImporterTests
+    {
+        [Theory]
+        [InlineData("core-6.1.0-windows", "Core", "6.1.0", "Windows")]
+        [InlineData("desktop-5.1.14393.206-windows", "Desktop", "5.1.14393.206", "Windows")]
+        [InlineData("core-6.1.0-macos", "Core", "6.1.0", "MacOS")]
+        [InlineData("core-6.1.0-linux", "Core", "6.1.0", "Linux")]
+        public void TryParsePlatformFromFileName_ParsesCorrectly(
+            string fileName, string expectedEdition, string expectedVersion, string expectedOsFamily)
+        {
+            Assert.True(LegacySettingsImporter.TryParsePlatformFromFileName(
+                fileName, out PlatformInfo? platform));
+            Assert.NotNull(platform);
+            Assert.Equal(expectedEdition, platform!.Edition);
+            Assert.Equal(PlatformInfo.ParseVersion(expectedVersion), platform!.Version);
+            Assert.Equal(expectedOsFamily, platform!.Os.Family);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("nodashes")]
+        [InlineData("only-onedash")]
+        public void TryParsePlatformFromFileName_ReturnsFalseForInvalid(string fileName)
+        {
+            Assert.False(LegacySettingsImporter.TryParsePlatformFromFileName(
+                fileName, out _));
+        }
+
+        [Fact]
+        public void ImportJson_ImportsModulesAndCommands()
+        {
+            string json = @"{
+                ""SchemaVersion"": ""0.0.1"",
+                ""Modules"": [
+                    {
+                        ""Name"": ""TestModule"",
+                        ""Version"": ""1.0.0"",
+                        ""ExportedCommands"": [
+                            { ""Name"": ""Get-Thing"", ""CommandType"": ""Cmdlet"" },
+                            { ""Name"": ""Set-Thing"", ""CommandType"": ""Cmdlet"" }
+                        ],
+                        ""ExportedAliases"": [""gt""]
+                    }
+                ]
+            }";
+
+            using var conn = CreateConnection();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            var platform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("Windows"));
+            LegacySettingsImporter.ImportJson(writer, json, platform);
+            writer.Commit();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Thing'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Set-Thing'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+
+            cmd.CommandText = "SELECT COUNT(*) FROM Module WHERE Name = 'TestModule'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+        }
+
+        [Fact]
+        public void ImportJson_DeduplicatesCommandsAcrossPlatforms()
+        {
+            string json = @"{
+                ""SchemaVersion"": ""0.0.1"",
+                ""Modules"": [
+                    {
+                        ""Name"": ""Shared"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [
+                            { ""Name"": ""Get-Cross"", ""CommandType"": ""Cmdlet"" }
+                        ],
+                        ""ExportedAliases"": []
+                    }
+                ]
+            }";
+
+            using var conn = CreateConnection();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            var winPlatform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("Windows"));
+            var macPlatform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("MacOS"));
+            LegacySettingsImporter.ImportJson(writer, json, winPlatform);
+            LegacySettingsImporter.ImportJson(writer, json, macPlatform);
+            writer.Commit();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Get-Cross'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+
+            cmd.CommandText = "SELECT COUNT(*) FROM CommandPlatform WHERE CommandId = (SELECT Id FROM Command WHERE Name = 'Get-Cross')";
+            Assert.Equal(2L, (long)cmd.ExecuteScalar()!);
+        }
+
+        [Fact]
+        public void ParseJson_ProducesCommandMetadata()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": ""Mod"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [
+                            { ""Name"": ""Get-X"", ""CommandType"": ""Cmdlet"" }
+                        ],
+                        ""ExportedAliases"": [""gx""]
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Equal(2, commands.Count);
+            Assert.Equal("Get-X", commands[0].Name);
+            Assert.Equal("Cmdlet", commands[0].CommandType);
+            Assert.Equal("gx", commands[1].Name);
+            Assert.Equal("Alias", commands[1].CommandType);
+        }
+
+        [Fact]
+        public void ParseJson_HandlesNullModuleName()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": null,
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [
+                            { ""Name"": ""Test-Cmd"" }
+                        ],
+                        ""ExportedAliases"": []
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Null(commands[0].ModuleName);
+        }
+
+        [Fact]
+        public void ParseJson_HandlesSingleValueExportedAliases()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": ""Mod"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": [],
+                        ""ExportedAliases"": ""singlealias""
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Equal("singlealias", commands[0].Name);
+            Assert.Equal("Alias", commands[0].CommandType);
+        }
+
+        [Fact]
+        public void ParseJson_HandlesSingleValueExportedCommands()
+        {
+            string json = @"{
+                ""Modules"": [
+                    {
+                        ""Name"": ""Mod"",
+                        ""Version"": ""1.0"",
+                        ""ExportedCommands"": { ""Name"": ""Only-Cmd"", ""CommandType"": ""Cmdlet"" },
+                        ""ExportedAliases"": []
+                    }
+                ]
+            }";
+
+            IReadOnlyList<CommandMetadata> commands = LegacySettingsImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Equal("Only-Cmd", commands[0].Name);
+            Assert.Equal("Cmdlet", commands[0].CommandType);
+        }
+
+        private static SqliteConnection CreateConnection()
+        {
+            var conn = new SqliteConnection("Data Source=:memory:");
+            conn.Open();
+            CommandDatabaseSchema.CreateTables(conn);
+            return conn;
+        }
+    }
+
+    public class CompatibilityProfileImporterTests
+    {
+        [Fact]
+        public void ImportJson_ImportsCmdletsWithParameters()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": {
+                        ""Version"": { ""Major"": 7, ""Minor"": 4, ""Patch"": 7 },
+                        ""Edition"": ""Core""
+                    },
+                    ""OperatingSystem"": {
+                        ""Family"": ""Windows""
+                    }
+                },
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""TestModule"": {
+                            ""1.0.0"": {
+                                ""Guid"": ""00000000-0000-0000-0000-000000000000"",
+                                ""Cmdlets"": {
+                                    ""Get-Widget"": {
+                                        ""OutputType"": [""System.String""],
+                                        ""ParameterSets"": [""Default"", ""ById""],
+                                        ""DefaultParameterSet"": ""Default"",
+                                        ""Parameters"": {
+                                            ""Name"": {
+                                                ""Type"": ""System.String"",
+                                                ""Dynamic"": false,
+                                                ""ParameterSets"": {
+                                                    ""Default"": {
+                                                        ""Flags"": [""Mandatory"", ""ValueFromPipelineByPropertyName""],
+                                                        ""Position"": 0
+                                                    }
+                                                }
+                                            },
+                                            ""Id"": {
+                                                ""Type"": ""System.Int32"",
+                                                ""Dynamic"": false,
+                                                ""ParameterSets"": {
+                                                    ""ById"": {
+                                                        ""Flags"": [""Mandatory""],
+                                                        ""Position"": 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                ""Functions"": {},
+                                ""Aliases"": {
+                                    ""gw"": ""Get-Widget""
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            using var conn = CreateConnection();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            CompatibilityProfileImporter.ImportJson(writer, json);
+            writer.Commit();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND PsVersionMajor=7 AND PsVersionMinor=4 AND OsFamily='Windows'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+
+            cmd.CommandText = "SELECT Id FROM Command WHERE Name = 'Get-Widget'";
+            long commandId = (long)cmd.ExecuteScalar()!;
+            Assert.True(commandId > 0);
+
+            cmd.CommandText = "SELECT COUNT(*) FROM Parameter WHERE CommandId = @cid";
+            cmd.Parameters.AddWithValue("@cid", commandId);
+            Assert.Equal(2L, (long)cmd.ExecuteScalar()!);
+
+            cmd.Parameters.Clear();
+            cmd.CommandText = @"
+                SELECT psm.SetName, psm.IsMandatory, psm.Position, psm.ValueFromPipelineByPropertyName
+                FROM ParameterSetMembership psm
+                INNER JOIN Parameter p ON p.Id = psm.ParameterId
+                WHERE p.CommandId = @cid AND p.Name = 'Name'";
+            cmd.Parameters.AddWithValue("@cid", commandId);
+            using (var reader = cmd.ExecuteReader())
+            {
+                Assert.True(reader.Read());
+                Assert.Equal("Default", reader.GetString(0));
+                Assert.Equal(1L, reader.GetInt64(1));
+                Assert.Equal(0L, reader.GetInt64(2));
+                Assert.Equal(1L, reader.GetInt64(3));
+            }
+
+            cmd.Parameters.Clear();
+            cmd.CommandText = "SELECT CommandId FROM Alias WHERE Name = 'gw'";
+            long aliasTarget = (long)cmd.ExecuteScalar()!;
+            Assert.Equal(commandId, aliasTarget);
+
+            cmd.Parameters.Clear();
+            cmd.CommandText = "SELECT TypeName FROM OutputType WHERE CommandId = @cid";
+            cmd.Parameters.AddWithValue("@cid", commandId);
+            Assert.Equal("System.String", (string)cmd.ExecuteScalar()!);
+        }
+
+        [Fact]
+        public void ImportJson_ImportsFunctions()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": { ""Version"": ""5.1.17763"", ""Edition"": ""Desktop"" },
+                    ""OperatingSystem"": { ""Family"": ""Windows"" }
+                },
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""MyModule"": {
+                            ""2.0.0"": {
+                                ""Cmdlets"": {},
+                                ""Functions"": {
+                                    ""Invoke-MyFunc"": {
+                                        ""Parameters"": {
+                                            ""Input"": {
+                                                ""Type"": ""System.Object"",
+                                                ""Dynamic"": false,
+                                                ""ParameterSets"": {
+                                                    ""__AllParameterSets"": {
+                                                        ""Flags"": [""ValueFromPipeline""],
+                                                        ""Position"": -2147483648
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                ""Aliases"": {}
+                            }
+                        }
+                    }
+                }
+            }";
+
+            using var conn = CreateConnection();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            CompatibilityProfileImporter.ImportJson(writer, json);
+            writer.Commit();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT CommandType FROM Command WHERE Name = 'Invoke-MyFunc'";
+            Assert.Equal("Function", (string)cmd.ExecuteScalar()!);
+
+            cmd.CommandText = @"
+                SELECT psm.Position
+                FROM ParameterSetMembership psm
+                INNER JOIN Parameter p ON p.Id = psm.ParameterId
+                WHERE p.Name = 'Input'";
+            Assert.True(cmd.ExecuteScalar() is System.DBNull);
+        }
+
+        [Fact]
+        public void ImportJson_HandlesMissingOptionalFields()
+        {
+            string json = @"{
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""MinimalModule"": {
+                            ""1.0"": {
+                                ""Cmdlets"": {
+                                    ""Test-Minimal"": {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            using var conn = CreateConnection();
+            using var writer = CommandDatabaseWriter.Begin(conn);
+            CompatibilityProfileImporter.ImportJson(writer, json);
+            writer.Commit();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM Command WHERE Name = 'Test-Minimal'";
+            Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
+        }
+
+        [Fact]
+        public void ParseJson_ExtractsPlatformInfo()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": {
+                        ""Version"": { ""Major"": 7, ""Minor"": 4, ""Patch"": 7 },
+                        ""Edition"": ""Core""
+                    },
+                    ""OperatingSystem"": { ""Family"": ""Linux"" }
+                },
+                ""Runtime"": { ""Modules"": {} }
+            }";
+
+            var (platform, commands) = CompatibilityProfileImporter.ParseJson(json);
+            Assert.Equal("Core", platform.Edition);
+            Assert.Equal(new System.Version(7, 4, 7), platform.Version);
+            Assert.Equal("Linux", platform.Os.Family);
+            Assert.Empty(commands);
+        }
+
+        [Fact]
+        public void ParseJson_AliasTargetingExistingCmdlet_NotDuplicatedAsCommand()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": { ""Version"": ""7.0.0"", ""Edition"": ""Core"" },
+                    ""OperatingSystem"": { ""Family"": ""Windows"" }
+                },
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""TestMod"": {
+                            ""1.0"": {
+                                ""Cmdlets"": {
+                                    ""Get-Widget"": {}
+                                },
+                                ""Functions"": {},
+                                ""Aliases"": {
+                                    ""gw"": ""Get-Widget""
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            var (_, commands) = CompatibilityProfileImporter.ParseJson(json);
+
+            int getWidgetCount = 0;
+            foreach (var cmd in commands)
+            {
+                if (string.Equals(cmd.Name, "Get-Widget", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    getWidgetCount++;
+                }
+            }
+            Assert.Equal(1, getWidgetCount);
+
+            Assert.Contains(commands, c => c.Name == "Get-Widget" && c.Aliases.Contains("gw"));
+        }
+
+        [Fact]
+        public void ParseJson_StandaloneAlias_ImportedAsAliasCommand()
+        {
+            string json = @"{
+                ""Platform"": {
+                    ""PowerShell"": { ""Version"": ""7.0.0"", ""Edition"": ""Core"" },
+                    ""OperatingSystem"": { ""Family"": ""Windows"" }
+                },
+                ""Runtime"": {
+                    ""Modules"": {
+                        ""TestMod"": {
+                            ""1.0"": {
+                                ""Cmdlets"": {},
+                                ""Functions"": {},
+                                ""Aliases"": {
+                                    ""gw"": ""Get-Widget""
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+            var (_, commands) = CompatibilityProfileImporter.ParseJson(json);
+            Assert.Single(commands);
+            Assert.Equal("Get-Widget", commands[0].Name);
+            Assert.Equal("Alias", commands[0].CommandType);
+            Assert.Contains("gw", commands[0].Aliases);
+        }
+
+        private static SqliteConnection CreateConnection()
+        {
+            var conn = new SqliteConnection("Data Source=:memory:");
+            conn.Open();
+            CommandDatabaseSchema.CreateTables(conn);
+            return conn;
+        }
+    }
+
+    public class CommandMetadataTests
+    {
+        [Fact]
+        public void AddAlias_AppendsToAliasesList()
+        {
+            var cmd = new CommandMetadata("Get-Foo", "Cmdlet", "Mod", null, null, new[] { "gf" }, null, null);
+            Assert.Single(cmd.Aliases);
+
+            cmd.AddAlias("foo");
+
+            Assert.Equal(2, cmd.Aliases.Count);
+            Assert.Contains("gf", cmd.Aliases);
+            Assert.Contains("foo", cmd.Aliases);
+        }
+
+        [Fact]
+        public void AddAlias_WorksWhenInitialAliasesNull()
+        {
+            var cmd = new CommandMetadata("Get-Bar", "Cmdlet", "Mod", null, null, null, null, null);
+            Assert.Empty(cmd.Aliases);
+
+            cmd.AddAlias("gb");
+
+            Assert.Single(cmd.Aliases);
+            Assert.Contains("gb", cmd.Aliases);
+        }
+    }
+}

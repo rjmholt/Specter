@@ -37,26 +37,26 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore PSpecter.sln
+        run: dotnet restore Specter.sln
 
       - name: Build
-        run: dotnet build PSpecter.sln -c ${{ env.CONFIGURATION }} --no-restore -p:Version=${{ steps.version.outputs.version }}
+        run: dotnet build Specter.sln -c ${{ env.CONFIGURATION }} --no-restore -p:Version=${{ steps.version.outputs.version }}
 
       - name: Run xUnit tests
-        run: dotnet test PSpecter.Test/PSpecter.Test.csproj -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
+        run: dotnet test Specter.Test/Specter.Test.csproj -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
 
       - name: Run server tests
-        run: dotnet test PSpecter.Server.Test/PSpecter.Server.Test.csproj -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
+        run: dotnet test Specter.Server.Test/Specter.Server.Test.csproj -c ${{ env.CONFIGURATION }} --no-build --verbosity normal
 
       - name: Pack NuGet
         run: |
-          dotnet pack PSpecter/PSpecter.csproj -c ${{ env.CONFIGURATION }} --no-build -p:Version=${{ steps.version.outputs.version }} -o ./artifacts/nupkg
-          dotnet pack PSpecter.Server/PSpecter.Server.csproj -c ${{ env.CONFIGURATION }} --no-build -p:Version=${{ steps.version.outputs.version }} -o ./artifacts/nupkg
+          dotnet pack Specter/Specter.csproj -c ${{ env.CONFIGURATION }} --no-build -p:Version=${{ steps.version.outputs.version }} -o ./artifacts/nupkg
+          dotnet pack Specter.Server/Specter.Server.csproj -c ${{ env.CONFIGURATION }} --no-build -p:Version=${{ steps.version.outputs.version }} -o ./artifacts/nupkg
 
       - name: Build module layout
         shell: pwsh
         run: |
-          dotnet publish PSpecter.PssaCompatibility/PSpecter.PssaCompatibility.csproj -c ${{ env.CONFIGURATION }} -f net8.0 -p:Version=${{ steps.version.outputs.version }}
+          dotnet publish Specter.PssaCompatibility/Specter.PssaCompatibility.csproj -c ${{ env.CONFIGURATION }} -f net8.0 -p:Version=${{ steps.version.outputs.version }}
           # TODO: Assemble publishable module directory under ./artifacts/module/
 
       - name: Upload NuGet artifacts
@@ -78,6 +78,6 @@ jobs:
         if: github.ref_type == 'tag' && inputs.dry_run != 'true'
         shell: pwsh
         run: |
-          Write-Host "TODO: Publish-Module -Path ./artifacts/module/PSpecter -NuGetApiKey `$env:PSGALLERY_API_KEY"
+          Write-Host "TODO: Publish-Module -Path ./artifacts/module/Specter -NuGetApiKey `$env:PSGALLERY_API_KEY"
           # Uncomment when ready:
-          # Publish-Module -Path ./artifacts/module/PSpecter -NuGetApiKey $env:PSGALLERY_API_KEY
+          # Publish-Module -Path ./artifacts/module/Specter -NuGetApiKey $env:PSGALLERY_API_KEY
