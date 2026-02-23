@@ -1,7 +1,10 @@
 <Project>
-  <!-- See https://aka.ms/dotnet/msbuild/customize for more details on customizing your build -->
   <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
     <ModuleVersion>1.24.0</ModuleVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <Authors>Robert Holt</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 </Project>

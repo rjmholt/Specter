@@ -8,6 +8,10 @@
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PackageId>PSpecter</PackageId>
+    <Description>Cross-platform PowerShell static analysis engine. Provides script linting, formatting, and compatibility checking decoupled from PowerShell itself.</Description>
+    <PackageTags>PowerShell;Linting;StaticAnalysis;Formatting;CodeAnalysis</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -8,6 +8,9 @@
     <RootNamespace>PSpecter.Server</RootNamespace>
     <AssemblyName>PSpecter.Server</AssemblyName>
     <OutputType>Exe</OutputType>
+    <PackageId>PSpecter.Server</PackageId>
+    <Description>PSpecter analysis server with gRPC and Language Server Protocol support for IDE integration.</Description>
+    <PackageTags>PowerShell;Linting;LSP;gRPC;LanguageServer</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
