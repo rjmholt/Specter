@@ -12,11 +12,12 @@ string command = args[0].ToLowerInvariant();
 switch (command)
 {
     case "lsp":
-        await ServerHost.RunLspAsync();
+        var lspOptions = ParseOptions(args, ServerMode.Lsp);
+        await ServerHost.RunLspAsync(lspOptions);
         return 0;
 
     case "grpc":
-        var options = ParseGrpcOptions(args);
+        var options = ParseOptions(args, ServerMode.Grpc);
         await ServerHost.RunGrpcAsync(options);
         return 0;
 
@@ -40,16 +41,24 @@ static void PrintUsage()
     Console.Error.WriteLine("  lsp     Start the LSP server (communicates over stdin/stdout)");
     Console.Error.WriteLine("  grpc    Start the gRPC server");
     Console.Error.WriteLine();
+    Console.Error.WriteLine("Common Options:");
+    Console.Error.WriteLine("  --config <path>   Path to a PSpecter settings file (.psd1 or .json)");
+    Console.Error.WriteLine("  --log-level <lvl> Log level: Trace, Debug, Information, Warning, Error (default: Information)");
+    Console.Error.WriteLine();
     Console.Error.WriteLine("gRPC Options:");
     Console.Error.WriteLine("  --port <port>     Port to listen on (default: 50051)");
-    Console.Error.WriteLine("  --log-level <lvl> Log level: Trace, Debug, Information, Warning, Error (default: Information)");
 }
 
-static ServerHostOptions ParseGrpcOptions(string[] args)
+static ServerHostOptions ParseOptions(string[] args, ServerMode mode)
 {
-    var options = new ServerHostOptions { Mode = ServerMode.Grpc };
-    for (int i = 1; i < args.Length - 1; i++)
+    var options = new ServerHostOptions { Mode = mode };
+    for (int i = 1; i < args.Length; i++)
     {
+        if (i + 1 >= args.Length)
+        {
+            break;
+        }
+
         switch (args[i].ToLowerInvariant())
         {
             case "--port":
@@ -64,6 +73,10 @@ static ServerHostOptions ParseGrpcOptions(string[] args)
                 {
                     options.LogLevel = level;
                 }
+                break;
+
+            case "--config":
+                options.ConfigPath = args[++i];
                 break;
         }
     }

@@ -23,6 +23,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PSpecter.Server\PSpecter.Server.csproj" />
     <ProjectReference Include="..\PSpecter\PSpecter.csproj" />
   </ItemGroup>

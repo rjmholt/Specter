@@ -121,16 +121,18 @@ namespace PSpecter.Instantiation
 
         private Func<TRule> CreateFactoryDelegate()
         {
-            MethodInfo? getCtorArgsMethod = typeof(ConstructorInjectingRuleFactory<>).GetMethod(
-                nameof(GetCtorArgs),
-                BindingFlags.NonPublic | BindingFlags.Instance);
+            object[] args = GetCtorArgs();
+            ParameterInfo[] parameters = _ctorInfo.GetParameters();
 
-            MethodCallExpression getArgsCall = Expression.Call(getCtorArgsMethod!);
+            var argExpressions = new Expression[args.Length];
+            for (int i = 0; i < args.Length; i++)
+            {
+                argExpressions[i] = Expression.Constant(args[i], parameters[i].ParameterType);
+            }
 
             return Expression.Lambda<Func<TRule>>(
-                Expression.New(
-                    _ctorInfo,
-                    getArgsCall)).Compile();
+                Expression.New(_ctorInfo, argExpressions))
+                .Compile();
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -18,13 +19,15 @@ public sealed class ServerHostOptions
     public ServerMode Mode { get; set; } = ServerMode.Lsp;
     public int GrpcPort { get; set; } = 50051;
     public LogLevel LogLevel { get; set; } = LogLevel.Information;
+    public string? ConfigPath { get; set; }
 }
 
 public static class ServerHost
 {
-    public static async Task RunLspAsync(CancellationToken cancellationToken = default)
+    public static async Task RunLspAsync(ServerHostOptions? options = null, CancellationToken cancellationToken = default)
     {
-        using AnalysisService service = AnalysisService.CreateDefault();
+        options ??= new ServerHostOptions();
+        using AnalysisService service = AnalysisService.CreateFromConfig(options.ConfigPath);
         var server = await LspServer.CreateAsync(
             service,
             Console.OpenStandardInput(),
@@ -37,16 +40,26 @@ public static class ServerHost
     public static async Task RunGrpcAsync(ServerHostOptions? options = null, CancellationToken cancellationToken = default)
     {
         options ??= new ServerHostOptions();
-        using AnalysisService service = AnalysisService.CreateDefault();
+        using AnalysisService service = AnalysisService.CreateFromConfig(options.ConfigPath);
 
+        WebApplication app = BuildGrpcApplication(service, options.GrpcPort, options.LogLevel);
+        await app.RunAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Builds a <see cref="WebApplication"/> configured for gRPC with the health endpoint.
+    /// Exposed for integration testing.
+    /// </summary>
+    public static WebApplication BuildGrpcApplication(AnalysisService service, int port = 50051, LogLevel logLevel = LogLevel.Information)
+    {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Services.AddSingleton(service);
         builder.Services.AddGrpc();
-        builder.Logging.SetMinimumLevel(options.LogLevel);
+        builder.Logging.SetMinimumLevel(logLevel);
 
         builder.WebHost.ConfigureKestrel(kestrel =>
         {
-            kestrel.ListenLocalhost(options.GrpcPort, listenOptions =>
+            kestrel.Listen(IPAddress.Loopback, port, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
             });
@@ -56,6 +69,6 @@ public static class ServerHost
         app.MapGrpcService<GrpcAnalysisService>();
         app.MapGet("/health", () => Results.Ok(new { status = "healthy", rules = service.GetRules().Count }));
 
-        await app.RunAsync(cancellationToken);
+        return app;
     }
 }
