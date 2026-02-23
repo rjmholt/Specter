@@ -101,7 +101,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         /// <returns>A List of diagnostic results of this rule</returns>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            IEnumerable<Ast> commandAsts = ast.FindAll(testAst => testAst is CommandAst, true);
+            IEnumerable<Ast> commandAsts = ast.FindAll(static testAst => testAst is CommandAst, true);
 
             if (commandAsts is null)
             {

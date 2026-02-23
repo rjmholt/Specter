@@ -37,7 +37,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
 
@@ -169,7 +169,7 @@ namespace PSpecter.Builtin.Rules
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var variableTypes = BuildVariableTypeMap(funcAst);
 
-            foreach (Ast node in funcAst.Body.FindAll(a => true, searchNestedScriptBlocks: false))
+            foreach (Ast node in funcAst.Body.FindAll(static a => true, searchNestedScriptBlocks: false))
             {
                 if (node is FunctionDefinitionAst && !ReferenceEquals(node, funcAst))
                 {
@@ -210,7 +210,7 @@ namespace PSpecter.Builtin.Rules
         {
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (Ast node in funcAst.Body.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in funcAst.Body.FindAll(static a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
             {
                 var assign = (AssignmentStatementAst)node;
 

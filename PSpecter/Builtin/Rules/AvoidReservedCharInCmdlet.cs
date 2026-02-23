@@ -28,7 +28,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            IEnumerable<Ast> funcAsts = ast.FindAll(testAst => testAst is FunctionDefinitionAst, true);
+            IEnumerable<Ast> funcAsts = ast.FindAll(static testAst => testAst is FunctionDefinitionAst, true);
             if (funcAsts == null)
             {
                 yield break;

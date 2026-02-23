@@ -28,7 +28,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
                 string? commandName = cmdAst.GetCommandName();

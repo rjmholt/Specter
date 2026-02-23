@@ -14,7 +14,7 @@ namespace PSpecter.Builtin.Editors
         {
             var result = new HashSet<int>();
             var cmdElemScriptBlocks = ast.FindAll(
-                a => a is ScriptBlockExpressionAst && a.Parent is CommandAst,
+                static a => a is ScriptBlockExpressionAst && a.Parent is CommandAst,
                 searchNestedScriptBlocks: true);
 
             foreach (Ast sbAst in cmdElemScriptBlocks)
@@ -37,7 +37,7 @@ namespace PSpecter.Builtin.Editors
         {
             var result = new HashSet<int>();
             var cmdElemScriptBlocks = ast.FindAll(
-                a => a is ScriptBlockExpressionAst && a.Parent is CommandAst,
+                static a => a is ScriptBlockExpressionAst && a.Parent is CommandAst,
                 searchNestedScriptBlocks: true);
 
             foreach (Ast sbAst in cmdElemScriptBlocks)

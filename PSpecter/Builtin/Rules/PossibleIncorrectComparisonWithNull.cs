@@ -37,7 +37,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast foundAst in ast.FindAll(testAst => testAst is BinaryExpressionAst, searchNestedScriptBlocks: true))
+            foreach (Ast foundAst in ast.FindAll(static testAst => testAst is BinaryExpressionAst, searchNestedScriptBlocks: true))
             {
                 var binExpr = (BinaryExpressionAst)foundAst;
 
@@ -121,7 +121,7 @@ namespace PSpecter.Builtin.Rules
                 return null;
             }
 
-            foreach (Ast node in scope.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in scope.FindAll(static a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
             {
                 var assignment = (AssignmentStatementAst)node;
 

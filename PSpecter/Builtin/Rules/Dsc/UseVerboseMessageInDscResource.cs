@@ -42,7 +42,7 @@ namespace PSpecter.Builtin.Rules.Dsc
                 return false;
             }
 
-            foreach (Ast node in func.Body.FindAll(a => a is CommandAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in func.Body.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: false))
             {
                 var command = (CommandAst)node;
                 string? commandName = command.GetCommandName();

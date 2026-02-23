@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            IEnumerable<Ast> assignmentStatements = ast.FindAll(item => item is AssignmentStatementAst, searchNestedScriptBlocks: true);
+            IEnumerable<Ast> assignmentStatements = ast.FindAll(static item => item is AssignmentStatementAst, searchNestedScriptBlocks: true);
 
             for (int i = 0; i < tokens.Count; i++)
             {

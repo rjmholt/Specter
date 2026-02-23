@@ -124,7 +124,7 @@ namespace PSpecter.Builtin.Rules.Dsc
 
         private IEnumerable<ScriptDiagnostic> CheckSetMethodReturns(FunctionMemberAst method, TypeDefinitionAst dscClass)
         {
-            foreach (Ast node in method.Body.FindAll(a => a is ReturnStatementAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in method.Body.FindAll(static a => a is ReturnStatementAst, searchNestedScriptBlocks: false))
             {
                 var ret = (ReturnStatementAst)node;
                 if (ret.Pipeline is not null)

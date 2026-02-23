@@ -29,7 +29,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is CommandAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
                 ScriptDiagnostic? diagnostic = AnalyzeNewObjectCommand(cmdAst);
@@ -39,7 +39,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is InvokeMemberExpressionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is InvokeMemberExpressionAst, searchNestedScriptBlocks: true))
             {
                 var invokeAst = (InvokeMemberExpressionAst)node;
                 ScriptDiagnostic? diagnostic = AnalyzeStaticNewCall(invokeAst);

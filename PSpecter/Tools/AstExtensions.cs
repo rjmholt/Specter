@@ -116,7 +116,7 @@ namespace PSpecter.Tools
             }
 
             IEnumerable<Ast> commandAsts = ast.FindAll(
-                testAst => testAst is CommandAst cmdAst
+                static testAst => testAst is CommandAst cmdAst
                     && string.Equals(cmdAst.GetCommandName(), "Export-ModuleMember", StringComparison.OrdinalIgnoreCase),
                 searchNestedScriptBlocks: true);
 
@@ -175,7 +175,7 @@ namespace PSpecter.Tools
                 throw new ArgumentNullException("TODO");
             }
 
-            IEnumerable<Ast> scriptBlockAsts = ast.FindAll(testAst => testAst is ScriptBlockAst, true);
+            IEnumerable<Ast> scriptBlockAsts = ast.FindAll(static testAst => testAst is ScriptBlockAst, true);
 
             foreach (ScriptBlockAst scriptBlockAst in scriptBlockAsts)
             {

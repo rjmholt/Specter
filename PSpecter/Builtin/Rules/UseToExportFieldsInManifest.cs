@@ -44,7 +44,7 @@ namespace PSpecter.Builtin.Rules
             }
 
             HashtableAst? hashtable = ast
-                .FindAll(node => node is HashtableAst, searchNestedScriptBlocks: false)
+                .FindAll(static node => node is HashtableAst, searchNestedScriptBlocks: false)
                 .OfType<HashtableAst>()
                 .FirstOrDefault();
 
@@ -286,7 +286,7 @@ namespace PSpecter.Builtin.Rules
                 var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 // Collect function definitions
-                foreach (Ast node in moduleAst.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: false))
+                foreach (Ast node in moduleAst.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: false))
                 {
                     var funcDef = (FunctionDefinitionAst)node;
                     if (!string.IsNullOrWhiteSpace(funcDef.Name))

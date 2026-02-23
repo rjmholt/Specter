@@ -32,7 +32,7 @@ namespace PSpecter.Builtin.Editors
 
             var edits = new List<ScriptEdit>();
 
-            foreach (Ast foundAst in ast.FindAll(node => node is UnaryExpressionAst, searchNestedScriptBlocks: true))
+            foreach (Ast foundAst in ast.FindAll(static node => node is UnaryExpressionAst, searchNestedScriptBlocks: true))
             {
                 var unary = (UnaryExpressionAst)foundAst;
                 if (unary.TokenKind != TokenKind.Exclaim)

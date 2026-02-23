@@ -39,7 +39,7 @@ namespace PSpecter.Builtin.Rules
             }
 
             HashtableAst hashtable = ast
-                .FindAll(node => node is HashtableAst, searchNestedScriptBlocks: false)
+                .FindAll(static node => node is HashtableAst, searchNestedScriptBlocks: false)
                 .OfType<HashtableAst>()
                 .FirstOrDefault()!;
 

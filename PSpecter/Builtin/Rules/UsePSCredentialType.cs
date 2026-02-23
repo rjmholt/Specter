@@ -36,7 +36,7 @@ namespace PSpecter.Builtin.Rules
                 yield break;
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcDef = (FunctionDefinitionAst)node;
                 IEnumerable<ParameterAst>? parameters = null;
@@ -61,7 +61,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is ScriptBlockAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is ScriptBlockAst, searchNestedScriptBlocks: true))
             {
                 var scriptBlock = (ScriptBlockAst)node;
 

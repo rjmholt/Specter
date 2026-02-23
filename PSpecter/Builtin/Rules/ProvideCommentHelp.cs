@@ -44,7 +44,7 @@ namespace PSpecter.Builtin.Rules
                 ? GetExportedFunctionNames(ast)
                 : null;
 
-            foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
 
@@ -125,7 +125,7 @@ namespace PSpecter.Builtin.Rules
         {
             var exported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in ast.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: false))
             {
                 var cmdAst = (CommandAst)node;
                 string? commandName = cmdAst.GetCommandName();

@@ -112,7 +112,7 @@ namespace PSpecter.Suppression
 
         private static void CollectFromAttributes(Ast ast, Dictionary<string, List<RuleSuppression>> suppressions)
         {
-            foreach (Ast node in ast.FindAll(a => a is AttributeAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is AttributeAst, searchNestedScriptBlocks: true))
             {
                 var attrAst = (AttributeAst)node;
 
@@ -172,7 +172,7 @@ namespace PSpecter.Suppression
 
             if (string.Equals(scope, "Function", StringComparison.OrdinalIgnoreCase))
             {
-                foreach (Ast node in rootAst.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+                foreach (Ast node in rootAst.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
                 {
                     var funcDef = (FunctionDefinitionAst)node;
                     if (targetRegex.IsMatch(funcDef.Name))
@@ -191,7 +191,7 @@ namespace PSpecter.Suppression
             }
             else if (string.Equals(scope, "Class", StringComparison.OrdinalIgnoreCase))
             {
-                foreach (Ast node in rootAst.FindAll(a => a is TypeDefinitionAst, searchNestedScriptBlocks: true))
+                foreach (Ast node in rootAst.FindAll(static a => a is TypeDefinitionAst, searchNestedScriptBlocks: true))
                 {
                     var typeDef = (TypeDefinitionAst)node;
                     if (targetRegex.IsMatch(typeDef.Name))

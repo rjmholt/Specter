@@ -41,7 +41,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            var allFunctions = ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true)
+            var allFunctions = ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true)
                 .Cast<FunctionDefinitionAst>()
                 .ToList();
 
@@ -85,7 +85,7 @@ namespace PSpecter.Builtin.Rules
             foreach (FunctionDefinitionAst funcAst in functions)
             {
                 var callees = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (Ast node in funcAst.Body.FindAll(a => a is CommandAst, searchNestedScriptBlocks: false))
+                foreach (Ast node in funcAst.Body.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: false))
                 {
                     string name = ((CommandAst)node).GetCommandName();
                     if (name is not null)
@@ -145,7 +145,7 @@ namespace PSpecter.Builtin.Rules
 
         private static bool CallsBuiltinWithShouldProcess(FunctionDefinitionAst funcAst)
         {
-            foreach (Ast node in funcAst.Body.FindAll(a => a is CommandAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in funcAst.Body.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: false))
             {
                 string name = ((CommandAst)node).GetCommandName();
                 if (name is not null && s_cmdletsWithShouldProcess.Contains(name))
@@ -231,7 +231,7 @@ namespace PSpecter.Builtin.Rules
 
         private static IScriptExtent? GetShouldProcessCallExtent(FunctionDefinitionAst funcAst)
         {
-            foreach (Ast node in funcAst.Body.FindAll(a => a is InvokeMemberExpressionAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in funcAst.Body.FindAll(static a => a is InvokeMemberExpressionAst, searchNestedScriptBlocks: false))
             {
                 var invokeAst = (InvokeMemberExpressionAst)node;
                 if (invokeAst.Member is StringConstantExpressionAst memberName
@@ -252,7 +252,7 @@ namespace PSpecter.Builtin.Rules
 
         private static bool CallsShouldProcessOrShouldContinue(FunctionDefinitionAst funcAst)
         {
-            foreach (Ast node in funcAst.Body.FindAll(a => a is InvokeMemberExpressionAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in funcAst.Body.FindAll(static a => a is InvokeMemberExpressionAst, searchNestedScriptBlocks: false))
             {
                 var invokeAst = (InvokeMemberExpressionAst)node;
                 if (invokeAst.Member is StringConstantExpressionAst memberName

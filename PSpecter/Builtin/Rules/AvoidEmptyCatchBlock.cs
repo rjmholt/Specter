@@ -30,7 +30,7 @@ namespace PSpecter.Builtin.Rules
             }
 
             // Finds all CommandAsts.
-            IEnumerable<Ast> foundAsts = ast.FindAll(testAst => testAst is CatchClauseAst, true);
+            IEnumerable<Ast> foundAsts = ast.FindAll(static testAst => testAst is CatchClauseAst, true);
 
             // Iterates all CatchClauseAst and check the statements count.
             foreach (Ast foundAst in foundAsts)

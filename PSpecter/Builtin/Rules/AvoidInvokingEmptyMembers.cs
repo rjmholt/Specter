@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is MemberExpressionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is MemberExpressionAst, searchNestedScriptBlocks: true))
             {
                 var member = (MemberExpressionAst)node;
                 string context = member.Member?.Extent.ToString() ?? string.Empty;
@@ -35,7 +35,7 @@ namespace PSpecter.Builtin.Rules
                 }
 
                 IEnumerable<Ast> binaryExpressions = member.FindAll(
-                    binaryAst => binaryAst is BinaryExpressionAst, searchNestedScriptBlocks: true);
+                static binaryAst => binaryAst is BinaryExpressionAst, searchNestedScriptBlocks: true);
 
                 if (binaryExpressions.Any())
                 {

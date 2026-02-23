@@ -24,7 +24,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         internal static IReadOnlyList<FunctionDefinitionAst> GetDscResourceFunctions(Ast ast)
         {
             var results = new List<FunctionDefinitionAst>();
-            foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var func = (FunctionDefinitionAst)node;
                 foreach (string name in s_targetResourceFunctions)
@@ -42,7 +42,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         internal static IReadOnlyList<TypeDefinitionAst> GetDscClasses(Ast ast)
         {
             var results = new List<TypeDefinitionAst>();
-            foreach (Ast node in ast.FindAll(a => a is TypeDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is TypeDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var typeDef = (TypeDefinitionAst)node;
                 if (!typeDef.IsClass)

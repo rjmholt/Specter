@@ -70,7 +70,7 @@ namespace PSpecter.Builtin.Editors
         private void AddCommandCasingEdits(Ast ast, List<ScriptEdit> edits)
         {
             var db = _commandDb!; // Caller ensures _commandDb is not null
-            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
                 string commandName = cmdAst.GetCommandName();

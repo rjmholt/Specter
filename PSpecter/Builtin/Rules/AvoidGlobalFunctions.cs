@@ -31,7 +31,7 @@ namespace PSpecter.Builtin.Rules
                 yield break;
             }
 
-            IEnumerable<Ast> funcAsts = ast.FindAll(testAst => testAst is FunctionDefinitionAst, true);
+            IEnumerable<Ast> funcAsts = ast.FindAll(static testAst => testAst is FunctionDefinitionAst, true);
 
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {

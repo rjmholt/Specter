@@ -84,7 +84,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
             var referencePlatforms = new HashSet<PlatformInfo> { refPlatform };
 
-            foreach (Ast foundAst in ast.FindAll(node => node is CommandAst, searchNestedScriptBlocks: true))
+            foreach (Ast foundAst in ast.FindAll(static node => node is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)foundAst;
                 string commandName = cmdAst.GetCommandName();

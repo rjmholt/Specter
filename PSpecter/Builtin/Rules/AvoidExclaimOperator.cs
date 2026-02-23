@@ -34,7 +34,7 @@ namespace PSpecter.Builtin.Rules
                 yield break;
             }
 
-            IEnumerable<Ast> foundAsts = ast.FindAll(testAst => testAst is UnaryExpressionAst, true);
+            IEnumerable<Ast> foundAsts = ast.FindAll(static testAst => testAst is UnaryExpressionAst, true);
             if (foundAsts != null)
             {
                 foreach (UnaryExpressionAst unaryExpressionAst in foundAsts)

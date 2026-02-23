@@ -47,7 +47,7 @@ namespace PSpecter.Builtin.Rules
             }
 
             // Finds all CommandAsts.
-            IEnumerable<Ast> commandAsts = ast.FindAll(testAst => testAst is CommandAst, true);
+            IEnumerable<Ast> commandAsts = ast.FindAll(static testAst => testAst is CommandAst, true);
 
             // Iterate all CommandAsts and check the command name
             foreach (CommandAst cmdAst in commandAsts)

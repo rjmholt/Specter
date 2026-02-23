@@ -46,7 +46,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             var assignments = BuildClassMethodAssignmentMap(method, containingClass, classes);
             var outputs = new List<OutputInfo>();
 
-            foreach (Ast node in method.Body.FindAll(a => a is ReturnStatementAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in method.Body.FindAll(static a => a is ReturnStatementAst, searchNestedScriptBlocks: false))
             {
                 var ret = (ReturnStatementAst)node;
                 if (ret.Pipeline is null)
@@ -433,7 +433,7 @@ namespace PSpecter.Builtin.Rules.Dsc
         {
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (Ast node in func.Body.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in func.Body.FindAll(static a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
             {
                 var assignment = (AssignmentStatementAst)node;
                 if (assignment.Left is not VariableExpressionAst varExpr)
@@ -464,7 +464,7 @@ namespace PSpecter.Builtin.Rules.Dsc
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             map["this"] = containingClass.Name;
 
-            foreach (Ast node in method.Body.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
+            foreach (Ast node in method.Body.FindAll(static a => a is AssignmentStatementAst, searchNestedScriptBlocks: false))
             {
                 var assignment = (AssignmentStatementAst)node;
                 if (assignment.Left is not VariableExpressionAst varExpr)

@@ -30,7 +30,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(Strings.NullAstErrorMessage);
             }
 
-            IEnumerable<Ast> paramAsts = ast.FindAll(testAst => testAst is ParameterAst, true);
+            IEnumerable<Ast> paramAsts = ast.FindAll(static testAst => testAst is ParameterAst, true);
 
             foreach (ParameterAst paramAst in paramAsts)
             {

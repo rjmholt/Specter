@@ -20,7 +20,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            IEnumerable<Ast> varAsts = ast.FindAll(testAst => testAst is VariableExpressionAst, true);
+            IEnumerable<Ast> varAsts = ast.FindAll(static testAst => testAst is VariableExpressionAst, true);
 
             if (varAsts == null)
             {

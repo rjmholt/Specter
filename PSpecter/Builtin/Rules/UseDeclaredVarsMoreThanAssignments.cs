@@ -34,7 +34,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         /// <returns>A List of results from this rule</returns>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            var scriptBlockAsts = ast.FindAll(x => x is ScriptBlockAst, true);
+            var scriptBlockAsts = ast.FindAll(static x => x is ScriptBlockAst, true);
 
             if (scriptBlockAsts == null)
             {
@@ -59,8 +59,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         /// <returns>An enumerable containing diagnostic records</returns>
         private IEnumerable<ScriptDiagnostic> AnalyzeScriptBlockAst(ScriptBlockAst scriptBlockAst, string? fileName)
         {
-            IEnumerable<Ast> assignmentAsts = scriptBlockAst.FindAll(testAst => testAst is AssignmentStatementAst, false);
-            IEnumerable<Ast> varAsts = scriptBlockAst.FindAll(testAst => testAst is VariableExpressionAst, true);
+            IEnumerable<Ast> assignmentAsts = scriptBlockAst.FindAll(static testAst => testAst is AssignmentStatementAst, false);
+            IEnumerable<Ast> varAsts = scriptBlockAst.FindAll(static testAst => testAst is VariableExpressionAst, true);
             IEnumerable<Ast>? varsInAssignment = null;
 
             Dictionary<string, AssignmentStatementAst> assignmentsDictionary_OrdinalIgnoreCase = new Dictionary<string, AssignmentStatementAst>(StringComparer.OrdinalIgnoreCase);
@@ -115,7 +115,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
                     if (assignmentsDictionary_OrdinalIgnoreCase.ContainsKey(varKey))
                     {
-                        varsInAssignment = assignmentsDictionary_OrdinalIgnoreCase[varKey].Left.FindAll(testAst => testAst is VariableExpressionAst, true);
+                        varsInAssignment = assignmentsDictionary_OrdinalIgnoreCase[varKey].Left.FindAll(static testAst => testAst is VariableExpressionAst, true);
 
                         // Checks if this variableAst is part of the logged assignment
                         foreach (VariableExpressionAst varInAssignment in varsInAssignment)

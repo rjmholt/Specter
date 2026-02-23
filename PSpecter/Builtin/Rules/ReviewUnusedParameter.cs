@@ -36,7 +36,7 @@ namespace PSpecter.Builtin.Rules
                 Configuration.CommandsToTraverse ?? Array.Empty<string>(),
                 StringComparer.OrdinalIgnoreCase);
 
-            foreach (Ast node in ast.FindAll(a => a is ScriptBlockAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is ScriptBlockAst, searchNestedScriptBlocks: true))
             {
                 var scriptBlockAst = (ScriptBlockAst)node;
 
@@ -46,7 +46,7 @@ namespace PSpecter.Builtin.Rules
                 }
 
                 IEnumerable<ParameterAst> parameterAsts = scriptBlockAst
-                    .FindAll(a => a is ParameterAst, searchNestedScriptBlocks: false)
+                    .FindAll(static a => a is ParameterAst, searchNestedScriptBlocks: false)
                     .Cast<ParameterAst>();
 
                 bool hasProcessBlockWithPSItemOrUnderscore = false;
@@ -145,7 +145,7 @@ namespace PSpecter.Builtin.Rules
         {
             var content = data ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-            var varCounts = ast.FindAll(a => a is VariableExpressionAst, searchNestedScriptBlocks: false)
+            var varCounts = ast.FindAll(static a => a is VariableExpressionAst, searchNestedScriptBlocks: false)
                 .Cast<VariableExpressionAst>()
                 .Select(v => v.VariablePath.UserPath)
                 .GroupBy(name => name, StringComparer.OrdinalIgnoreCase)
@@ -164,7 +164,7 @@ namespace PSpecter.Builtin.Rules
             }
 
             var traversableScriptBlocks = ast
-                .FindAll(a => a is ScriptBlockExpressionAst, searchNestedScriptBlocks: false)
+                .FindAll(static a => a is ScriptBlockExpressionAst, searchNestedScriptBlocks: false)
                 .Where(a => a.Parent is CommandAst cmd
                     && cmd.CommandElements[0] is StringConstantExpressionAst strConst
                     && traverseCommands.Contains(strConst.Value))

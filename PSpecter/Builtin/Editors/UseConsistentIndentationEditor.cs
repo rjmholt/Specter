@@ -314,7 +314,7 @@ namespace PSpecter.Builtin.Editors
         private static List<OffsetRange> GetMultiLinePipelineRanges(Ast ast)
         {
             var ranges = new List<OffsetRange>();
-            var pipelines = ast.FindAll(a => a is PipelineAst pipeline && pipeline.PipelineElements.Count > 1, searchNestedScriptBlocks: true);
+            var pipelines = ast.FindAll(static a => a is PipelineAst pipeline && pipeline.PipelineElements.Count > 1, searchNestedScriptBlocks: true);
 
             foreach (PipelineAst pipeline in pipelines.Cast<PipelineAst>())
             {

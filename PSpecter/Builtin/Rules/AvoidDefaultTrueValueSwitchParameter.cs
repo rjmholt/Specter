@@ -23,7 +23,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast foundAst in ast.FindAll(testAst => testAst is ParameterAst, searchNestedScriptBlocks: true))
+            foreach (Ast foundAst in ast.FindAll(static testAst => testAst is ParameterAst, searchNestedScriptBlocks: true))
             {
                 var paramAst = (ParameterAst)foundAst;
 

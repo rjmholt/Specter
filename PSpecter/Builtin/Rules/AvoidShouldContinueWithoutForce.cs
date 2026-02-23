@@ -29,7 +29,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(Strings.NullAstErrorMessage);
             }
 
-            IEnumerable<Ast> funcAsts = ast.FindAll(testAst => testAst is FunctionDefinitionAst, true);
+            IEnumerable<Ast> funcAsts = ast.FindAll(static testAst => testAst is FunctionDefinitionAst, true);
 
             foreach (FunctionDefinitionAst funcAst in funcAsts)
             {
@@ -38,7 +38,7 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
-                IEnumerable<Ast> imeAsts = funcAst.FindAll(testAst => testAst is InvokeMemberExpressionAst, true);
+                IEnumerable<Ast> imeAsts = funcAst.FindAll(static testAst => testAst is InvokeMemberExpressionAst, true);
 
                 foreach (InvokeMemberExpressionAst imeAst in imeAsts)
                 {
@@ -68,7 +68,7 @@ namespace PSpecter.Builtin.Rules
 
         private static bool HasForceParameter(FunctionDefinitionAst funcAst)
         {
-            IEnumerable<Ast> paramAsts = funcAst.FindAll(testAst => testAst is ParameterAst, true);
+            IEnumerable<Ast> paramAsts = funcAst.FindAll(static testAst => testAst is ParameterAst, true);
 
             foreach (ParameterAst paramAst in paramAsts)
             {

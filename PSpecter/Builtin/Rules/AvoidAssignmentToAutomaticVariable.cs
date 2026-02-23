@@ -45,7 +45,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is AssignmentStatementAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is AssignmentStatementAst, searchNestedScriptBlocks: true))
             {
                 var assignment = (AssignmentStatementAst)node;
                 var variable = assignment.Left.Find(
@@ -70,7 +70,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is ForEachStatementAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is ForEachStatementAst, searchNestedScriptBlocks: true))
             {
                 var forEach = (ForEachStatementAst)node;
                 var variable = forEach.Variable;
@@ -87,7 +87,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is ParameterAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is ParameterAst, searchNestedScriptBlocks: true))
             {
                 var parameter = (ParameterAst)node;
                 var variable = parameter.Find(

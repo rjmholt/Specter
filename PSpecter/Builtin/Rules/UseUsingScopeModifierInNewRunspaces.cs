@@ -158,7 +158,7 @@ namespace PSpecter.Builtin.Rules
             private static IReadOnlyCollection<string> FindAssignedVars(Ast ast)
             {
                 var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (Ast node in ast.FindAll(a => a is AssignmentStatementAst, searchNestedScriptBlocks: true))
+                foreach (Ast node in ast.FindAll(static a => a is AssignmentStatementAst, searchNestedScriptBlocks: true))
                 {
                     var assignment = (AssignmentStatementAst)node;
                     if (TryGetVariableFromExpression(assignment.Left, out VariableExpressionAst? variable) && variable is not null)
@@ -191,7 +191,7 @@ namespace PSpecter.Builtin.Rules
                 Ast ast,
                 IReadOnlyCollection<string> assignedVars)
             {
-                foreach (Ast node in ast.FindAll(a => a is VariableExpressionAst, searchNestedScriptBlocks: true))
+                foreach (Ast node in ast.FindAll(static a => a is VariableExpressionAst, searchNestedScriptBlocks: true))
                 {
                     var variable = (VariableExpressionAst)node;
 

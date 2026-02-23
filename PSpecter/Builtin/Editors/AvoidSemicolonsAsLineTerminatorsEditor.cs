@@ -33,7 +33,7 @@ namespace PSpecter.Builtin.Editors
 
             var edits = new List<ScriptEdit>();
             IEnumerable<Ast> assignmentStatements = ast.FindAll(
-                item => item is AssignmentStatementAst,
+                static item => item is AssignmentStatementAst,
                 searchNestedScriptBlocks: true);
 
             for (int i = 0; i < tokens.Count; i++)

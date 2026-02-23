@@ -45,7 +45,7 @@ namespace PSpecter.Builtin.Rules
                 StringComparer.OrdinalIgnoreCase);
 
             var declaredFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
                 if (!string.IsNullOrEmpty(funcAst.Name))
@@ -54,7 +54,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
                 string commandName = cmdAst.GetCommandName();

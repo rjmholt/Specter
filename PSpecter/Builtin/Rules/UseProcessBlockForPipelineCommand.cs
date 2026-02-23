@@ -28,7 +28,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(Strings.NullAstErrorMessage);
             }
 
-            IEnumerable<Ast> scriptBlockAsts = ast.FindAll(testAst => testAst is ScriptBlockAst, true);
+            IEnumerable<Ast> scriptBlockAsts = ast.FindAll(static testAst => testAst is ScriptBlockAst, true);
 
             foreach (ScriptBlockAst scriptBlockAst in scriptBlockAsts)
             {

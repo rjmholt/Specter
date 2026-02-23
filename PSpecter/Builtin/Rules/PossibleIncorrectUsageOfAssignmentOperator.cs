@@ -23,7 +23,7 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is WhileStatementAst || testAst is DoWhileStatementAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is WhileStatementAst || testAst is DoWhileStatementAst, searchNestedScriptBlocks: true))
             {
                 var loopAst = (LoopStatementAst)node;
                 ScriptDiagnostic? diagnostic = AnalyzeCondition(loopAst.Condition, scriptPath);
@@ -33,7 +33,7 @@ namespace PSpecter.Builtin.Rules
                 }
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is IfStatementAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is IfStatementAst, searchNestedScriptBlocks: true))
             {
                 var ifAst = (IfStatementAst)node;
                 foreach (var clause in ifAst.Clauses)

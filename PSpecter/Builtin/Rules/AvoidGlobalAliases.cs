@@ -31,7 +31,7 @@ namespace PSpecter.Builtin.Rules
                 yield break;
             }
 
-            IEnumerable<Ast> commandAsts = ast.FindAll(testAst => testAst is CommandAst, true);
+            IEnumerable<Ast> commandAsts = ast.FindAll(static testAst => testAst is CommandAst, true);
 
             foreach (CommandAst commandAst in commandAsts)
             {

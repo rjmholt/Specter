@@ -40,7 +40,7 @@ namespace PSpecter.Builtin.Rules
                 Configuration.NounAllowList ?? Array.Empty<string>(),
                 StringComparer.OrdinalIgnoreCase);
 
-            foreach (Ast node in ast.FindAll(a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
 

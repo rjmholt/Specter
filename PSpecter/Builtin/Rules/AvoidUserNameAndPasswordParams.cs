@@ -38,10 +38,10 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast node in ast.FindAll(testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
-                IEnumerable<Ast> paramAsts = funcAst.FindAll(testAst => testAst is ParameterAst, searchNestedScriptBlocks: true);
+                IEnumerable<Ast> paramAsts = funcAst.FindAll(static testAst => testAst is ParameterAst, searchNestedScriptBlocks: true);
 
                 ParameterAst? usernameAst = null;
                 ParameterAst? passwordAst = null;

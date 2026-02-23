@@ -36,7 +36,7 @@ namespace PSpecter.Builtin.Editors
 
             if (!Configuration.CheckHashtable) { return edits; }
 
-            var hashtables = ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true);
+            var hashtables = ast.FindAll(static a => a is HashtableAst, searchNestedScriptBlocks: true);
 
             foreach (HashtableAst htAst in hashtables.Cast<HashtableAst>())
             {
