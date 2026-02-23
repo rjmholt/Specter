@@ -1,9 +1,11 @@
 using PSpecter.Builder;
+using PSpecter.Configuration;
 using PSpecter.Execution;
 using PSpecter.Instantiation;
 using PSpecter.Logging;
 using PSpecter.Rules;
 using PSpecter.Suppression;
+using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 
@@ -46,6 +48,11 @@ namespace PSpecter
 
         public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScriptPath(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException("Script path must not be null or empty.", nameof(path));
+            }
+
             _logger.Verbose($"Analyzing file: {path}");
             Ast ast = Parser.ParseFile(path, out Token[] tokens, out ParseError[] parseErrors);
             if (parseErrors.Length > 0)
@@ -57,6 +64,11 @@ namespace PSpecter
 
         public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScriptInput(string input)
         {
+            if (input is null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
             _logger.Debug("Analyzing script input");
             Ast ast = Parser.ParseInput(input, out Token[] tokens, out ParseError[] parseErrors);
             return AnalyzeScript(ast, tokens, scriptPath: null);
@@ -68,17 +80,7 @@ namespace PSpecter
         public IReadOnlyCollection<ScriptDiagnostic> AnalyzeScript(Ast scriptAst, Token[] scriptTokens, string? scriptPath)
         {
             IRuleExecutor ruleExecutor = _executorFactory.CreateRuleExecutor(scriptAst, scriptTokens, scriptPath);
-
-            int ruleCount = 0;
-            foreach (IRuleProvider ruleProvider in RuleProviders)
-            {
-                foreach (ScriptRule rule in ruleProvider.GetScriptRules())
-                {
-                    ruleExecutor.AddRule(rule);
-                    ruleCount++;
-                }
-            }
-
+            int ruleCount = AddApplicableRules(ruleExecutor, scriptPath);
             _logger.Debug($"Executed {ruleCount} rules");
 
             IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
@@ -114,17 +116,7 @@ namespace PSpecter
         public AnalysisResult AnalyzeScriptFull(Ast scriptAst, Token[] scriptTokens, string? scriptPath)
         {
             IRuleExecutor ruleExecutor = _executorFactory.CreateRuleExecutor(scriptAst, scriptTokens, scriptPath);
-
-            int ruleCount = 0;
-            foreach (IRuleProvider ruleProvider in RuleProviders)
-            {
-                foreach (ScriptRule rule in ruleProvider.GetScriptRules())
-                {
-                    ruleExecutor.AddRule(rule);
-                    ruleCount++;
-                }
-            }
-
+            int ruleCount = AddApplicableRules(ruleExecutor, scriptPath);
             _logger.Debug($"Executed {ruleCount} rules");
 
             IReadOnlyCollection<ScriptDiagnostic> diagnostics = ruleExecutor.CollectDiagnostics();
@@ -137,6 +129,28 @@ namespace PSpecter
 
             Dictionary<string, List<RuleSuppression>> suppressions = SuppressionParser.GetSuppressions(scriptAst, scriptTokens);
             return SuppressionApplier.ApplySuppressionsWithTracking(diagnostics, suppressions, ruleErrors);
+        }
+
+        private int AddApplicableRules(IRuleExecutor ruleExecutor, string? scriptPath)
+        {
+            int ruleCount = 0;
+            foreach (IRuleProvider ruleProvider in RuleProviders)
+            {
+                foreach (ScriptRule rule in ruleProvider.GetScriptRules())
+                {
+                    CommonConfiguration? common = rule.CommonConfiguration;
+                    if (common is not null && common.IsPathExcluded(scriptPath))
+                    {
+                        _logger.Debug($"Skipping rule '{rule.RuleInfo.Name}' for '{scriptPath}' (ExcludePaths)");
+                        continue;
+                    }
+
+                    ruleExecutor.AddRule(rule);
+                    ruleCount++;
+                }
+            }
+
+            return ruleCount;
         }
     }
 }

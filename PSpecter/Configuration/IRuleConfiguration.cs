@@ -1,4 +1,5 @@
 using PSpecter.Builtin;
+using PSpecter.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,27 @@ namespace PSpecter.Configuration
 
         public bool Enabled { get; set; } = true;
 
+        public string[]? ExcludePaths { get; set; }
+
         public CommonConfiguration Common => this;
+
+        public bool IsPathExcluded(string? scriptPath)
+        {
+            if (scriptPath is null || ExcludePaths is null || ExcludePaths.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < ExcludePaths.Length; i++)
+            {
+                if (GlobMatcher.IsMatch(scriptPath, ExcludePaths[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public interface IRuleConfiguration

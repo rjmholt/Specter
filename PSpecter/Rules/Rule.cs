@@ -54,6 +54,8 @@ namespace PSpecter.Rules
         {
         }
 
+        public virtual CommonConfiguration? CommonConfiguration => null;
+
         public abstract IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath);
 
         protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast)
@@ -91,6 +93,8 @@ namespace PSpecter.Rules
         {
             Configuration = ruleConfiguration;
         }
+
+        public override CommonConfiguration? CommonConfiguration => Configuration?.Common;
 
         public TConfiguration Configuration { get; }
     }
