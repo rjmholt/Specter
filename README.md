@@ -96,13 +96,70 @@ If you are starting fresh, prefer the Specter module. Use the compatibility modu
 
 ## Configuration
 
-Rules are configured through settings hashtables or `.psd1` files, compatible with PSScriptAnalyzer settings format:
+Specter is configured through a JSON file (preferred) or through PowerShell `.psd1` files for PSScriptAnalyzer compatibility.
+
+### JSON Configuration (preferred)
+
+Create a `specter.json` file in your project root:
+
+```json
+{
+    "BuiltinRulePreference": "default",
+    "RuleExecutionMode": "parallel",
+    "Rules": {
+        "PSAvoidUsingCmdletAliases": {
+            "Common": { "Enabled": true },
+            "AllowList": ["cd", "ls"]
+        },
+        "PSUseConsistentIndentation": {
+            "Common": { "Enabled": true },
+            "IndentationSize": 4,
+            "PipelineIndentation": "IncreaseIndentationForFirstPipeline"
+        },
+        "PSAvoidUsingWriteHost": {
+            "Common": { "Enabled": false }
+        }
+    }
+}
+```
+
+Top-level settings:
+
+| Key | Values | Description |
+|-----|--------|-------------|
+| `BuiltinRulePreference` | `"none"`, `"default"`, `"comprehensive"` | Which built-in rules to load |
+| `RuleExecutionMode` | `"default"`, `"parallel"`, `"sequential"` | How rules are executed |
+| `RulePaths` | `["/path/to/rules", ...]` | Additional rule module paths |
+| `Rules` | `{ "RuleName": { ... }, ... }` | Per-rule configuration |
+
+Each rule entry under `Rules` supports a `Common` object with shared settings:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `Enabled` | `bool` | Enable or disable the rule |
+| `ExcludePaths` | `string[]` | Glob patterns for paths to skip |
+
+Any additional fields in a rule entry are deserialized into the rule's own typed configuration (e.g. `AllowList`, `IndentationSize`).
+
+Pass the configuration file to `Invoke-Specter` or the server:
+
+```powershell
+Invoke-Specter -Path ./MyScript.ps1 -Settings ./specter.json
+```
+
+```bash
+specter-server lsp --config ./specter.json
+```
+
+### PSD1 Configuration (PSScriptAnalyzer compatibility)
+
+The compatibility module also accepts `.psd1` settings files and hashtables, matching the PSScriptAnalyzer settings format:
 
 ```powershell
 Invoke-ScriptAnalyzer -Path . -Settings @{
     Rules = @{
         PSAvoidUsingCmdletAliases = @{
-            Allowlist = @('cd', 'ls')
+            AllowList = @('cd', 'ls')
         }
         PSUseConsistentIndentation = @{
             Enable = $true
