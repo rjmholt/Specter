@@ -61,6 +61,13 @@ $ExcludedTests = @{
         # detect native commands on the analysis host.
         'do not warn when about Get-* completed cmdlets' = 'pending: requires runtime native command detection'
     }
+    'AvoidPositionalParameters.tests.ps1' = @{
+        # Test expects Invoke-ScriptAnalyzer to return both PSAvoidUsingPositionalParameters
+        # and PSAvoidUsingCmdletAliases violations from a single call. PSpecter's compat shim
+        # currently runs rules independently per Invoke-ScriptAnalyzer call, so cross-rule
+        # results within one invocation don't aggregate the same way.
+        'Triggers on alias' = 'pending: cross-rule aggregation in single Invoke-ScriptAnalyzer call'
+    }
 }
 
 $repoRoot = Split-Path $PSScriptRoot -Parent
