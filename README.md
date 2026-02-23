@@ -111,6 +111,13 @@ dotnet run --project PSpecter.Server
 
 The server can be embedded in a larger C# application by referencing the `PSpecter` and `PSpecter.Server` packages and using the `AnalysisService` class directly.
 
+## Future Goals
+
+PSpecter aims to go beyond PSScriptAnalyzer compatibility. These are longer-term goals under research and design:
+
+- **Variable AST metadata** -- Decorate AST variable nodes with statically determined information (evolving types, possible value sets, propagated attributes and constraints). This would enable smarter rules that understand what a variable holds at a given point in a script, using flow-sensitive or scope-based analysis.
+- **DSC analysis without PowerShell invocation** -- Evaluate whether DSC configurations can be statically analysed from the AST alone using schema-driven validation, with an interface boundary that allows plugging in a PowerShell runspace when deeper evaluation is needed.
+
 ## License
 
 MIT. See [LICENSE](PSpecter/LICENSE).
