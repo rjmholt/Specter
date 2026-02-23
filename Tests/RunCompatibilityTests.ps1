@@ -47,10 +47,6 @@ $ExcludedFiles = @{
     'AllCompatibilityRules.Tests.ps1' = 'dependency: requires UseCompatibleTypes'
 }
 
-# UseCompatibleCommands passes 199/200 in isolation but fails when run
-# after other test files in the full suite due to database/profile state
-# corruption. Excluded at file level until test isolation is fixed.
-$ExcludedFiles['UseCompatibleCommands.Tests.ps1'] = 'ordering: passes in isolation (199/200); fails in full suite due to state corruption'
 
 # Individual test exclusions keyed by file name, each mapping test name patterns
 # (matched as substrings) to a reason string.

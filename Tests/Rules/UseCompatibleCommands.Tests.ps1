@@ -252,8 +252,10 @@ Describe 'UseCompatibleCommands' {
         $Ubuntu1804_6_2_profile = 'ubuntu_x64_18.04_6.2.4_x64_4.0.30319.42000_core'
         $Ubuntu1804_7_profile = 'ubuntu_x64_18.04_7.0.0_x64_3.1.2_core'
 
-        $AzF_profile = (Resolve-Path "$PSScriptRoot/../../PSCompatibilityCollector/optional_profiles/azurefunctions.json").Path
-        $AzA_profile = (Resolve-Path "$PSScriptRoot/../../PSCompatibilityCollector/optional_profiles/azureautomation.json").Path
+        $AzF_profile_candidate = "$PSScriptRoot/../../PSCompatibilityCollector/optional_profiles/azurefunctions.json"
+        $AzF_profile = if (Test-Path $AzF_profile_candidate) { (Resolve-Path $AzF_profile_candidate).Path } else { $null }
+        $AzA_profile_candidate = "$PSScriptRoot/../../PSCompatibilityCollector/optional_profiles/azureautomation.json"
+        $AzA_profile = if (Test-Path $AzA_profile_candidate) { (Resolve-Path $AzA_profile_candidate).Path } else { $null }
 
         $TargetProfileConfigKey = 'TargetProfiles'
 
@@ -446,7 +448,7 @@ Describe 'UseCompatibleCommands' {
             }
         }
 
-        It "Finds AzF problems with a script" -Skip:(-not (Test-Path $AzF_profile)) {
+        It "Finds AzF problems with a script" -Skip:(!$AzF_profile) {
             $diagnostics = Invoke-ScriptAnalyzer -IncludeRule $RuleName -Settings $settings -ScriptDefinition '
                 Get-WmiObject Win32_Process
                 New-SelfSignedCertificate
