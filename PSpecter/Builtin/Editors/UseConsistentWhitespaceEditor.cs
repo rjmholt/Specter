@@ -43,6 +43,9 @@ namespace PSpecter.Builtin.Editors
             var multiLineHashtableRanges = Configuration.IgnoreAssignmentOperatorInsideHashTable
                 ? GetMultiLineHashtableRanges(ast)
                 : null;
+            var bracedMemberAccessRanges = Configuration.CheckInnerBrace
+                ? GetBracedMemberAccessRanges(tokens)
+                : null;
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -55,11 +58,13 @@ namespace PSpecter.Builtin.Editors
 
                 if (Configuration.CheckInnerBrace)
                 {
-                    if (token.Kind == TokenKind.LCurly)
+                    if (token.Kind == TokenKind.LCurly
+                        && !IsInsideBracedMemberAccess(token, bracedMemberAccessRanges!))
                     {
                         AddSpaceAfterOpenBrace(tokens, i, edits);
                     }
-                    else if (token.Kind == TokenKind.RCurly)
+                    else if (token.Kind == TokenKind.RCurly
+                        && !IsInsideBracedMemberAccess(token, bracedMemberAccessRanges!))
                     {
                         AddSpaceBeforeCloseBrace(tokens, i, edits);
                     }
@@ -327,40 +332,46 @@ namespace PSpecter.Builtin.Editors
 
         private static void AddParameterSpacingEdits(Ast ast, IReadOnlyList<Token> tokens, List<ScriptEdit> edits)
         {
-            foreach (Ast node in ast.FindAll(a => a is CommandAst, searchNestedScriptBlocks: true))
+            foreach (Ast node in ast.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: true))
             {
                 var cmdAst = (CommandAst)node;
-                var elements = cmdAst.CommandElements;
 
-                if (elements.Count >= 2)
+                var sortedElements = new List<Ast>();
+                foreach (Ast child in cmdAst.FindAll(testAst => testAst.Parent == cmdAst, searchNestedScriptBlocks: false))
                 {
-                    for (int i = 0; i < elements.Count - 1; i++)
+                    if (child is RedirectionAst)
                     {
-                        var current = elements[i];
-                        var next = elements[i + 1];
+                        continue;
+                    }
 
-                        if (current.Extent.EndLineNumber != next.Extent.StartLineNumber)
-                        {
-                            continue;
-                        }
+                    sortedElements.Add(child);
+                }
 
-                        if (current is CommandParameterAst paramAst
-                            && paramAst.Argument == null
-                            && paramAst.ParameterName.EndsWith(":", StringComparison.Ordinal))
-                        {
-                            continue;
-                        }
+                sortedElements.Sort(static (a, b) =>
+                {
+                    int cmp = a.Extent.StartLineNumber.CompareTo(b.Extent.StartLineNumber);
+                    return cmp != 0 ? cmp : a.Extent.StartColumnNumber.CompareTo(b.Extent.StartColumnNumber);
+                });
 
-                        int gap = next.Extent.StartOffset - current.Extent.EndOffset;
-                        if (gap > 1)
-                        {
-                            edits.Add(new ScriptEdit(
-                                current.Extent.EndOffset + 1,
-                                next.Extent.StartOffset,
-                                string.Empty,
-                                diagnosticStartOffset: current.Extent.StartOffset,
-                                diagnosticEndOffset: current.Extent.EndOffset));
-                        }
+                for (int i = 0; i < sortedElements.Count - 1; i++)
+                {
+                    Ast current = sortedElements[i];
+                    Ast next = sortedElements[i + 1];
+
+                    if (current.Extent.EndLineNumber != next.Extent.StartLineNumber)
+                    {
+                        continue;
+                    }
+
+                    int gap = next.Extent.StartOffset - current.Extent.EndOffset;
+                    if (gap > 1)
+                    {
+                        edits.Add(new ScriptEdit(
+                            current.Extent.EndOffset + 1,
+                            next.Extent.StartOffset,
+                            string.Empty,
+                            diagnosticStartOffset: current.Extent.StartOffset,
+                            diagnosticEndOffset: current.Extent.EndOffset));
                     }
                 }
 
@@ -444,7 +455,7 @@ namespace PSpecter.Builtin.Editors
         private static List<HashtableAst> GetAllHashtables(Ast ast)
         {
             var hashtables = new List<HashtableAst>();
-            foreach (Ast htAst in ast.FindAll(a => a is HashtableAst, searchNestedScriptBlocks: true))
+            foreach (Ast htAst in ast.FindAll(static a => a is HashtableAst, searchNestedScriptBlocks: true))
             {
                 hashtables.Add((HashtableAst)htAst);
             }
@@ -531,6 +542,116 @@ namespace PSpecter.Builtin.Editors
                 }
             }
             return false;
+        }
+
+        private static bool IsInsideBracedMemberAccess(Token token, List<OffsetRange> ranges)
+        {
+            int offset = token.Extent.StartOffset;
+            for (int i = 0; i < ranges.Count; i++)
+            {
+                if (offset >= ranges[i].Start && offset < ranges[i].End)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Identifies ranges in the token stream that represent braced member access
+        /// expressions like <c>$obj.{PropertyName}</c>. The contents of such braces
+        /// are literal member names and should not be reformatted.
+        /// </summary>
+        private static List<OffsetRange> GetBracedMemberAccessRanges(IReadOnlyList<Token> tokens)
+        {
+            var ranges = new List<OffsetRange>();
+
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                Token t = tokens[i];
+
+                if (t.Kind != TokenKind.Dot)
+                {
+                    continue;
+                }
+
+                if (i == 0)
+                {
+                    continue;
+                }
+
+                Token left = tokens[i - 1];
+                if (left.Extent.EndOffset != t.Extent.StartOffset)
+                {
+                    continue;
+                }
+
+                switch (left.Kind)
+                {
+                    case TokenKind.Variable:
+                    case TokenKind.Identifier:
+                    case TokenKind.StringLiteral:
+                    case TokenKind.StringExpandable:
+                    case TokenKind.RParen:
+                    case TokenKind.RCurly:
+                    case TokenKind.RBracket:
+                        break;
+                    default:
+                        continue;
+                }
+
+                int scan = i + 1;
+                while (scan < tokens.Count)
+                {
+                    TokenKind sk = tokens[scan].Kind;
+                    if (sk == TokenKind.Comment || sk == TokenKind.NewLine || sk == TokenKind.LineContinuation)
+                    {
+                        scan++;
+                        continue;
+                    }
+
+                    break;
+                }
+
+                if (scan >= tokens.Count || tokens[scan].Kind != TokenKind.LCurly)
+                {
+                    continue;
+                }
+
+                int lCurlyIdx = scan;
+                int depth = 0;
+                int rCurlyIdx = -1;
+                for (int j = lCurlyIdx; j < tokens.Count; j++)
+                {
+                    if (tokens[j].Kind == TokenKind.LCurly)
+                    {
+                        depth++;
+                    }
+                    else if (tokens[j].Kind == TokenKind.RCurly)
+                    {
+                        depth--;
+                        if (depth == 0)
+                        {
+                            rCurlyIdx = j;
+                            break;
+                        }
+                    }
+                }
+
+                if (rCurlyIdx < 0)
+                {
+                    continue;
+                }
+
+                ranges.Add(new OffsetRange(
+                    tokens[lCurlyIdx].Extent.StartOffset,
+                    tokens[rCurlyIdx].Extent.EndOffset));
+
+                i = rCurlyIdx;
+            }
+
+            return ranges;
         }
 
         private readonly struct OffsetRange

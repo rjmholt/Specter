@@ -24,27 +24,22 @@ namespace PSpecter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            foreach (Ast foundAst in ast.FindAll(testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
+            foreach (Ast found in ast.FindAll(static testAst => testAst is ParamBlockAst, searchNestedScriptBlocks: true))
             {
-                var funcAst = (FunctionDefinitionAst)foundAst;
-
-                if (funcAst.Body?.ParamBlock?.Parameters is null)
+                var paramBlock = (ParamBlockAst)found;
+                if (paramBlock.Parameters is null || paramBlock.Parameters.Count == 0)
                 {
                     continue;
                 }
 
-                foreach (ParameterAst paramAst in funcAst.Body.ParamBlock.Parameters)
+                foreach (ParameterAst paramAst in paramBlock.Parameters)
                 {
-                    if (!IsMandatory(paramAst))
+                    if (paramAst.DefaultValue is null)
                     {
-                        // Original PSSA stops checking after the first non-mandatory
-                        // parameter (break, not continue). We replicate this for
-                        // compatibility even though it means parameters after a
-                        // non-mandatory one are never checked.
-                        break;
+                        continue;
                     }
 
-                    if (paramAst.DefaultValue is null)
+                    if (!IsMandatoryInAllParameterSets(paramAst))
                     {
                         continue;
                     }
@@ -58,27 +53,42 @@ namespace PSpecter.Builtin.Rules
             }
         }
 
-        private static bool IsMandatory(ParameterAst paramAst)
+        /// <summary>
+        /// Returns true only when every [Parameter] attribute on the parameter
+        /// includes Mandatory=$true. A parameter with multiple [Parameter]
+        /// attributes (one per parameter set) must be mandatory in ALL sets.
+        /// </summary>
+        private static bool IsMandatoryInAllParameterSets(ParameterAst paramAst)
         {
+            bool foundAny = false;
+
             foreach (AttributeBaseAst attrBase in paramAst.Attributes)
             {
-                if (attrBase is not AttributeAst attr)
+                if (attrBase is not AttributeAst attr
+                    || !string.Equals(attr.TypeName.Name, "Parameter", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                if (!string.Equals(attr.TypeName.Name, "Parameter", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
+                foundAny = true;
 
-                foreach (NamedAttributeArgumentAst namedArg in attr.NamedArguments)
+                if (!HasMandatoryArgument(attr))
                 {
-                    if (string.Equals(namedArg.ArgumentName, "Mandatory", StringComparison.OrdinalIgnoreCase)
-                        && AstTools.IsTrue(namedArg.GetValue()))
-                    {
-                        return true;
-                    }
+                    return false;
+                }
+            }
+
+            return foundAny;
+        }
+
+        private static bool HasMandatoryArgument(AttributeAst attr)
+        {
+            foreach (NamedAttributeArgumentAst namedArg in attr.NamedArguments)
+            {
+                if (string.Equals(namedArg.ArgumentName, "Mandatory", StringComparison.OrdinalIgnoreCase)
+                    && AstTools.IsTrue(namedArg.GetValue()))
+                {
+                    return true;
                 }
             }
 

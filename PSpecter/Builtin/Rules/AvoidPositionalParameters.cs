@@ -77,6 +77,11 @@ namespace PSpecter.Builtin.Rules
                     continue;
                 }
 
+                if (IsApplicationCommand(commandName))
+                {
+                    continue;
+                }
+
                 if (HasSplattedVariable(cmdAst))
                 {
                     continue;
@@ -101,6 +106,12 @@ namespace PSpecter.Builtin.Rules
             return _commandDb.TryGetCommand(commandName, platforms: null, out _)
                 || _commandDb.GetAliasTarget(commandName) != null
                 || _commandDb.GetCommandAliases(commandName) != null;
+        }
+
+        private bool IsApplicationCommand(string commandName)
+        {
+            return _commandDb.TryGetCommand(commandName, platforms: null, out CommandMetadata? metadata)
+                && string.Equals(metadata!.CommandType, "Application", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool LooksLikeCmdlet(string commandName)
