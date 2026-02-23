@@ -11,19 +11,19 @@ namespace PSpecter.Test.CommandDatabase
     public class LegacySettingsImporterTests
     {
         [Theory]
-        [InlineData("core-6.1.0-windows", "Core", "6.1.0", "windows")]
-        [InlineData("desktop-5.1.14393.206-windows", "Desktop", "5.1.14393.206", "windows")]
-        [InlineData("core-6.1.0-macos", "Core", "6.1.0", "macos")]
-        [InlineData("core-6.1.0-linux", "Core", "6.1.0", "linux")]
-        [InlineData("core-6.1.0-linux-arm", "Core", "6.1.0-linux", "arm")]
+        [InlineData("core-6.1.0-windows", "Core", "6.1.0", "Windows")]
+        [InlineData("desktop-5.1.14393.206-windows", "Desktop", "5.1.14393.206", "Windows")]
+        [InlineData("core-6.1.0-macos", "Core", "6.1.0", "MacOS")]
+        [InlineData("core-6.1.0-linux", "Core", "6.1.0", "Linux")]
         public void TryParsePlatformFromFileName_ParsesCorrectly(
-            string fileName, string expectedEdition, string expectedVersion, string expectedOs)
+            string fileName, string expectedEdition, string expectedVersion, string expectedOsFamily)
         {
             Assert.True(LegacySettingsImporter.TryParsePlatformFromFileName(
-                fileName, out string? edition, out string? version, out string? os));
-            Assert.Equal(expectedEdition, edition!);
-            Assert.Equal(expectedVersion, version!);
-            Assert.Equal(expectedOs, os!);
+                fileName, out PlatformInfo? platform));
+            Assert.NotNull(platform);
+            Assert.Equal(expectedEdition, platform!.Edition);
+            Assert.Equal(PlatformInfo.ParseVersion(expectedVersion), platform!.Version);
+            Assert.Equal(expectedOsFamily, platform!.Os.Family);
         }
 
         [Theory]
@@ -33,7 +33,7 @@ namespace PSpecter.Test.CommandDatabase
         public void TryParsePlatformFromFileName_ReturnsFalseForInvalid(string fileName)
         {
             Assert.False(LegacySettingsImporter.TryParsePlatformFromFileName(
-                fileName, out _, out _, out _));
+                fileName, out _));
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using var conn = CreateConnection();
             using var writer = CommandDatabaseWriter.Begin(conn);
-            var platform = new PlatformInfo("Core", "7.0.0", "windows");
+            var platform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("Windows"));
             LegacySettingsImporter.ImportJson(writer, json, platform);
             writer.Commit();
 
@@ -90,8 +90,8 @@ namespace PSpecter.Test.CommandDatabase
 
             using var conn = CreateConnection();
             using var writer = CommandDatabaseWriter.Begin(conn);
-            var winPlatform = new PlatformInfo("Core", "7.0.0", "windows");
-            var macPlatform = new PlatformInfo("Core", "7.0.0", "macos");
+            var winPlatform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("Windows"));
+            var macPlatform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("MacOS"));
             LegacySettingsImporter.ImportJson(writer, json, winPlatform);
             LegacySettingsImporter.ImportJson(writer, json, macPlatform);
             writer.Commit();
@@ -263,7 +263,7 @@ namespace PSpecter.Test.CommandDatabase
             writer.Commit();
 
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
+            cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND PsVersionMajor=7 AND PsVersionMinor=4 AND OsFamily='Windows'";
             Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
 
             cmd.CommandText = "SELECT Id FROM Command WHERE Name = 'Get-Widget'";
@@ -397,8 +397,8 @@ namespace PSpecter.Test.CommandDatabase
 
             var (platform, commands) = CompatibilityProfileImporter.ParseJson(json);
             Assert.Equal("Core", platform.Edition);
-            Assert.Equal("7.4.7", platform.Version);
-            Assert.Equal("linux", platform.OS);
+            Assert.Equal(new System.Version(7, 4, 7), platform.Version);
+            Assert.Equal("Linux", platform.Os.Family);
             Assert.Empty(commands);
         }
 

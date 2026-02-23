@@ -18,8 +18,15 @@ namespace PSpecter.CommandDatabase.Sqlite
             internal const string Table = "Platform";
             internal const string Id = "Id";
             internal const string Edition = "Edition";
-            internal const string Version = "Version";
-            internal const string OS = "OS";
+            internal const string PsVersionMajor = "PsVersionMajor";
+            internal const string PsVersionMinor = "PsVersionMinor";
+            internal const string PsVersionBuild = "PsVersionBuild";
+            internal const string PsVersionRevision = "PsVersionRevision";
+            internal const string OsFamily = "OsFamily";
+            internal const string OsVersion = "OsVersion";
+            internal const string OsSkuId = "OsSkuId";
+            internal const string Architecture = "Architecture";
+            internal const string Environment = "Environment";
         }
 
         internal static class Module
@@ -110,6 +117,14 @@ namespace PSpecter.CommandDatabase.Sqlite
         {
             internal const string Table = "TypeAcceleratorPlatform";
             internal const string TypeAcceleratorId = "TypeAcceleratorId";
+            internal const string PlatformId = "PlatformId";
+        }
+
+        internal static class ProfileName
+        {
+            internal const string Table = "ProfileName";
+            internal const string Id = "Id";
+            internal const string Name = "Name";
             internal const string PlatformId = "PlatformId";
         }
     }

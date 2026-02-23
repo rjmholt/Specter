@@ -4,7 +4,9 @@
 param(
     [string] $DatabasePath = (Join-Path $PSScriptRoot 'PSpecter' 'Data' 'pspecter.db'),
     [switch] $SkipBuild,
-    [switch] $SkipSession
+    [switch] $SkipSession,
+    [string] $CompatibilityProfileDir,
+    [switch] $RegisterProfileNames
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,11 +21,7 @@ if (-not $SkipBuild) {
 }
 
 # Find and import the module
-$modulePath = Join-Path $PSScriptRoot 'PSpecter' 'bin' 'Debug' 'net8' 'PSpecter.psd1'
-if (-not (Test-Path $modulePath)) {
-    # Try finding the dll directly
-    $modulePath = Join-Path $PSScriptRoot 'PSpecter' 'bin' 'Debug' 'net8' 'PSpecter.dll'
-}
+$modulePath = Join-Path $PSScriptRoot 'PSpecter.Module' 'bin' 'Debug' 'net8' 'PSpecter.Module.dll'
 if (-not (Test-Path $modulePath)) {
     throw "Cannot find PSpecter module at expected path. Did the build succeed?"
 }
@@ -62,6 +60,25 @@ foreach ($profile in $legacyProfiles) {
 if (-not $SkipSession) {
     Write-Host 'Importing current pwsh session (with native commands)...' -ForegroundColor Cyan
     Update-PSpecterDatabase -DatabasePath $DatabasePath -FromSession -IncludeNativeCommands -Verbose
+}
+
+# Import PSCompatibilityCollector profiles (for UseCompatibleCommands testing)
+if ($CompatibilityProfileDir -and (Test-Path $CompatibilityProfileDir)) {
+    Write-Host "Importing PSCompatibilityCollector profiles from: $CompatibilityProfileDir" -ForegroundColor Cyan
+
+    $conn = [Microsoft.Data.Sqlite.SqliteConnection]::new("Data Source=$DatabasePath")
+    $conn.Open()
+    try {
+        [PSpecter.CommandDatabase.Sqlite.CommandDatabaseSchema]::CreateTables($conn)
+        [PSpecter.CommandDatabase.Import.CompatibilityProfileImporter]::ImportDirectory(
+            $conn, $CompatibilityProfileDir, [bool]$RegisterProfileNames)
+    } finally {
+        $conn.Close()
+        $conn.Dispose()
+    }
+
+    $profileCount = (Get-ChildItem "$CompatibilityProfileDir/*.json").Count
+    Write-Host "  Imported $profileCount compatibility profiles" -ForegroundColor Green
 }
 
 # Checkpoint WAL to merge all data into the main database file

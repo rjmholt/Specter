@@ -140,6 +140,17 @@ namespace PSpecter.CommandDatabase
             return _aliasToCommand.ContainsKey(nameOrAlias);
         }
 
+        public bool TryResolveProfile(string profileName, out PlatformInfo? platform)
+        {
+            if (_sqliteDb is not null)
+            {
+                return _sqliteDb.TryResolveProfile(profileName, out platform);
+            }
+
+            platform = null;
+            return false;
+        }
+
         public void Dispose()
         {
             _sqliteDb?.Dispose();

@@ -40,6 +40,14 @@ namespace PSpecter
         public IReadOnlyList<Correction>? Corrections { get; }
 
         public string? RuleSuppressionId { get; set; }
+
+        /// <summary>
+        /// Rule-specific properties that enrich the diagnostic for consumers.
+        /// Rules like UseCompatibleCommands use this to attach structured metadata
+        /// (e.g. command name, parameter name, target platform) that compatibility
+        /// layers can expose as first-class properties.
+        /// </summary>
+        public Dictionary<string, object>? Properties { get; set; }
     }
 
     public class ScriptAstDiagnostic : ScriptDiagnostic

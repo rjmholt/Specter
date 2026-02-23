@@ -30,12 +30,11 @@ namespace PSpecter.CommandDatabase.Import
             foreach (string filePath in Directory.GetFiles(settingsDirectory, "*.json"))
             {
                 string fileName = Path.GetFileNameWithoutExtension(filePath);
-                if (!TryParsePlatformFromFileName(fileName, out string? edition, out string? version, out string? os))
+                if (!TryParsePlatformFromFileName(fileName, out PlatformInfo? platform) || platform is null)
                 {
                     continue;
                 }
 
-                var platform = new PlatformInfo(edition!, version!, os!);
                 string json = File.ReadAllText(filePath);
                 var commands = ParseJson(json);
                 writer.ImportCommands(commands, platform);
@@ -117,13 +116,12 @@ namespace PSpecter.CommandDatabase.Import
         }
 
         /// <summary>
-        /// Parses a filename like "core-6.1.0-windows" into platform components.
+        /// Parses a filename like "core-6.1.0-windows" into a <see cref="PlatformInfo"/>.
+        /// Legacy filenames do not encode OS version, SKU, or environment.
         /// </summary>
-        internal static bool TryParsePlatformFromFileName(string fileName, out string? edition, out string? version, out string? os)
+        internal static bool TryParsePlatformFromFileName(string fileName, out PlatformInfo? platform)
         {
-            edition = null;
-            version = null;
-            os = null;
+            platform = null;
 
             int firstDash = fileName.IndexOf('-');
             if (firstDash < 0)
@@ -137,9 +135,14 @@ namespace PSpecter.CommandDatabase.Import
                 return false;
             }
 
-            edition = fileName.Substring(0, firstDash);
-            version = fileName.Substring(firstDash + 1, lastDash - firstDash - 1);
-            os = fileName.Substring(lastDash + 1);
+            string edition = fileName.Substring(0, firstDash);
+            string versionStr = fileName.Substring(firstDash + 1, lastDash - firstDash - 1);
+            string osFamily = fileName.Substring(lastDash + 1);
+
+            if (string.IsNullOrEmpty(edition) || string.IsNullOrEmpty(versionStr) || string.IsNullOrEmpty(osFamily))
+            {
+                return false;
+            }
 
             if (string.Equals(edition, "core", StringComparison.OrdinalIgnoreCase))
             {
@@ -150,7 +153,21 @@ namespace PSpecter.CommandDatabase.Import
                 edition = "Desktop";
             }
 
-            return !string.IsNullOrEmpty(edition) && !string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(os);
+            if (string.Equals(osFamily, "windows", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "Windows";
+            }
+            else if (string.Equals(osFamily, "linux", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "Linux";
+            }
+            else if (string.Equals(osFamily, "macos", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "MacOS";
+            }
+
+            platform = PlatformInfo.Create(edition, versionStr, new OsInfo(osFamily));
+            return true;
         }
     }
 }

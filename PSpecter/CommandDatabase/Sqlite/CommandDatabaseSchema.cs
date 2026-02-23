@@ -8,7 +8,7 @@ namespace PSpecter.CommandDatabase.Sqlite
     /// </summary>
     internal static class CommandDatabaseSchema
     {
-        public const int SchemaVersion = 2;
+        public const int SchemaVersion = 3;
 
         public static void CreateTables(SqliteConnection connection)
         {
@@ -27,9 +27,20 @@ namespace PSpecter.CommandDatabase.Sqlite
             $"CREATE TABLE IF NOT EXISTS {Db.Platform.Table} (" +
             $"  {Db.Platform.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
             $"  {Db.Platform.Edition} TEXT NOT NULL," +
-            $"  {Db.Platform.Version} TEXT NOT NULL," +
-            $"  {Db.Platform.OS} TEXT NOT NULL," +
-            $"  UNIQUE({Db.Platform.Edition}, {Db.Platform.Version}, {Db.Platform.OS})" +
+            $"  {Db.Platform.PsVersionMajor} INTEGER NOT NULL DEFAULT 0," +
+            $"  {Db.Platform.PsVersionMinor} INTEGER NOT NULL DEFAULT 0," +
+            $"  {Db.Platform.PsVersionBuild} INTEGER NOT NULL DEFAULT -1," +
+            $"  {Db.Platform.PsVersionRevision} INTEGER NOT NULL DEFAULT -1," +
+            $"  {Db.Platform.OsFamily} TEXT NOT NULL," +
+            $"  {Db.Platform.OsVersion} TEXT," +
+            $"  {Db.Platform.OsSkuId} INTEGER," +
+            $"  {Db.Platform.Architecture} TEXT," +
+            $"  {Db.Platform.Environment} TEXT," +
+            $"  UNIQUE({Db.Platform.Edition}," +
+            $"         {Db.Platform.PsVersionMajor}, {Db.Platform.PsVersionMinor}," +
+            $"         {Db.Platform.PsVersionBuild}, {Db.Platform.PsVersionRevision}," +
+            $"         {Db.Platform.OsFamily}, {Db.Platform.OsVersion}," +
+            $"         {Db.Platform.OsSkuId}, {Db.Platform.Environment})" +
             $");\n" +
 
             $"CREATE TABLE IF NOT EXISTS {Db.Module.Table} (" +
@@ -116,6 +127,13 @@ namespace PSpecter.CommandDatabase.Sqlite
             $"  {Db.TypeAcceleratorPlatform.TypeAcceleratorId} INTEGER NOT NULL REFERENCES {Db.TypeAccelerator.Table}({Db.TypeAccelerator.Id})," +
             $"  {Db.TypeAcceleratorPlatform.PlatformId} INTEGER NOT NULL REFERENCES {Db.Platform.Table}({Db.Platform.Id})," +
             $"  PRIMARY KEY ({Db.TypeAcceleratorPlatform.TypeAcceleratorId}, {Db.TypeAcceleratorPlatform.PlatformId})" +
-            $");\n";
+            $");\n" +
+
+            $"CREATE TABLE IF NOT EXISTS {Db.ProfileName.Table} (" +
+            $"  {Db.ProfileName.Id} INTEGER PRIMARY KEY AUTOINCREMENT," +
+            $"  {Db.ProfileName.Name} TEXT NOT NULL UNIQUE," +
+            $"  {Db.ProfileName.PlatformId} INTEGER NOT NULL REFERENCES {Db.Platform.Table}({Db.Platform.Id})" +
+            $");\n" +
+            $"CREATE INDEX IF NOT EXISTS IX_ProfileName_Name ON {Db.ProfileName.Table}({Db.ProfileName.Name} COLLATE NOCASE);\n";
     }
 }

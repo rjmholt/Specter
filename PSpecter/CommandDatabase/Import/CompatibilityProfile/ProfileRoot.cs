@@ -36,8 +36,23 @@ namespace PSpecter.CommandDatabase.Import.CompatibilityProfile
 
     internal sealed class OperatingSystemInfo
     {
+        [JsonProperty("Name")]
+        public string? Name { get; set; }
+
         [JsonProperty("Family")]
         public string? Family { get; set; }
+
+        [JsonProperty("Version")]
+        public string? Version { get; set; }
+
+        [JsonProperty("SkuId")]
+        public int? SkuId { get; set; }
+
+        [JsonProperty("Architecture")]
+        public string? Architecture { get; set; }
+
+        [JsonProperty("DistributionVersion")]
+        public string? DistributionVersion { get; set; }
     }
 
     internal sealed class Runtime

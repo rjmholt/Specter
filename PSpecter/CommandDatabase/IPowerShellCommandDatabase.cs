@@ -23,6 +23,13 @@ namespace PSpecter.CommandDatabase
         /// When <paramref name="platforms"/> is null, the check is platform-agnostic.
         /// </summary>
         bool CommandExistsOnPlatform(string nameOrAlias, HashSet<PlatformInfo>? platforms);
+
+        /// <summary>
+        /// Resolves a profile name (e.g. a PSCompatibilityCollector file stem) to
+        /// the <see cref="PlatformInfo"/> it was imported under.
+        /// Returns false if the profile name is not registered in the database.
+        /// </summary>
+        bool TryResolveProfile(string profileName, out PlatformInfo? platform);
     }
 
     public static class CommandDatabaseExtensions

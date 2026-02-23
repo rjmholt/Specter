@@ -143,6 +143,12 @@ namespace PSpecter.Module.CommandDatabase
             return TryGetCommand(nameOrAlias, platforms, out _);
         }
 
+        public bool TryResolveProfile(string profileName, out PlatformInfo? platform)
+        {
+            platform = null;
+            return false;
+        }
+
         public IReadOnlyList<string>? GetAllNamesForCommand(string command)
         {
             return _commandNames.GetOrAdd(command, GenerateCommandNameList);

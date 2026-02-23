@@ -16,8 +16,8 @@ namespace PSpecter.CommandDatabase.Sqlite
         private readonly SqliteTransaction _transaction;
         private bool _committed;
 
-        private readonly Dictionary<(string, string, string), long> _platformCache
-            = new Dictionary<(string, string, string), long>();
+        private readonly Dictionary<PlatformInfo, long> _platformCache
+            = new Dictionary<PlatformInfo, long>();
         private readonly Dictionary<(string, string), long> _moduleCache
             = new Dictionary<(string, string), long>();
 
@@ -63,7 +63,7 @@ namespace PSpecter.CommandDatabase.Sqlite
                 throw new ArgumentNullException(nameof(platform));
             }
 
-            long platformId = EnsurePlatform(platform.Edition, platform.Version, platform.OS);
+            long platformId = EnsurePlatform(platform);
 
             using var upsertCommand = PrepareUpsertCommand();
             using var linkCommandPlat = PrepareLinkCommandPlatform();
@@ -106,6 +106,25 @@ namespace PSpecter.CommandDatabase.Sqlite
         }
 
         /// <summary>
+        /// Associates a profile name (e.g. the PSCompatibilityCollector file stem)
+        /// with a platform in the database so the UseCompatibleCommands rule
+        /// can resolve user-supplied profile names to platform identifiers.
+        /// </summary>
+        public void RegisterProfileName(string profileName, PlatformInfo platform)
+        {
+            long platformId = EnsurePlatform(platform);
+
+            using var cmd = _connection.CreateCommand();
+            cmd.Transaction = _transaction;
+            cmd.CommandText =
+                $"INSERT OR REPLACE INTO {Db.ProfileName.Table} " +
+                $"({Db.ProfileName.Name}, {Db.ProfileName.PlatformId}) VALUES (@n, @pid)";
+            cmd.Parameters.AddWithValue("@n", profileName);
+            cmd.Parameters.AddWithValue("@pid", platformId);
+            cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>
         /// Writes the schema version marker.
         /// </summary>
         public void WriteSchemaVersion(int version)
@@ -130,10 +149,9 @@ namespace PSpecter.CommandDatabase.Sqlite
 
         // ---------- EnsurePlatform / EnsureModule with upsert + in-process caching ----------
 
-        private long EnsurePlatform(string edition, string version, string os)
+        private long EnsurePlatform(PlatformInfo platform)
         {
-            var key = (edition, version, os);
-            if (_platformCache.TryGetValue(key, out long cached))
+            if (_platformCache.TryGetValue(platform, out long cached))
             {
                 return cached;
             }
@@ -141,17 +159,40 @@ namespace PSpecter.CommandDatabase.Sqlite
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
             cmd.CommandText =
-                $"INSERT INTO {Db.Platform.Table} ({Db.Platform.Edition}, {Db.Platform.Version}, {Db.Platform.OS}) " +
-                $"VALUES (@e, @v, @o) " +
-                $"ON CONFLICT({Db.Platform.Edition}, {Db.Platform.Version}, {Db.Platform.OS}) " +
-                $"DO UPDATE SET {Db.Platform.Edition} = {Db.Platform.Edition} " +
+                $"INSERT INTO {Db.Platform.Table} (" +
+                $"  {Db.Platform.Edition}," +
+                $"  {Db.Platform.PsVersionMajor}, {Db.Platform.PsVersionMinor}," +
+                $"  {Db.Platform.PsVersionBuild}, {Db.Platform.PsVersionRevision}," +
+                $"  {Db.Platform.OsFamily}, {Db.Platform.OsVersion}," +
+                $"  {Db.Platform.OsSkuId}, {Db.Platform.Architecture}, {Db.Platform.Environment}" +
+                $") VALUES (" +
+                $"  @e, @maj, @min, @bld, @rev," +
+                $"  @osf, @osv, @sku, @arch, @env" +
+                $") ON CONFLICT(" +
+                $"  {Db.Platform.Edition}," +
+                $"  {Db.Platform.PsVersionMajor}, {Db.Platform.PsVersionMinor}," +
+                $"  {Db.Platform.PsVersionBuild}, {Db.Platform.PsVersionRevision}," +
+                $"  {Db.Platform.OsFamily}, {Db.Platform.OsVersion}," +
+                $"  {Db.Platform.OsSkuId}, {Db.Platform.Environment}" +
+                $") DO UPDATE SET {Db.Platform.Edition} = {Db.Platform.Edition} " +
                 $"RETURNING {Db.Platform.Id}";
-            cmd.Parameters.AddWithValue("@e", edition);
-            cmd.Parameters.AddWithValue("@v", version);
-            cmd.Parameters.AddWithValue("@o", os);
+
+            Version v = platform.Version;
+            OsInfo os = platform.Os;
+
+            cmd.Parameters.AddWithValue("@e", platform.Edition);
+            cmd.Parameters.AddWithValue("@maj", v.Major);
+            cmd.Parameters.AddWithValue("@min", v.Minor);
+            cmd.Parameters.AddWithValue("@bld", v.Build);
+            cmd.Parameters.AddWithValue("@rev", v.Revision);
+            cmd.Parameters.AddWithValue("@osf", os.Family);
+            cmd.Parameters.AddWithValue("@osv", (object?)os.Version ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@sku", os.SkuId.HasValue ? (object)os.SkuId.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@arch", (object?)os.Architecture ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@env", (object?)os.Environment ?? DBNull.Value);
 
             long id = (long)(cmd.ExecuteScalar() ?? throw new InvalidOperationException("Expected platform ID from INSERT"));
-            _platformCache[key] = id;
+            _platformCache[platform] = id;
             return id;
         }
 

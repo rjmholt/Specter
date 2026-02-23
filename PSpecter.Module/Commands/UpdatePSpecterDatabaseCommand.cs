@@ -100,12 +100,12 @@ namespace PSpecter.Module.Commands
             WriteVerbose("Collecting command data from current session...");
 
             string edition = Edition ?? GetSessionEdition();
-            string version = GetSessionVersion();
-            string os = PlatformOS ?? GetSessionOS();
+            string versionStr = GetSessionVersion();
+            string osFamily = PlatformOS ?? GetSessionOsFamily();
 
-            WriteVerbose($"Platform: {edition}/{version}/{os}");
+            WriteVerbose($"Platform: {edition}/{versionStr}/{osFamily}");
 
-            var platform = new PlatformInfo(edition, version, os);
+            var platform = PlatformInfo.Create(edition, versionStr, new OsInfo(osFamily));
             var commands = new List<PsCommandMetadata>();
 
             string commandTypes = IncludeNativeCommands.IsPresent
@@ -286,15 +286,11 @@ namespace PSpecter.Module.Commands
                 string fileName = Path.GetFileNameWithoutExtension(path);
 
                 if (!LegacySettingsImporter.TryParsePlatformFromFileName(
-                    fileName, out string? edition, out string? version, out string? os))
+                    fileName, out PlatformInfo? platform) || platform is null)
                 {
                     WriteWarning($"Could not parse platform from filename '{fileName}'. Using defaults.");
-                    edition = "Core";
-                    version = "0.0.0";
-                    os = "unknown";
+                    platform = PlatformInfo.Create("Core", "0.0.0", new OsInfo("Windows"));
                 }
-
-                var platform = new PlatformInfo(edition!, version!, os!);
                 using var writer = CommandDatabaseWriter.Begin(connection);
                 LegacySettingsImporter.ImportJson(writer, json, platform);
                 writer.Commit();
@@ -364,24 +360,24 @@ namespace PSpecter.Module.Commands
             return result.Count > 0 ? result[0]?.ToString() ?? "0.0.0" : "0.0.0";
         }
 
-        private string GetSessionOS()
+        private string GetSessionOsFamily()
         {
 #if CORECLR
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
                 System.Runtime.InteropServices.OSPlatform.Windows))
             {
-                return "windows";
+                return "Windows";
             }
 
             if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(
                 System.Runtime.InteropServices.OSPlatform.OSX))
             {
-                return "macos";
+                return "MacOS";
             }
 
-            return "linux";
+            return "Linux";
 #else
-            return "windows";
+            return "Windows";
 #endif
         }
     }

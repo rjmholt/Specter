@@ -102,6 +102,56 @@ namespace PSpecter.CommandDatabase.Sqlite
             return null;
         }
 
+        public bool TryResolveProfile(string profileName, out PlatformInfo? platform)
+        {
+            platform = null;
+
+            using SqliteCommand cmd = _connection.CreateCommand();
+            cmd.CommandText =
+                $"SELECT p.{Db.Platform.Edition}," +
+                $"  p.{Db.Platform.PsVersionMajor}, p.{Db.Platform.PsVersionMinor}," +
+                $"  p.{Db.Platform.PsVersionBuild}, p.{Db.Platform.PsVersionRevision}," +
+                $"  p.{Db.Platform.OsFamily}, p.{Db.Platform.OsVersion}," +
+                $"  p.{Db.Platform.OsSkuId}, p.{Db.Platform.Architecture}," +
+                $"  p.{Db.Platform.Environment} " +
+                $"FROM {Db.ProfileName.Table} pn " +
+                $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = pn.{Db.ProfileName.PlatformId} " +
+                $"WHERE pn.{Db.ProfileName.Name} = @name COLLATE NOCASE LIMIT 1";
+            cmd.Parameters.AddWithValue("@name", profileName);
+
+            using SqliteDataReader reader = cmd.ExecuteReader();
+            if (!reader.Read())
+            {
+                return false;
+            }
+
+            platform = ReadPlatformInfo(reader, startIndex: 0);
+            return true;
+        }
+
+        private static PlatformInfo ReadPlatformInfo(SqliteDataReader reader, int startIndex)
+        {
+            string edition = reader.GetString(startIndex);
+            int major = reader.GetInt32(startIndex + 1);
+            int minor = reader.GetInt32(startIndex + 2);
+            int build = reader.GetInt32(startIndex + 3);
+            int revision = reader.GetInt32(startIndex + 4);
+            string osFamily = reader.GetString(startIndex + 5);
+            string? osVersion = reader.IsDBNull(startIndex + 6) ? null : reader.GetString(startIndex + 6);
+            int? skuId = reader.IsDBNull(startIndex + 7) ? null : reader.GetInt32(startIndex + 7);
+            string? architecture = reader.IsDBNull(startIndex + 8) ? null : reader.GetString(startIndex + 8);
+            string? environment = reader.IsDBNull(startIndex + 9) ? null : reader.GetString(startIndex + 9);
+
+            Version version = build >= 0
+                ? (revision >= 0 ? new Version(major, minor, build, revision) : new Version(major, minor, build))
+                : new Version(major, minor);
+
+            return new PlatformInfo(
+                edition,
+                version,
+                new OsInfo(osFamily, osVersion, skuId, architecture, environment));
+        }
+
         public void InvalidateCache()
         {
             _cache.Clear();
@@ -388,14 +438,46 @@ namespace PSpecter.CommandDatabase.Sqlite
             int i = 0;
             foreach (PlatformInfo plat in platforms)
             {
-                string suffix = i.ToString();
-                clauses.Add(
-                    $"(p.{Db.Platform.Edition} = @e{suffix} AND " +
-                    $"p.{Db.Platform.Version} = @v{suffix} AND " +
-                    $"p.{Db.Platform.OS} = @o{suffix})");
-                parameters.Add(new SqliteParameter($"@e{suffix}", plat.Edition));
-                parameters.Add(new SqliteParameter($"@v{suffix}", plat.Version));
-                parameters.Add(new SqliteParameter($"@o{suffix}", plat.OS));
+                string s = i.ToString();
+                string clause =
+                    $"(p.{Db.Platform.Edition} = @e{s}" +
+                    $" AND p.{Db.Platform.PsVersionMajor} = @maj{s}" +
+                    $" AND p.{Db.Platform.PsVersionMinor} = @min{s}" +
+                    $" AND p.{Db.Platform.PsVersionBuild} = @bld{s}" +
+                    $" AND p.{Db.Platform.PsVersionRevision} = @rev{s}" +
+                    $" AND p.{Db.Platform.OsFamily} = @osf{s}";
+
+                parameters.Add(new SqliteParameter($"@e{s}", plat.Edition));
+                parameters.Add(new SqliteParameter($"@maj{s}", plat.Version.Major));
+                parameters.Add(new SqliteParameter($"@min{s}", plat.Version.Minor));
+                parameters.Add(new SqliteParameter($"@bld{s}", plat.Version.Build));
+                parameters.Add(new SqliteParameter($"@rev{s}", plat.Version.Revision));
+                parameters.Add(new SqliteParameter($"@osf{s}", plat.Os.Family));
+
+                if (plat.Os.Version is not null)
+                {
+                    clause += $" AND p.{Db.Platform.OsVersion} = @osv{s}";
+                    parameters.Add(new SqliteParameter($"@osv{s}", plat.Os.Version));
+                }
+
+                if (plat.Os.SkuId.HasValue)
+                {
+                    clause += $" AND p.{Db.Platform.OsSkuId} = @sku{s}";
+                    parameters.Add(new SqliteParameter($"@sku{s}", plat.Os.SkuId.Value));
+                }
+
+                if (plat.Os.Environment is not null)
+                {
+                    clause += $" AND p.{Db.Platform.Environment} = @env{s}";
+                    parameters.Add(new SqliteParameter($"@env{s}", plat.Os.Environment));
+                }
+                else
+                {
+                    clause += $" AND p.{Db.Platform.Environment} IS NULL";
+                }
+
+                clause += ")";
+                clauses.Add(clause);
                 i++;
             }
 

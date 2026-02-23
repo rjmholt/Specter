@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Management.Automation.Language;
+using PSpecter.CommandDatabase;
 using PSpecter.Suppression;
 using EngineDiagnostic = PSpecter.ScriptDiagnostic;
 using EngineSeverity = PSpecter.DiagnosticSeverity;
@@ -34,6 +35,23 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
         public virtual bool IsSuppressed => false;
 
+        /// <summary>
+        /// For compatibility diagnostics: the command name flagged by the rule.
+        /// Populated by UseCompatibleCommands.
+        /// </summary>
+        public string? Command { get; internal set; }
+
+        /// <summary>
+        /// For compatibility diagnostics: the parameter name flagged by the rule.
+        /// Null for command-level diagnostics.
+        /// </summary>
+        public string? Parameter { get; internal set; }
+
+        /// <summary>
+        /// For compatibility diagnostics: the target platform that lacks the command or parameter.
+        /// </summary>
+        public CompatibilityTargetPlatform? TargetPlatform { get; internal set; }
+
         public DiagnosticRecord(
             string? message,
             IScriptExtent? extent,
@@ -62,7 +80,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
             IReadOnlyList<CorrectionExtent>? corrections = MapCorrections(diagnostic, scriptPath);
 
-            return new DiagnosticRecord(
+            var record = new DiagnosticRecord(
                 diagnostic.Message,
                 diagnostic.ScriptExtent,
                 ruleName,
@@ -70,6 +88,24 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
                 scriptPath,
                 ruleId: diagnostic.RuleSuppressionId,
                 suggestedCorrections: corrections);
+
+            if (diagnostic.Properties is { Count: > 0 })
+            {
+                if (diagnostic.Properties.TryGetValue("Command", out object? cmd))
+                {
+                    record.Command = cmd as string;
+                }
+                if (diagnostic.Properties.TryGetValue("Parameter", out object? param))
+                {
+                    record.Parameter = param as string;
+                }
+                if (diagnostic.Properties.TryGetValue("TargetPlatform", out object? plat) && plat is PlatformInfo pi)
+                {
+                    record.TargetPlatform = CompatibilityTargetPlatform.FromPlatformInfo(pi);
+                }
+            }
+
+            return record;
         }
 
         internal static SuppressedRecord FromSuppressedDiagnostic(SuppressedDiagnostic suppressed)

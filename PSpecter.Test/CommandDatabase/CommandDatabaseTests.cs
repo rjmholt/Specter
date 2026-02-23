@@ -59,7 +59,7 @@ namespace PSpecter.Test.CommandDatabase
             using var connection = CreatePopulatedConnection();
             using var writer = CommandDatabaseWriter.Begin(connection);
 
-            var platform = new PlatformInfo("Core", "7.4.7", "windows");
+            var platform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"));
             var commands = new[]
             {
                 new CommandMetadata("Get-Foo", "Cmdlet", "TestModule", null, null, null, null, null),
@@ -70,7 +70,7 @@ namespace PSpecter.Test.CommandDatabase
             writer.Commit();
 
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND Version='7.4.7' AND OS='windows'";
+            cmd.CommandText = "SELECT COUNT(*) FROM Platform WHERE Edition='Core' AND PsVersionMajor=7 AND PsVersionMinor=4 AND OsFamily='Windows'";
             Assert.Equal(1L, (long)cmd.ExecuteScalar()!);
         }
 
@@ -80,7 +80,7 @@ namespace PSpecter.Test.CommandDatabase
             using var connection = CreatePopulatedConnection();
             using var writer = CommandDatabaseWriter.Begin(connection);
 
-            var platform = new PlatformInfo("Core", "7.4.7", "windows");
+            var platform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"));
             var commands = new[]
             {
                 new CommandMetadata(
@@ -126,8 +126,8 @@ namespace PSpecter.Test.CommandDatabase
             using var connection = CreatePopulatedConnection();
             using var writer = CommandDatabaseWriter.Begin(connection);
 
-            var winPlatform = new PlatformInfo("Core", "7.4.7", "windows");
-            var macPlatform = new PlatformInfo("Core", "7.4.7", "macos");
+            var winPlatform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"));
+            var macPlatform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("MacOS"));
 
             var commands = new[]
             {
@@ -153,7 +153,7 @@ namespace PSpecter.Test.CommandDatabase
 
             using (var writer = CommandDatabaseWriter.Begin(connection))
             {
-                var platform = new PlatformInfo("Core", "7.0.0", "windows");
+                var platform = PlatformInfo.Create("Core", "7.0.0", new OsInfo("Windows"));
                 var commands = new[]
                 {
                     new CommandMetadata("Test-Rollback", "Function", "TestModule", null, null, null, null, null),
@@ -172,7 +172,7 @@ namespace PSpecter.Test.CommandDatabase
             using var connection = CreatePopulatedConnection();
             using var writer = CommandDatabaseWriter.Begin(connection);
 
-            var platform = new PlatformInfo("Core", "7.4.7", "windows");
+            var platform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"));
             var commands = new[]
             {
                 new CommandMetadata("Test-NoModule", "Function", null, null, null, null, null, null),
@@ -195,8 +195,8 @@ namespace PSpecter.Test.CommandDatabase
             using var connection = CreatePopulatedConnection();
             using var writer = CommandDatabaseWriter.Begin(connection);
 
-            var platform1 = new PlatformInfo("Core", "7.4.7", "windows");
-            var platform2 = new PlatformInfo("Core", "7.4.7", "macos");
+            var platform1 = PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"));
+            var platform2 = PlatformInfo.Create("Core", "7.4.7", new OsInfo("MacOS"));
 
             var commands = new[]
             {
@@ -322,11 +322,11 @@ namespace PSpecter.Test.CommandDatabase
         {
             var windowsPlatforms = new HashSet<PlatformInfo>
             {
-                new PlatformInfo("Core", "7.4.7", "windows")
+                PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"))
             };
             var macPlatforms = new HashSet<PlatformInfo>
             {
-                new PlatformInfo("Core", "7.4.7", "macos")
+                PlatformInfo.Create("Core", "7.4.7", new OsInfo("MacOS"))
             };
 
             Assert.True(_db.TryGetCommand("WindowsOnly-Cmd", windowsPlatforms, out _));
@@ -338,11 +338,11 @@ namespace PSpecter.Test.CommandDatabase
         {
             var windowsPlatforms = new HashSet<PlatformInfo>
             {
-                new PlatformInfo("Core", "7.4.7", "windows")
+                PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"))
             };
             var macPlatforms = new HashSet<PlatformInfo>
             {
-                new PlatformInfo("Core", "7.4.7", "macos")
+                PlatformInfo.Create("Core", "7.4.7", new OsInfo("MacOS"))
             };
 
             Assert.True(_db.TryGetCommand("wincmd", windowsPlatforms, out _));
@@ -439,8 +439,8 @@ namespace PSpecter.Test.CommandDatabase
             using var writer = CommandDatabaseWriter.Begin(conn);
             writer.WriteSchemaVersion(CommandDatabaseSchema.SchemaVersion);
 
-            var winPlatform = new PlatformInfo("Core", "7.4.7", "windows");
-            var macPlatform = new PlatformInfo("Core", "7.4.7", "macos");
+            var winPlatform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("Windows"));
+            var macPlatform = PlatformInfo.Create("Core", "7.4.7", new OsInfo("MacOS"));
 
             var crossPlatCommands = new[]
             {

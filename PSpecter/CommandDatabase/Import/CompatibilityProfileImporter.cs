@@ -20,6 +20,16 @@ namespace PSpecter.CommandDatabase.Import
         /// </summary>
         public static void ImportDirectory(SqliteConnection connection, string profileDirectory)
         {
+            ImportDirectory(connection, profileDirectory, registerProfileNames: false);
+        }
+
+        /// <summary>
+        /// Imports all JSON profiles from a directory, optionally registering each
+        /// file stem as a profile name in the <c>ProfileName</c> table so the
+        /// <c>UseCompatibleCommands</c> rule can resolve them.
+        /// </summary>
+        public static void ImportDirectory(SqliteConnection connection, string profileDirectory, bool registerProfileNames)
+        {
             if (!Directory.Exists(profileDirectory))
             {
                 throw new DirectoryNotFoundException($"Profile directory not found: {profileDirectory}");
@@ -32,6 +42,12 @@ namespace PSpecter.CommandDatabase.Import
                 string json = File.ReadAllText(filePath);
                 var (platform, commands) = ParseJson(json);
                 writer.ImportCommands(commands, platform);
+
+                if (registerProfileNames)
+                {
+                    string profileName = Path.GetFileNameWithoutExtension(filePath);
+                    writer.RegisterProfileName(profileName, platform);
+                }
             }
 
             writer.Commit();
@@ -230,8 +246,12 @@ namespace PSpecter.CommandDatabase.Import
         private static PlatformInfo ExtractPlatform(ProfileRoot? root)
         {
             string edition = "Core";
-            string version = "0.0.0";
-            string os = "windows";
+            string versionStr = "0.0";
+            string osFamily = "Windows";
+            string? osVersion = null;
+            int? skuId = null;
+            string? architecture = null;
+            string? environment = null;
 
             if (root?.Platform is not null)
             {
@@ -240,17 +260,62 @@ namespace PSpecter.CommandDatabase.Import
                     edition = NormalizeEdition(root.Platform.PowerShell.Edition);
                     if (!string.IsNullOrEmpty(root.Platform.PowerShell.Version))
                     {
-                        version = root.Platform.PowerShell.Version ?? "0.0.0";
+                        versionStr = root.Platform.PowerShell.Version!;
                     }
                 }
 
                 if (root.Platform.OperatingSystem is not null)
                 {
-                    os = NormalizeOsFamily(root.Platform.OperatingSystem.Family);
+                    var osInfo = root.Platform.OperatingSystem;
+                    osFamily = NormalizeOsFamily(osInfo.Family);
+                    architecture = osInfo.Architecture;
+                    skuId = osInfo.SkuId;
+
+                    if (string.Equals(osFamily, "Linux", StringComparison.OrdinalIgnoreCase)
+                        && !string.IsNullOrEmpty(osInfo.DistributionVersion))
+                    {
+                        osVersion = osInfo.DistributionVersion;
+                    }
+                    else if (!string.IsNullOrEmpty(osInfo.Version))
+                    {
+                        osVersion = osInfo.Version!.Trim();
+                    }
+
+                    environment = DetectEnvironment(osInfo.Name);
                 }
             }
 
-            return new PlatformInfo(edition, version, os);
+            var os = new OsInfo(osFamily, osVersion, skuId, architecture, environment);
+            return PlatformInfo.Create(edition, versionStr, os);
+        }
+
+        private static string? DetectEnvironment(string? osName)
+        {
+            if (string.IsNullOrEmpty(osName))
+            {
+                return null;
+            }
+
+            if (osName!.StartsWith("Microsoft Windows", StringComparison.OrdinalIgnoreCase)
+                || osName.StartsWith("Windows", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            if (osName.IndexOf("Ubuntu", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("Debian", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("CentOS", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("Red Hat", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("SUSE", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("Fedora", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("macOS", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("Mac OS", StringComparison.OrdinalIgnoreCase) >= 0
+                || osName.IndexOf("Darwin", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return null;
+            }
+
+            return osName.Replace(" ", string.Empty);
         }
 
         private static string NormalizeEdition(string? edition)
@@ -270,21 +335,21 @@ namespace PSpecter.CommandDatabase.Import
         {
             if (family is null)
             {
-                return "windows";
+                return "Windows";
             }
             if (family.IndexOf("Windows", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                return "windows";
+                return "Windows";
             }
             if (family.IndexOf("MacOS", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                return "macos";
+                return "MacOS";
             }
             if (family.IndexOf("Linux", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                return "linux";
+                return "Linux";
             }
-            return family.ToLowerInvariant();
+            return family;
         }
     }
 }

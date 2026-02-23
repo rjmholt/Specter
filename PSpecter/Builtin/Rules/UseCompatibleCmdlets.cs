@@ -50,14 +50,13 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 yield break;
             }
 
-            var targetPlatforms = new List<(string Label, HashSet<PlatformInfo> Platforms)>();
+            var targetPlatforms = new List<(string Label, PlatformInfo Platform)>();
             foreach (string platformStr in compatibility)
             {
-                if (TryParsePlatformString(platformStr, out string? edition, out string? version, out string? os)
-                    && edition is not null && version is not null && os is not null)
+                if (LegacySettingsImporter.TryParsePlatformFromFileName(platformStr, out PlatformInfo? platform)
+                    && platform is not null)
                 {
-                    var platform = new PlatformInfo(edition, version, os);
-                    targetPlatforms.Add((platformStr, new HashSet<PlatformInfo> { platform }));
+                    targetPlatforms.Add((platformStr, platform));
                 }
             }
 
@@ -77,13 +76,13 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 }
             }
 
-            if (!TryParsePlatformString(referenceStr!, out string? refEdition, out string? refVersion, out string? refOS)
-                || refEdition is null || refVersion is null || refOS is null)
+            if (!LegacySettingsImporter.TryParsePlatformFromFileName(referenceStr!, out PlatformInfo? refPlatform)
+                || refPlatform is null)
             {
                 yield break;
             }
 
-            var referencePlatforms = new HashSet<PlatformInfo> { new PlatformInfo(refEdition!, refVersion!, refOS!) };
+            var referencePlatforms = new HashSet<PlatformInfo> { refPlatform };
 
             foreach (Ast foundAst in ast.FindAll(node => node is CommandAst, searchNestedScriptBlocks: true))
             {
@@ -96,34 +95,25 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
 
                 bool existsOnReference = _commandDb.CommandExistsOnPlatform(commandName, referencePlatforms);
 
-                foreach ((string label, HashSet<PlatformInfo> platforms) in targetPlatforms)
+                foreach ((string label, PlatformInfo platform) in targetPlatforms)
                 {
+                    var platforms = new HashSet<PlatformInfo> { platform };
                     bool existsOnTarget = _commandDb.CommandExistsOnPlatform(commandName, platforms);
 
                     if (existsOnReference && !existsOnTarget)
                     {
-                        if (!TryParsePlatformString(label, out string? tEdition, out string? tVersion, out string? tOS))
-                        {
-                            continue;
-                        }
-
                         string message = string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UseCompatibleCmdletsError,
                             commandName,
-                            tEdition!,
-                            tVersion!,
-                            tOS!);
+                            platform.Edition,
+                            platform.Version,
+                            platform.Os.Family);
 
                         yield return CreateDiagnostic(message, cmdAst);
                     }
                 }
             }
-        }
-
-        private static bool TryParsePlatformString(string platformString, out string? edition, out string? version, out string? os)
-        {
-            return LegacySettingsImporter.TryParsePlatformFromFileName(platformString, out edition, out version, out os);
         }
     }
 }
