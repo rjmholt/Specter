@@ -3605,5 +3605,197 @@ namespace Specter.Builtin.Rules {
                 return ResourceManager.GetString("AvoidEmptyNamedBlocksCommonName", resourceCulture);
             }
         }
+
+        internal static string AvoidVariableShadowingDescription {
+            get {
+                return ResourceManager.GetString("AvoidVariableShadowingDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidVariableShadowingError {
+            get {
+                return ResourceManager.GetString("AvoidVariableShadowingError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidVariableShadowingName {
+            get {
+                return ResourceManager.GetString("AvoidVariableShadowingName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidVariableShadowingCommonName {
+            get {
+                return ResourceManager.GetString("AvoidVariableShadowingCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNestedFunctionsDescription {
+            get {
+                return ResourceManager.GetString("AvoidNestedFunctionsDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNestedFunctionsError {
+            get {
+                return ResourceManager.GetString("AvoidNestedFunctionsError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNestedFunctionsName {
+            get {
+                return ResourceManager.GetString("AvoidNestedFunctionsName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNestedFunctionsCommonName {
+            get {
+                return ResourceManager.GetString("AvoidNestedFunctionsCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidProcessWithoutPipelineDescription {
+            get {
+                return ResourceManager.GetString("AvoidProcessWithoutPipelineDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidProcessWithoutPipelineError {
+            get {
+                return ResourceManager.GetString("AvoidProcessWithoutPipelineError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidProcessWithoutPipelineName {
+            get {
+                return ResourceManager.GetString("AvoidProcessWithoutPipelineName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidProcessWithoutPipelineCommonName {
+            get {
+                return ResourceManager.GetString("AvoidProcessWithoutPipelineCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidBacktickContinuationDescription {
+            get {
+                return ResourceManager.GetString("AvoidBacktickContinuationDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidBacktickContinuationError {
+            get {
+                return ResourceManager.GetString("AvoidBacktickContinuationError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidBacktickContinuationName {
+            get {
+                return ResourceManager.GetString("AvoidBacktickContinuationName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidBacktickContinuationCommonName {
+            get {
+                return ResourceManager.GetString("AvoidBacktickContinuationCommonName", resourceCulture);
+            }
+        }
+
+        internal static string PreferTypeConstructorDescription {
+            get {
+                return ResourceManager.GetString("PreferTypeConstructorDescription", resourceCulture);
+            }
+        }
+
+        internal static string PreferTypeConstructorError {
+            get {
+                return ResourceManager.GetString("PreferTypeConstructorError", resourceCulture);
+            }
+        }
+
+        internal static string PreferTypeConstructorName {
+            get {
+                return ResourceManager.GetString("PreferTypeConstructorName", resourceCulture);
+            }
+        }
+
+        internal static string PreferTypeConstructorCommonName {
+            get {
+                return ResourceManager.GetString("PreferTypeConstructorCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNewObjectForPSCustomObjectDescription {
+            get {
+                return ResourceManager.GetString("AvoidNewObjectForPSCustomObjectDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNewObjectForPSCustomObjectError {
+            get {
+                return ResourceManager.GetString("AvoidNewObjectForPSCustomObjectError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNewObjectForPSCustomObjectName {
+            get {
+                return ResourceManager.GetString("AvoidNewObjectForPSCustomObjectName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidNewObjectForPSCustomObjectCommonName {
+            get {
+                return ResourceManager.GetString("AvoidNewObjectForPSCustomObjectCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidSmartQuotesDescription {
+            get {
+                return ResourceManager.GetString("AvoidSmartQuotesDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidSmartQuotesError {
+            get {
+                return ResourceManager.GetString("AvoidSmartQuotesError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidSmartQuotesName {
+            get {
+                return ResourceManager.GetString("AvoidSmartQuotesName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidSmartQuotesCommonName {
+            get {
+                return ResourceManager.GetString("AvoidSmartQuotesCommonName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidFilterKeywordDescription {
+            get {
+                return ResourceManager.GetString("AvoidFilterKeywordDescription", resourceCulture);
+            }
+        }
+
+        internal static string AvoidFilterKeywordError {
+            get {
+                return ResourceManager.GetString("AvoidFilterKeywordError", resourceCulture);
+            }
+        }
+
+        internal static string AvoidFilterKeywordName {
+            get {
+                return ResourceManager.GetString("AvoidFilterKeywordName", resourceCulture);
+            }
+        }
+
+        internal static string AvoidFilterKeywordCommonName {
+            get {
+                return ResourceManager.GetString("AvoidFilterKeywordCommonName", resourceCulture);
+            }
+        }
     }
 }

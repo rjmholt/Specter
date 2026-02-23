@@ -1356,4 +1356,100 @@
   <data name="AvoidEmptyNamedBlocksCommonName" xml:space="preserve">
     <value>Avoid Empty Named Blocks</value>
   </data>
+  <data name="AvoidVariableShadowingDescription" xml:space="preserve">
+    <value>Avoid assigning to a variable in an inner scope when a variable with the same name exists in an outer scope. This can cause subtle bugs because the inner assignment may unintentionally hide the outer variable.</value>
+  </data>
+  <data name="AvoidVariableShadowingError" xml:space="preserve">
+    <value>Variable '{0}' shadows a variable in an outer scope.</value>
+  </data>
+  <data name="AvoidVariableShadowingName" xml:space="preserve">
+    <value>AvoidVariableShadowing</value>
+  </data>
+  <data name="AvoidVariableShadowingCommonName" xml:space="preserve">
+    <value>Avoid Variable Shadowing</value>
+  </data>
+  <data name="AvoidNestedFunctionsDescription" xml:space="preserve">
+    <value>Avoid defining functions inside other functions. Nested functions are recreated on every call to the outer function and can cause confusion about scope. Define helper functions at module scope or use script blocks instead.</value>
+  </data>
+  <data name="AvoidNestedFunctionsError" xml:space="preserve">
+    <value>Function '{0}' is defined inside function '{1}'. Move it to module or script scope.</value>
+  </data>
+  <data name="AvoidNestedFunctionsName" xml:space="preserve">
+    <value>AvoidNestedFunctions</value>
+  </data>
+  <data name="AvoidNestedFunctionsCommonName" xml:space="preserve">
+    <value>Avoid Nested Functions</value>
+  </data>
+  <data name="AvoidProcessWithoutPipelineDescription" xml:space="preserve">
+    <value>Avoid using a process block in a function that does not accept pipeline input. A process block without a ValueFromPipeline or ValueFromPipelineByPropertyName parameter has no effect and may indicate a misunderstanding of the pipeline.</value>
+  </data>
+  <data name="AvoidProcessWithoutPipelineError" xml:space="preserve">
+    <value>Function '{0}' has a process block but no parameter accepts pipeline input.</value>
+  </data>
+  <data name="AvoidProcessWithoutPipelineName" xml:space="preserve">
+    <value>AvoidProcessWithoutPipeline</value>
+  </data>
+  <data name="AvoidProcessWithoutPipelineCommonName" xml:space="preserve">
+    <value>Avoid Process Without Pipeline</value>
+  </data>
+  <data name="AvoidBacktickContinuationDescription" xml:space="preserve">
+    <value>Avoid using backtick line continuations. Backtick continuations are fragile (trailing whitespace breaks them) and hard to read. Prefer splatting, pipeline operators, or parenthesized expressions instead.</value>
+  </data>
+  <data name="AvoidBacktickContinuationError" xml:space="preserve">
+    <value>Backtick line continuation detected. Consider using splatting, pipeline, or parentheses instead.</value>
+  </data>
+  <data name="AvoidBacktickContinuationName" xml:space="preserve">
+    <value>AvoidBacktickContinuation</value>
+  </data>
+  <data name="AvoidBacktickContinuationCommonName" xml:space="preserve">
+    <value>Avoid Backtick Continuation</value>
+  </data>
+  <data name="PreferTypeConstructorDescription" xml:space="preserve">
+    <value>Prefer using [Type]::new() instead of New-Object -TypeName Type for .NET types. The constructor syntax is faster and more idiomatic in modern PowerShell.</value>
+  </data>
+  <data name="PreferTypeConstructorError" xml:space="preserve">
+    <value>Use [{0}]::new() instead of New-Object -TypeName {0}.</value>
+  </data>
+  <data name="PreferTypeConstructorName" xml:space="preserve">
+    <value>PreferTypeConstructor</value>
+  </data>
+  <data name="PreferTypeConstructorCommonName" xml:space="preserve">
+    <value>Prefer Type Constructor</value>
+  </data>
+  <data name="AvoidNewObjectForPSCustomObjectDescription" xml:space="preserve">
+    <value>Avoid using New-Object PSObject -Property to create custom objects. Prefer the [PSCustomObject]@{} syntax which is more concise, faster, and preserves property order.</value>
+  </data>
+  <data name="AvoidNewObjectForPSCustomObjectError" xml:space="preserve">
+    <value>Use [PSCustomObject]@{{...}} instead of New-Object -TypeName PSObject -Property.</value>
+  </data>
+  <data name="AvoidNewObjectForPSCustomObjectName" xml:space="preserve">
+    <value>AvoidNewObjectForPSCustomObject</value>
+  </data>
+  <data name="AvoidNewObjectForPSCustomObjectCommonName" xml:space="preserve">
+    <value>Avoid New-Object For PSCustomObject</value>
+  </data>
+  <data name="AvoidSmartQuotesDescription" xml:space="preserve">
+    <value>Avoid typographic (smart) quotes and dashes that are commonly introduced by word processors. These characters cause parse errors or unexpected behavior in PowerShell scripts.</value>
+  </data>
+  <data name="AvoidSmartQuotesError" xml:space="preserve">
+    <value>Typographic character '{0}' (U+{1:X4}) detected. Replace with the ASCII equivalent.</value>
+  </data>
+  <data name="AvoidSmartQuotesName" xml:space="preserve">
+    <value>AvoidSmartQuotes</value>
+  </data>
+  <data name="AvoidSmartQuotesCommonName" xml:space="preserve">
+    <value>Avoid Smart Quotes</value>
+  </data>
+  <data name="AvoidFilterKeywordDescription" xml:space="preserve">
+    <value>Avoid the filter keyword. Use a function with an explicit process block instead, which is clearer and more consistent with standard PowerShell patterns.</value>
+  </data>
+  <data name="AvoidFilterKeywordError" xml:space="preserve">
+    <value>Filter '{0}' should be converted to a function with a process block.</value>
+  </data>
+  <data name="AvoidFilterKeywordName" xml:space="preserve">
+    <value>AvoidFilterKeyword</value>
+  </data>
+  <data name="AvoidFilterKeywordCommonName" xml:space="preserve">
+    <value>Avoid Filter Keyword</value>
+  </data>
 </root>
