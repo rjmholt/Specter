@@ -1,5 +1,5 @@
+using Specter;
 using Specter.Builder;
-using Specter.Builtin;
 using Specter.Configuration;
 using Specter.Configuration.Json;
 using Specter.Configuration.Psd;
@@ -7,6 +7,7 @@ using Specter.Execution;
 using Specter.Formatting;
 using Specter.Instantiation;
 using Specter.Logging;
+using Specter.Rules.Builtin;
 using Specter.Rules;
 using System.Collections.Concurrent;
 
@@ -69,7 +70,7 @@ public sealed class AnalysisService : IDisposable
             return CreateDefault(resolvedLogger);
         }
 
-        IReadOnlyDictionary<string, IRuleConfiguration> ruleConfig = LoadRuleConfiguration(fullPath, resolvedLogger);
+        IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfig = LoadRuleConfiguration(fullPath, resolvedLogger);
         ScriptAnalyzer analyzer = BuildAnalyzer(ruleConfig, resolvedLogger);
         resolvedLogger.Verbose($"Loaded configuration from: {fullPath}");
 
@@ -135,7 +136,7 @@ public sealed class AnalysisService : IDisposable
     }
 
     private static ScriptAnalyzer BuildAnalyzer(
-        IReadOnlyDictionary<string, IRuleConfiguration>? ruleConfiguration,
+        IReadOnlyDictionary<string, IRuleConfiguration?>? ruleConfiguration,
         IAnalysisLogger logger)
     {
         var builder = new ScriptAnalyzerBuilder()
@@ -155,7 +156,7 @@ public sealed class AnalysisService : IDisposable
         return builder.Build();
     }
 
-    private static IReadOnlyDictionary<string, IRuleConfiguration> LoadRuleConfiguration(
+    private static IReadOnlyDictionary<string, IRuleConfiguration?> LoadRuleConfiguration(
         string fullPath,
         IAnalysisLogger logger)
     {
@@ -172,7 +173,7 @@ public sealed class AnalysisService : IDisposable
         catch (Exception ex)
         {
             logger.Warning($"Failed to load configuration from {fullPath}: {ex.Message}. Using default settings.");
-            return new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
+            return new Dictionary<string, IRuleConfiguration?>(StringComparer.OrdinalIgnoreCase);
         }
     }
 
@@ -218,7 +219,7 @@ public sealed class AnalysisService : IDisposable
 
             _logger.Verbose($"Configuration file changed, reloading: {_configPath}");
 
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfig = LoadRuleConfiguration(_configPath, _logger);
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfig = LoadRuleConfiguration(_configPath, _logger);
             ScriptAnalyzer newAnalyzer = BuildAnalyzer(ruleConfig, _logger);
 
             _analyzer = newAnalyzer;

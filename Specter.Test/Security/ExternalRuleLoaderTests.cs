@@ -16,13 +16,13 @@ namespace Specter.Test.Security
     public class ExternalRuleLoaderTests : IDisposable
     {
         private readonly string _tempDir;
-        private readonly Dictionary<string, IRuleConfiguration> _emptyConfig;
+        private readonly Dictionary<string, IRuleConfiguration?> _emptyConfig;
 
         public ExternalRuleLoaderTests()
         {
             _tempDir = Path.Combine(Path.GetTempPath(), "SpecterLoaderTests_" + Guid.NewGuid().ToString("N")[..8]);
             Directory.CreateDirectory(_tempDir);
-            _emptyConfig = new Dictionary<string, IRuleConfiguration>();
+            _emptyConfig = new Dictionary<string, IRuleConfiguration?>();
         }
 
         public void Dispose()

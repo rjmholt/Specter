@@ -13,9 +13,9 @@ namespace Specter.CommandDatabase.Import
     /// used by UseCompatibleCmdlets). File names encode the platform:
     /// {edition}-{version}-{os}.json, e.g. "core-6.1.0-windows.json".
     /// </summary>
-    internal static class LegacySettingsImporter
+    public static class LegacySettingsImporter
     {
-        internal static bool TryParsePlatformFromFileName(string fileName, out PlatformInfo? platform)
+        public static bool TryParsePlatformFromFileName(string fileName, out PlatformInfo? platform)
         {
             return PlatformInfo.TryParseFromLegacyProfileName(fileName, out platform);
         }

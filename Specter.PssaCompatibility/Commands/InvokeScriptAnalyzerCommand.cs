@@ -6,11 +6,11 @@ using System.Linq;
 using System.Management.Automation;
 using Specter;
 using Specter.Builder;
-using Specter.Builtin;
 using Specter.Configuration;
 using Specter.Execution;
 using Specter.Formatting;
 using Specter.Logging;
+using Specter.Rules.Builtin;
 using Specter.Rules;
 using Specter.Security;
 using Specter.Suppression;
@@ -370,7 +370,7 @@ namespace Specter.PssaCompatibility.Commands
 
         private ScriptAnalyzer BuildAnalyzer()
         {
-            var configDict = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
+            var configDict = new Dictionary<string, IRuleConfiguration?>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in Default.RuleConfiguration)
             {
                 if (kvp.Value is not null)
@@ -496,7 +496,7 @@ namespace Specter.PssaCompatibility.Commands
         }
 
         private static void ApplyRuleArguments(
-            Dictionary<string, IRuleConfiguration> configDict,
+            Dictionary<string, IRuleConfiguration?> configDict,
             Dictionary<string, Dictionary<string, object>> ruleArguments)
         {
             var ruleConfigMap = BuildRuleConfigMap();

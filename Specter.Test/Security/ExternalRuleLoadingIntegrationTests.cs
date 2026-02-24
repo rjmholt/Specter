@@ -145,7 +145,7 @@ namespace Specter.Test.Security
         [Fact]
         public void ExternalRuleLoader_NonexistentPath_HandledGracefully()
         {
-            var emptyConfig = new Dictionary<string, IRuleConfiguration>();
+            var emptyConfig = new Dictionary<string, IRuleConfiguration?>();
             IRuleProviderFactory? factory = ExternalRuleLoader.CreateProviderFactory(
                 "/absolutely/nonexistent/path.dll",
                 settingsFileDirectory: null,
@@ -168,7 +168,7 @@ namespace Specter.Test.Security
 
             try
             {
-                var emptyConfig = new Dictionary<string, IRuleConfiguration>();
+                var emptyConfig = new Dictionary<string, IRuleConfiguration?>();
                 IRuleProviderFactory? factory = ExternalRuleLoader.CreateProviderFactory(
                     "rules/test.psm1",
                     settingsFileDirectory: tempDir,

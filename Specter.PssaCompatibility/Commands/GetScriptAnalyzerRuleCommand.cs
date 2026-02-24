@@ -35,8 +35,8 @@ namespace Specter.PssaCompatibility.Commands
 
         protected override void ProcessRecord()
         {
-            var configDict = new Dictionary<string, IRuleConfiguration>(StringComparer.OrdinalIgnoreCase);
-            foreach (var kvp in Specter.Builtin.Default.RuleConfiguration)
+            var configDict = new Dictionary<string, IRuleConfiguration?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in Specter.Rules.Builtin.Default.RuleConfiguration)
             {
                 if (kvp.Value is not null)
                 {
