@@ -8,6 +8,7 @@
     <RootNamespace>Specter.Server</RootNamespace>
     <AssemblyName>Specter.Server</AssemblyName>
     <OutputType>Exe</OutputType>
+    <UseAppHost>false</UseAppHost>
     <IsPackable>false</IsPackable>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <PackageId>Specter.Server</PackageId>
