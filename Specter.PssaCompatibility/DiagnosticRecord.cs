@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Management.Automation.Language;
-using Specter.CommandDatabase;
 using Specter.Suppression;
 using EngineDiagnostic = Specter.ScriptDiagnostic;
 using EngineSeverity = Specter.DiagnosticSeverity;
@@ -29,7 +28,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
         public string ScriptPath { get; }
 
-        public string? RuleSuppressionID { get; set; }
+        public string? RuleSuppressionID { get; }
 
         public IReadOnlyList<CorrectionExtent>? SuggestedCorrections { get; }
 
@@ -39,18 +38,18 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
         /// For compatibility diagnostics: the command name flagged by the rule.
         /// Populated by UseCompatibleCommands.
         /// </summary>
-        public string? Command { get; internal set; }
+        public string? Command { get; }
 
         /// <summary>
         /// For compatibility diagnostics: the parameter name flagged by the rule.
         /// Null for command-level diagnostics.
         /// </summary>
-        public string? Parameter { get; internal set; }
+        public string? Parameter { get; }
 
         /// <summary>
         /// For compatibility diagnostics: the target platform that lacks the command or parameter.
         /// </summary>
-        public CompatibilityTargetPlatform? TargetPlatform { get; internal set; }
+        public CompatibilityTargetPlatform? TargetPlatform { get; }
 
         public DiagnosticRecord(
             string? message,
@@ -59,7 +58,10 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
             DiagnosticSeverity severity,
             string? scriptPath,
             string? ruleId = null,
-            IReadOnlyList<CorrectionExtent>? suggestedCorrections = null)
+            IReadOnlyList<CorrectionExtent>? suggestedCorrections = null,
+            string? command = null,
+            string? parameter = null,
+            CompatibilityTargetPlatform? targetPlatform = null)
         {
             Message = message ?? string.Empty;
             Extent = extent;
@@ -68,6 +70,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
             ScriptPath = scriptPath ?? string.Empty;
             RuleSuppressionID = ruleId;
             SuggestedCorrections = suggestedCorrections;
+            Command = command;
+            Parameter = parameter;
+            TargetPlatform = targetPlatform;
         }
 
         public override string ToString() => Message;
@@ -80,32 +85,23 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic
 
             IReadOnlyList<CorrectionExtent>? corrections = MapCorrections(diagnostic, scriptPath);
 
-            var record = new DiagnosticRecord(
+            string? command = diagnostic.Command;
+            string? parameter = diagnostic.Parameter;
+            CompatibilityTargetPlatform? targetPlatform = diagnostic.TargetPlatform is null
+                ? null
+                : CompatibilityTargetPlatform.FromPlatformInfo(diagnostic.TargetPlatform);
+
+            return new DiagnosticRecord(
                 diagnostic.Message,
                 diagnostic.ScriptExtent,
                 ruleName,
                 severity,
                 scriptPath,
                 ruleId: diagnostic.RuleSuppressionId,
-                suggestedCorrections: corrections);
-
-            if (diagnostic.Properties is { Count: > 0 })
-            {
-                if (diagnostic.Properties.TryGetValue("Command", out object? cmd))
-                {
-                    record.Command = cmd as string;
-                }
-                if (diagnostic.Properties.TryGetValue("Parameter", out object? param))
-                {
-                    record.Parameter = param as string;
-                }
-                if (diagnostic.Properties.TryGetValue("TargetPlatform", out object? plat) && plat is PlatformInfo pi)
-                {
-                    record.TargetPlatform = CompatibilityTargetPlatform.FromPlatformInfo(pi);
-                }
-            }
-
-            return record;
+                suggestedCorrections: corrections,
+                command: command,
+                parameter: parameter,
+                targetPlatform: targetPlatform);
         }
 
         internal static SuppressedRecord FromSuppressedDiagnostic(SuppressedDiagnostic suppressed)

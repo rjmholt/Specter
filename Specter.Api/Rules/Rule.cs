@@ -1,4 +1,5 @@
 using Specter.Configuration;
+using Specter.CommandDatabase;
 using Specter.Formatting;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
@@ -38,9 +39,53 @@ namespace Specter.Rules
             => CreateDiagnostic(message, extent, RuleInfo.DefaultSeverity, corrections);
 
         protected ScriptDiagnostic CreateDiagnostic(string message, IScriptExtent extent, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
+            => CreateDiagnostic(message, extent, severity, corrections, ruleSuppressionId: null);
+
+        protected ScriptDiagnostic CreateDiagnostic(
+            string message,
+            IScriptExtent extent,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command = null,
+            string? parameter = null,
+            PlatformInfo? targetPlatform = null)
         {
-            return new ScriptDiagnostic(RuleInfo, message, extent, severity, corrections);
+            return CreateScriptDiagnosticCore(
+                RuleInfo,
+                message,
+                extent,
+                severity,
+                corrections,
+                ruleSuppressionId,
+                command,
+                parameter,
+                targetPlatform);
         }
+
+        /// <summary>
+        /// Extension point for specialized diagnostics in derived rule bases.
+        /// </summary>
+        protected virtual ScriptDiagnostic CreateScriptDiagnosticCore(
+            RuleInfo? ruleInfo,
+            string message,
+            IScriptExtent extent,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command,
+            string? parameter,
+            PlatformInfo? targetPlatform)
+            => new ScriptDiagnostic(
+                ruleInfo,
+                message,
+                extent,
+                severity,
+                corrections,
+                ruleSuppressionId,
+                command,
+                parameter,
+                targetPlatform);
     }
 
     public interface IConfigurableRule<TConfiguration> where TConfiguration : IRuleConfiguration
@@ -69,8 +114,54 @@ namespace Specter.Rules
 
         protected ScriptAstDiagnostic CreateDiagnostic(string message, Ast ast, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
         {
-            return new ScriptAstDiagnostic(RuleInfo, message, ast, severity, corrections);
+            return CreateDiagnostic(message, ast, severity, corrections, ruleSuppressionId: null);
         }
+
+        protected ScriptAstDiagnostic CreateDiagnostic(
+            string message,
+            Ast ast,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command = null,
+            string? parameter = null,
+            PlatformInfo? targetPlatform = null)
+        {
+            return CreateScriptAstDiagnosticCore(
+                RuleInfo,
+                message,
+                ast,
+                severity,
+                corrections,
+                ruleSuppressionId,
+                command,
+                parameter,
+                targetPlatform);
+        }
+
+        /// <summary>
+        /// Extension point for specialized AST diagnostics in derived rule bases.
+        /// </summary>
+        protected virtual ScriptAstDiagnostic CreateScriptAstDiagnosticCore(
+            RuleInfo? ruleInfo,
+            string message,
+            Ast ast,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command,
+            string? parameter,
+            PlatformInfo? targetPlatform)
+            => new ScriptAstDiagnostic(
+                ruleInfo,
+                message,
+                ast,
+                severity,
+                corrections,
+                ruleSuppressionId,
+                command,
+                parameter,
+                targetPlatform);
 
         protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token)
             => CreateDiagnostic(message, token, RuleInfo.DefaultSeverity);
@@ -83,8 +174,54 @@ namespace Specter.Rules
 
         protected ScriptTokenDiagnostic CreateDiagnostic(string message, Token token, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
         {
-            return new ScriptTokenDiagnostic(RuleInfo, message, token, severity, corrections);
+            return CreateDiagnostic(message, token, severity, corrections, ruleSuppressionId: null);
         }
+
+        protected ScriptTokenDiagnostic CreateDiagnostic(
+            string message,
+            Token token,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command = null,
+            string? parameter = null,
+            PlatformInfo? targetPlatform = null)
+        {
+            return CreateScriptTokenDiagnosticCore(
+                RuleInfo,
+                message,
+                token,
+                severity,
+                corrections,
+                ruleSuppressionId,
+                command,
+                parameter,
+                targetPlatform);
+        }
+
+        /// <summary>
+        /// Extension point for specialized token diagnostics in derived rule bases.
+        /// </summary>
+        protected virtual ScriptTokenDiagnostic CreateScriptTokenDiagnosticCore(
+            RuleInfo? ruleInfo,
+            string message,
+            Token token,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command,
+            string? parameter,
+            PlatformInfo? targetPlatform)
+            => new ScriptTokenDiagnostic(
+                ruleInfo,
+                message,
+                token,
+                severity,
+                corrections,
+                ruleSuppressionId,
+                command,
+                parameter,
+                targetPlatform);
     }
 
     public abstract class ConfigurableScriptRule<TConfiguration> : ScriptRule, IConfigurableRule<TConfiguration> where TConfiguration : IRuleConfiguration

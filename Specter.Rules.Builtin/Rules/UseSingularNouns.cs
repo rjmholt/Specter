@@ -74,8 +74,9 @@ namespace Specter.Rules.Builtin.Rules
                             Strings.UseSingularNounsError,
                             funcAst.Name),
                         extent,
-                        new[] { correction });
-                    diagnostic.RuleSuppressionId = funcAst.Name;
+                        RuleInfo.DefaultSeverity,
+                        new[] { correction },
+                        ruleSuppressionId: funcAst.Name);
                     yield return diagnostic;
                 }
             }

@@ -155,6 +155,15 @@ foreach ($proj in $projects) {
         Copy-Item -Path $manifestSrc -Destination $moduleOutPath
     }
 
+    # Copy ps1xml sidecar files (format/type data) expected by the manifest.
+    # Without these, cmdlet output falls back to default object formatting.
+    $manifestDirPath = Join-Path $repoRoot $proj.ManifestDir
+    if (Test-Path $manifestDirPath) {
+        foreach ($ps1xml in (Get-ChildItem -Path $manifestDirPath -Filter '*.ps1xml' -File -ErrorAction Ignore)) {
+            Copy-Item -Path $ps1xml.FullName -Destination $moduleOutPath
+        }
+    }
+
     # Copy the data directory (Specter module ships specter.db)
     if ($proj.OutName -eq 'Specter') {
         $dataDir = Join-Path $repoRoot 'Specter/Data'

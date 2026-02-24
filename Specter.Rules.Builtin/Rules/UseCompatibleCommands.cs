@@ -122,9 +122,15 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                             target.Platform.Version,
                             target.Platform.Os.Family);
 
-                        var diag = CreateDiagnostic(message, cmdAst);
-                        diag.Properties = CreateCommandProperties(commandName!, null, target.Platform);
-                        yield return diag;
+                        yield return CreateDiagnostic(
+                            message,
+                            cmdAst,
+                            RuleInfo.DefaultSeverity,
+                            corrections: null,
+                            ruleSuppressionId: null,
+                            command: commandName!,
+                            parameter: null,
+                            targetPlatform: target.Platform);
                         continue;
                     }
 
@@ -180,9 +186,15 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     target.Platform.Version,
                     target.Platform.Os.Family);
 
-                var diag = CreateDiagnostic(message, paramAst);
-                diag.Properties = CreateCommandProperties(commandName, paramAst.ParameterName, target.Platform);
-                yield return diag;
+                yield return CreateDiagnostic(
+                    message,
+                    paramAst,
+                    RuleInfo.DefaultSeverity,
+                    corrections: null,
+                    ruleSuppressionId: null,
+                    command: commandName,
+                    parameter: paramAst.ParameterName,
+                    targetPlatform: target.Platform);
             }
         }
 
@@ -241,23 +253,6 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 names.Add(param.Name);
             }
             return names;
-        }
-
-        private static Dictionary<string, object> CreateCommandProperties(
-            string command, string? parameter, PlatformInfo platform)
-        {
-            var props = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Command"] = command,
-                ["TargetPlatform"] = platform,
-            };
-
-            if (parameter is not null)
-            {
-                props["Parameter"] = parameter;
-            }
-
-            return props;
         }
 
         private readonly struct ResolvedTarget

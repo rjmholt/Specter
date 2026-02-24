@@ -128,7 +128,9 @@ namespace Specter.Rules.Builtin.Rules
                 diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidAssignmentToReadOnlyAutomaticVariableError, variableName),
                     extent,
-                    DiagnosticSeverity.Error);
+                    DiagnosticSeverity.Error,
+                    corrections: null,
+                    ruleSuppressionId: suppressionId);
             }
             else if (s_readOnlyIntroducedInV6.Contains(variableName))
             {
@@ -136,19 +138,18 @@ namespace Specter.Rules.Builtin.Rules
                 diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidAssignmentToReadOnlyAutomaticVariableIntroducedInPowerShell6_0Error, variableName),
                     extent,
-                    severity);
+                    severity,
+                    corrections: null,
+                    ruleSuppressionId: suppressionId);
             }
             else if (s_writableAutomaticVariables.Contains(variableName))
             {
                 diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidAssignmentToWritableAutomaticVariableError, variableName),
                     extent,
-                    DiagnosticSeverity.Warning);
-            }
-
-            if (diagnostic is not null)
-            {
-                diagnostic.RuleSuppressionId = suppressionId;
+                    DiagnosticSeverity.Warning,
+                    corrections: null,
+                    ruleSuppressionId: suppressionId);
             }
 
             return diagnostic;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation.Language;
+using Specter.CommandDatabase;
 
 namespace Specter
 {
@@ -23,12 +24,39 @@ namespace Specter
             IScriptExtent scriptExtent,
             DiagnosticSeverity severity,
             IReadOnlyList<Correction>? corrections)
+            : this(
+                rule,
+                message,
+                scriptExtent,
+                severity,
+                corrections,
+                ruleSuppressionId: null,
+                command: null,
+                parameter: null,
+                targetPlatform: null)
+        {
+        }
+
+        public ScriptDiagnostic(
+            RuleInfo? rule,
+            string message,
+            IScriptExtent scriptExtent,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command = null,
+            string? parameter = null,
+            PlatformInfo? targetPlatform = null)
         {
             Rule = rule;
-            Corrections = corrections;
+            Corrections = CopyCorrections(corrections);
             Message = message;
             ScriptExtent = scriptExtent;
             Severity = severity;
+            RuleSuppressionId = ruleSuppressionId;
+            Command = command;
+            Parameter = parameter;
+            TargetPlatform = targetPlatform;
         }
 
         public RuleInfo? Rule { get; }
@@ -41,41 +69,115 @@ namespace Specter
 
         public IReadOnlyList<Correction>? Corrections { get; }
 
-        public string? RuleSuppressionId { get; set; }
+        public string? RuleSuppressionId { get; }
 
-        /// <summary>
-        /// Rule-specific properties that enrich the diagnostic for consumers.
-        /// Rules like UseCompatibleCommands use this to attach structured metadata
-        /// (e.g. command name, parameter name, target platform) that compatibility
-        /// layers can expose as first-class properties.
-        /// </summary>
-        public Dictionary<string, object>? Properties { get; set; }
+        public string? Command { get; }
+
+        public string? Parameter { get; }
+
+        public PlatformInfo? TargetPlatform { get; }
+
+        public string DisplayHeader
+            => string.Format(
+                CultureInfo.CurrentCulture,
+                "{0}[{1}]: {2}",
+                Severity.ToString().ToLowerInvariant(),
+                Rule?.FullName ?? "UnknownRule",
+                Message);
+
+        public string DisplayLocation
+            => string.Format(
+                CultureInfo.CurrentCulture,
+                "  --> {0}:{1}:{2}",
+                GetScriptName(ScriptExtent),
+                ScriptExtent?.StartLineNumber ?? 0,
+                ScriptExtent?.StartColumnNumber ?? 0);
+
+        public string DisplayGutter => "   |";
+
+        public string DisplaySourceLine
+        {
+            get
+            {
+                if (ScriptExtent is null
+                    || ScriptExtent.StartLineNumber <= 0
+                    || string.IsNullOrEmpty(ScriptExtent.Text))
+                {
+                    return string.Empty;
+                }
+
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    "{0} | {1}",
+                    ScriptExtent.StartLineNumber,
+                    ScriptExtent.Text);
+            }
+        }
+
+        public string DisplayUnderline
+        {
+            get
+            {
+                if (ScriptExtent is null
+                    || ScriptExtent.StartLineNumber <= 0
+                    || string.IsNullOrEmpty(ScriptExtent.Text))
+                {
+                    return string.Empty;
+                }
+
+                int startColumn = Math.Max(1, ScriptExtent.StartColumnNumber);
+                int endColumn = Math.Max(startColumn + 1, ScriptExtent.EndColumnNumber);
+                int lineWidth = ScriptExtent.StartLineNumber.ToString(CultureInfo.CurrentCulture).Length;
+                int prefixWidth = lineWidth + 3 + (startColumn - 1);
+
+                return new string(' ', prefixWidth) + new string('~', Math.Max(1, endColumn - startColumn));
+            }
+        }
 
         public override string ToString()
         {
-            string scriptName = "Script";
-            int line = 0;
-            int column = 0;
-            if (ScriptExtent is not null)
-            {
-                line = ScriptExtent.StartLineNumber;
-                column = ScriptExtent.StartColumnNumber;
-                scriptName = string.IsNullOrEmpty(ScriptExtent.File)
-                    ? "Script"
-                    : System.IO.Path.GetFileName(ScriptExtent.File);
-            }
-
-            string ruleName = Rule?.FullName ?? "UnknownRule";
             return string.Format(
                 CultureInfo.CurrentCulture,
                 "{0}:{1}:{2}: {3} {4} - {5}",
-                scriptName,
-                line,
-                column,
+                GetScriptName(ScriptExtent),
+                ScriptExtent?.StartLineNumber ?? 0,
+                ScriptExtent?.StartColumnNumber ?? 0,
                 Severity,
-                ruleName,
+                Rule?.FullName ?? "UnknownRule",
                 Message);
         }
+
+        private static string GetScriptName(IScriptExtent? extent)
+        {
+            if (extent is null || string.IsNullOrEmpty(extent.File))
+            {
+                return "Script";
+            }
+
+            return System.IO.Path.GetFileName(extent.File);
+        }
+
+        private static IReadOnlyList<Correction>? CopyCorrections(IReadOnlyList<Correction>? corrections)
+        {
+            if (corrections is null)
+            {
+                return null;
+            }
+
+            if (corrections.Count == 0)
+            {
+                return Array.Empty<Correction>();
+            }
+
+            var copy = new Correction[corrections.Count];
+            for (int i = 0; i < corrections.Count; i++)
+            {
+                copy[i] = corrections[i];
+            }
+
+            return copy;
+        }
+
     }
 
     public class ScriptAstDiagnostic : ScriptDiagnostic
@@ -91,7 +193,21 @@ namespace Specter
             Ast ast,
             DiagnosticSeverity severity,
             IReadOnlyList<Correction>? corrections)
-            : base(rule, message, ast.Extent, severity, corrections)
+            : this(rule, message, ast, severity, corrections, ruleSuppressionId: null, command: null, parameter: null, targetPlatform: null)
+        {
+        }
+
+        public ScriptAstDiagnostic(
+            RuleInfo? rule,
+            string message,
+            Ast ast,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command = null,
+            string? parameter = null,
+            PlatformInfo? targetPlatform = null)
+            : base(rule, message, ast.Extent, severity, corrections, ruleSuppressionId, command, parameter, targetPlatform)
         {
             Ast = ast;
         }
@@ -107,7 +223,21 @@ namespace Specter
         }
 
         public ScriptTokenDiagnostic(RuleInfo? rule, string message, Token token, DiagnosticSeverity severity, IReadOnlyList<Correction>? corrections)
-            : base(rule, message, token.Extent, severity, corrections)
+            : this(rule, message, token, severity, corrections, ruleSuppressionId: null, command: null, parameter: null, targetPlatform: null)
+        {
+        }
+
+        public ScriptTokenDiagnostic(
+            RuleInfo? rule,
+            string message,
+            Token token,
+            DiagnosticSeverity severity,
+            IReadOnlyList<Correction>? corrections,
+            string? ruleSuppressionId,
+            string? command = null,
+            string? parameter = null,
+            PlatformInfo? targetPlatform = null)
+            : base(rule, message, token.Extent, severity, corrections, ruleSuppressionId, command, parameter, targetPlatform)
         {
             Token = token;
         }

@@ -44,8 +44,9 @@ namespace Specter.Rules.Builtin.Rules
                 var diagnostic = CreateDiagnostic(
                     string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingPlainTextForPasswordError, paramAst.Name),
                     paramAst.Extent,
-                    GetCorrections(paramAst));
-                diagnostic.RuleSuppressionId = paramAst.Name.VariablePath.UserPath;
+                    RuleInfo.DefaultSeverity,
+                    GetCorrections(paramAst),
+                    ruleSuppressionId: paramAst.Name.VariablePath.UserPath);
                 yield return diagnostic;
             }
         }
