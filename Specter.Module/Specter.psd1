@@ -61,7 +61,7 @@ PrivateData = @{
     PSData = @{
         Tags = 'lint', 'bestpractice', 'analyzer'
         ReleaseNotes = ''
-        Prerelease = 'preview.1'
+        Prerelease = 'preview-1'
     }
 }
 

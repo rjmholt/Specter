@@ -20,5 +20,10 @@
     )
     VariablesToExport = @()
     AliasesToExport = @()
+    PrivateData = @{
+        PSData = @{
+            Prerelease = 'preview-1'
+        }
+    }
     CompatiblePSEditions = @('Core', 'Desktop')
 }

@@ -94,7 +94,7 @@ $env:NUGET_API_KEY = '...'
 ./publish.ps1 -PSGalleryApiKey $key -SkipNuGet
 ```
 
-The current version is **0.1.0-preview.1**, signalling that the API is not yet stable.
+The current version is **0.1.0-preview-1**, signalling that the API is not yet stable.
 
 ## PowerShell Modules
 
