@@ -5,8 +5,7 @@ param(
     [string] $DatabasePath = (Join-Path $PSScriptRoot 'Specter' 'Data' 'specter.db'),
     [switch] $SkipBuild,
     [switch] $SkipSession,
-    [string] $CompatibilityProfileDir,
-    [switch] $RegisterProfileNames
+    [string] $CompatibilityProfileDir = (Join-Path $PSScriptRoot 'Tests' 'Profiles')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,65 +31,50 @@ if (Test-Path $specterDll) {
     [System.Reflection.Assembly]::LoadFrom((Resolve-Path $specterDll)) | Out-Null
 }
 
-if (Test-Path $DatabasePath) {
-    Write-Host "Removing existing database: $DatabasePath" -ForegroundColor Yellow
-    Remove-Item $DatabasePath -Force
+foreach ($stalePath in @($DatabasePath, "$DatabasePath-wal", "$DatabasePath-shm")) {
+    if (Test-Path $stalePath) {
+        Write-Host "Removing existing database artifact: $stalePath" -ForegroundColor Yellow
+        Remove-Item $stalePath -Force
+    }
 }
 
-$settingsDir = Join-Path $PSScriptRoot 'Specter' 'Settings'
+if (-not (Test-Path $CompatibilityProfileDir)) {
+    throw "Compatibility profile directory not found: $CompatibilityProfileDir"
+}
 
-$legacyProfiles = @(
-    'desktop-3.0-windows.json'
-    'desktop-4.0-windows.json'
-    'desktop-5.1.14393.206-windows.json'
-    'core-6.1.0-windows.json'
+$requiredProfiles = @(
+    # Windows PowerShell baselines used by compatibility tests.
+    'win-8_x64_6.2.9200.0_3.0_x64_4.0.30319.42000_framework.json'
+    'win-8_x64_6.3.9600.0_4.0_x64_4.0.30319.42000_framework.json'
+    'win-8_x64_10.0.14393.0_5.1.14393.2791_x64_4.0.30319.42000_framework.json'
+    'win-8_x64_10.0.17763.0_5.1.17763.316_x64_4.0.30319.42000_framework.json'
+    'win-48_x64_10.0.17763.0_5.1.17763.316_x64_4.0.30319.42000_framework.json'
+
+    # PowerShell Core targets used by compatibility tests.
+    'win-8_x64_10.0.14393.0_6.2.4_x64_4.0.30319.42000_core.json'
+    'win-8_x64_10.0.17763.0_6.2.4_x64_4.0.30319.42000_core.json'
+    'win-4_x64_10.0.18362.0_6.2.4_x64_4.0.30319.42000_core.json'
+    'win-8_x64_10.0.14393.0_7.0.0_x64_3.1.2_core.json'
+    'win-8_x64_10.0.17763.0_7.0.0_x64_3.1.2_core.json'
+    'win-4_x64_10.0.18362.0_7.0.0_x64_3.1.2_core.json'
+    'ubuntu_x64_18.04_6.2.4_x64_4.0.30319.42000_core.json'
+    'ubuntu_x64_18.04_7.0.0_x64_3.1.2_core.json'
 )
 
-foreach ($profile in $legacyProfiles) {
-    $profilePath = Join-Path $settingsDir $profile
+Write-Host "Importing selected compatibility profiles from: $CompatibilityProfileDir" -ForegroundColor Cyan
+foreach ($profileName in $requiredProfiles) {
+    $profilePath = Join-Path $CompatibilityProfileDir $profileName
     if (-not (Test-Path $profilePath)) {
-        Write-Warning "Legacy profile not found: $profilePath"
-        continue
+        throw "Required compatibility profile missing: $profilePath"
     }
 
-    Write-Host "Importing legacy profile: $profile" -ForegroundColor Cyan
-    Update-SpecterDatabase -DatabasePath $DatabasePath -LegacySettingsPath $profilePath -Verbose
+    Write-Host "  -> $profileName" -ForegroundColor DarkCyan
+    Update-SpecterDatabase -DatabasePath $DatabasePath -CompatibilityProfilePath $profilePath -Verbose
 }
 
 if (-not $SkipSession) {
     Write-Host 'Importing current pwsh session (with native commands)...' -ForegroundColor Cyan
     Update-SpecterDatabase -DatabasePath $DatabasePath -FromSession -IncludeNativeCommands -Verbose
-}
-
-if ($CompatibilityProfileDir -and (Test-Path $CompatibilityProfileDir)) {
-    Write-Host "Importing PSCompatibilityCollector profiles from: $CompatibilityProfileDir" -ForegroundColor Cyan
-
-    $specterAsm = [System.Reflection.Assembly]::LoadFrom((Resolve-Path $specterDll))
-    $schemaType = $specterAsm.GetType('Specter.CommandDatabase.Sqlite.CommandDatabaseSchema')
-    $importerType = $specterAsm.GetType('Specter.CommandDatabase.Import.CompatibilityProfileImporter')
-
-    $sqliteAsm = [System.Reflection.Assembly]::LoadFrom(
-        (Resolve-Path (Join-Path (Split-Path $modulePath) 'Microsoft.Data.Sqlite.dll')))
-    $connType = $sqliteAsm.GetType('Microsoft.Data.Sqlite.SqliteConnection')
-
-    $conn = [Activator]::CreateInstance($connType, @("Data Source=$DatabasePath"))
-    $conn.Open()
-    try {
-        $schemaType.GetMethod('CreateTables').Invoke($null, @($conn))
-        $importMethod = $importerType.GetMethod(
-            'ImportDirectory',
-            [Type[]]@($connType, [string], [bool]))
-        $importMethod.Invoke($null, @(
-            $conn,
-            (Resolve-Path $CompatibilityProfileDir).Path,
-            [bool]$RegisterProfileNames))
-    } finally {
-        $conn.Close()
-        $conn.Dispose()
-    }
-
-    $profileCount = (Get-ChildItem "$CompatibilityProfileDir/*.json").Count
-    Write-Host "  Imported $profileCount compatibility profiles" -ForegroundColor Green
 }
 
 Write-Host 'Checkpointing WAL...' -ForegroundColor Cyan
@@ -106,8 +90,8 @@ try {
 }
 
 $dbFile = Get-Item $DatabasePath
-$jsonSize = ($legacyProfiles | ForEach-Object {
-    $p = Join-Path $settingsDir $_
+$jsonSize = ($requiredProfiles | ForEach-Object {
+    $p = Join-Path $CompatibilityProfileDir $_
     if (Test-Path $p) { (Get-Item $p).Length }
 }) | Measure-Object -Sum | Select-Object -ExpandProperty Sum
 
@@ -115,7 +99,7 @@ Write-Host ''
 Write-Host '=== Database Generation Complete ===' -ForegroundColor Green
 Write-Host "  Database:   $DatabasePath"
 Write-Host "  DB size:    $([math]::Round($dbFile.Length / 1KB, 1)) KB"
-Write-Host "  JSON size:  $([math]::Round($jsonSize / 1KB, 1)) KB ($($legacyProfiles.Count) legacy profiles)"
+Write-Host "  JSON size:  $([math]::Round($jsonSize / 1KB, 1)) KB ($($requiredProfiles.Count) selected compatibility profiles)"
 Write-Host "  Ratio:      $([math]::Round($dbFile.Length / $jsonSize * 100, 1))%"
 
 $db = [Specter.CommandDatabase.Sqlite.SqliteCommandDatabase]::Open($DatabasePath)

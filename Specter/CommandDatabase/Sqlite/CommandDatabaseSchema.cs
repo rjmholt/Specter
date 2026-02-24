@@ -8,7 +8,7 @@ namespace Specter.CommandDatabase.Sqlite
     /// </summary>
     internal static class CommandDatabaseSchema
     {
-        public const int SchemaVersion = 3;
+        public const int SchemaVersion = 4;
 
         public static void CreateTables(SqliteConnection connection)
         {
@@ -56,6 +56,7 @@ namespace Specter.CommandDatabase.Sqlite
             $"  {Db.Command.Name} TEXT NOT NULL," +
             $"  {Db.Command.CommandType} TEXT NOT NULL," +
             $"  {Db.Command.DefaultParameterSet} TEXT," +
+            $"  {Db.Command.IsBuiltin} INTEGER NOT NULL DEFAULT 0," +
             $"  UNIQUE({Db.Command.ModuleId}, {Db.Command.Name} COLLATE NOCASE)" +
             $");\n" +
             $"CREATE INDEX IF NOT EXISTS IX_Command_Name ON {Db.Command.Table}({Db.Command.Name} COLLATE NOCASE);\n" +

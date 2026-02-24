@@ -92,6 +92,12 @@ namespace Specter.Module.Commands
                     break;
             }
 
+            using (var writer = CommandDatabaseWriter.Begin(connection))
+            {
+                writer.RecomputeBuiltinCmdlets();
+                writer.Commit();
+            }
+
             WriteObject(new FileInfo(dbPath));
         }
 

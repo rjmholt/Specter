@@ -63,7 +63,7 @@ namespace Specter.Rules.Builtin.Rules
                 FunctionSymbol? functionSymbol = scriptModel.GetFunctionSymbol(commandName);
                 if (functionSymbol is not null)
                 {
-                    if (!functionSymbol.IsCmdletStyle || functionSymbol.IsVariadic)
+                    if (functionSymbol.IsVariadic)
                     {
                         continue;
                     }

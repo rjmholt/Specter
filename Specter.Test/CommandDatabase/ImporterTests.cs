@@ -15,6 +15,9 @@ namespace Specter.Test.CommandDatabase
         [InlineData("desktop-5.1.14393.206-windows", "Desktop", "5.1.14393.206", "Windows")]
         [InlineData("core-6.1.0-macos", "Core", "6.1.0", "MacOS")]
         [InlineData("core-6.1.0-linux", "Core", "6.1.0", "Linux")]
+        [InlineData("win-8_x64_6.2.9200.0_3.0_x64_4.0.30319.42000_framework", "", "3.0", "Windows")]
+        [InlineData("win-8_x64_10.0.17763.0_5.1.17763.316_x64_4.0.30319.42000_framework", "Desktop", "5.1.17763.316", "Windows")]
+        [InlineData("ubuntu_x64_18.04_7.0.0_x64_3.1.2_core", "Core", "7.0.0", "Linux")]
         public void TryParsePlatformFromFileName_ParsesCorrectly(
             string fileName, string expectedEdition, string expectedVersion, string expectedOsFamily)
         {

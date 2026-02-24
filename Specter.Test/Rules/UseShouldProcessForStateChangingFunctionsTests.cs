@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Specter;
 using Specter.Builder;
+using Specter.Configuration;
 using Specter.Rules.Builtin.Rules;
 using Specter.Execution;
 using Xunit;
@@ -14,10 +15,16 @@ namespace Specter.Test.Rules
 
         public UseShouldProcessForStateChangingFunctionsTests()
         {
+            // UseShouldProcessForStateChangingFunctions is disabled by default; enable explicitly for this test suite.
+            var config = new Dictionary<string, IRuleConfiguration?>
+            {
+                { "PS/UseShouldProcessForStateChangingFunctions", null },
+            };
+
             _scriptAnalyzer = new ScriptAnalyzerBuilder()
                 .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
                 .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
-                .AddRules(ruleProvider => ruleProvider.AddRule<UseShouldProcessForStateChangingFunctions>())
+                .AddRules(config, ruleProvider => ruleProvider.AddRule<UseShouldProcessForStateChangingFunctions>())
                 .Build();
         }
 
@@ -83,7 +90,7 @@ function Get-Foo {
         }
 
         [Fact]
-        public void NonCmdletStyleStateChangingFunction_ShouldNotReturnViolation()
+        public void NonCmdletStyleStateChangingFunction_ShouldReturnViolation()
         {
             var script = @"
 function Set-Foo {
@@ -92,7 +99,8 @@ function Set-Foo {
 }";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
-            Assert.Empty(violations);
+            ScriptDiagnostic violation = Assert.Single(violations);
+            Assert.Equal("UseShouldProcessForStateChangingFunctions", violation.Rule!.Name);
         }
     }
 }

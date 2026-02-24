@@ -80,6 +80,21 @@ function Foo {
         }
 
         [Fact]
+        public void ForeachEnumerableVariable_ShouldNotReturnViolation()
+        {
+            var script = @"
+function Foo {
+    foreach ($item in $foo) {
+        Write-Host $item
+    }
+}";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
         public void AutomaticVariable_ShouldNotReturnViolation()
         {
             var script = @"
@@ -101,6 +116,7 @@ function Foo {
             var script = @"
 function Foo {
     if ($IsWindows) { Write-Host 'Windows' }
+    Write-Host $PSStyle
 }";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
@@ -196,6 +212,19 @@ function Foo {
             // $x is uninitialized and should be flagged.
             var nullViolations = violations.Where(v => v.Message.Contains("null")).ToList();
             Assert.Empty(nullViolations);
+        }
+
+        [Fact]
+        public void ComparisonVariable_ShouldNotReturnViolation()
+        {
+            var script = @"
+function Foo {
+    if ($x -eq 1) { 'ok' }
+}";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
         }
     }
 }

@@ -134,13 +134,29 @@ namespace Specter.Rules.Builtin.Rules
 
             if (parent is AssignmentStatementAst assignment)
             {
-                return ReferenceEquals(assignment.Left, varAst);
+                return IsDescendantOf(varAst, assignment.Left);
             }
 
             if (parent is ConvertExpressionAst convert
                 && convert.Parent is AssignmentStatementAst outerAssignment)
             {
-                return ReferenceEquals(outerAssignment.Left, convert);
+                return IsDescendantOf(varAst, outerAssignment.Left);
+            }
+
+            return false;
+        }
+
+        private static bool IsDescendantOf(Ast node, Ast ancestor)
+        {
+            Ast? current = node;
+            while (current is not null)
+            {
+                if (ReferenceEquals(current, ancestor))
+                {
+                    return true;
+                }
+
+                current = current.Parent;
             }
 
             return false;

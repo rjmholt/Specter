@@ -45,6 +45,7 @@ namespace Specter.CommandDatabase.Sqlite
             internal const string Name = "Name";
             internal const string CommandType = "CommandType";
             internal const string DefaultParameterSet = "DefaultParameterSet";
+            internal const string IsBuiltin = "IsBuiltin";
         }
 
         internal static class CommandPlatform

@@ -1,4 +1,4 @@
-﻿# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 BeforeAll {
@@ -32,18 +32,14 @@ BeforeAll {
 
 describe 'AvoidOverwritingBuiltInCmdlets' {
     context 'No settings specified' {
-        it 'should default to core-6.1.0-windows if running PS 6+ and desktop-5.1.14393.206-windows if it is not' {
+        it 'should use builtin cmdlet baseline when no target profiles are configured' {
             $violations = Invoke-ScriptAnalyzer -ScriptDefinition $scriptDefinition -Settings $settings
 
-            if ($PSVersionTable.PSVersion.Major -gt 5) {
-                $violations.Count | Should -Be 1
-                $violations.Extent.StartLineNumber | Should -Be 5
-            }
-
-            else {
-                $violations.Count | Should -Be 2
-                $violations[1].Extent.StartLineNumber | Should -Be 9
-            }
+            $violations.Count | Should -Be 2
+            $violations[0].Extent.StartLineNumber | Should -Be 5
+            $violations[0].Extent.EndLineNumber | Should -Be 7
+            $violations[1].Extent.StartLineNumber | Should -Be 9
+            $violations[1].Extent.EndLineNumber | Should -Be 11
         }
     }
 

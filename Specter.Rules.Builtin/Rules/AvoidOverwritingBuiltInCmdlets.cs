@@ -21,14 +21,17 @@ namespace Specter.Rules.Builtin.Rules
     internal class AvoidOverwritingBuiltInCmdlets : ConfigurableScriptRule<AvoidOverwritingBuiltInCmdletsConfiguration>
     {
         private readonly IPowerShellCommandDatabase _commandDatabase;
+        private readonly PlatformContext _platformContext;
 
         internal AvoidOverwritingBuiltInCmdlets(
             RuleInfo ruleInfo,
             AvoidOverwritingBuiltInCmdletsConfiguration configuration,
-            IPowerShellCommandDatabase commandDatabase)
+            IPowerShellCommandDatabase commandDatabase,
+            PlatformContext platformContext)
             : base(ruleInfo, configuration)
         {
             _commandDatabase = commandDatabase;
+            _platformContext = platformContext;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
@@ -38,72 +41,101 @@ namespace Specter.Rules.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            HashSet<PlatformInfo>? targetPlatforms = ResolveTargetPlatforms(Configuration.PowerShellVersion);
-            string targetLabel = GetTargetLabel(targetPlatforms);
+            List<PlatformInfo>? targetPlatforms = ResolveTargetPlatforms();
 
             foreach (Ast node in ast.FindAll(static testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
                 string functionName = funcAst.Name;
 
-                if (IsBuiltinCommand(functionName, targetPlatforms))
+                if (targetPlatforms is null || targetPlatforms.Count == 0)
                 {
+                    if (!IsBuiltinCommand(functionName))
+                    {
+                        continue;
+                    }
+
                     yield return CreateDiagnostic(
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.AvoidOverwritingBuiltInCmdletsError,
                             functionName,
-                            targetLabel),
+                            "PowerShell built-in cmdlet baseline"),
+                        funcAst.Extent);
+                    continue;
+                }
+
+                for (int i = 0; i < targetPlatforms.Count; i++)
+                {
+                    PlatformInfo platform = targetPlatforms[i];
+                    if (!CommandExistsOnTarget(functionName, platform))
+                    {
+                        continue;
+                    }
+
+                    yield return CreateDiagnostic(
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.AvoidOverwritingBuiltInCmdletsError,
+                            functionName,
+                            platform.ToString()),
                         funcAst.Extent);
                 }
             }
         }
 
-        private bool IsBuiltinCommand(string commandName, HashSet<PlatformInfo>? targetPlatforms)
+        private bool IsBuiltinCommand(string commandName)
         {
-            return _commandDatabase.CommandExistsOnPlatform(commandName, targetPlatforms);
-        }
-
-        private static HashSet<PlatformInfo>? ResolveTargetPlatforms(string[] configuredProfiles)
-        {
-            if (configuredProfiles == null || configuredProfiles.Length == 0)
+            if (!_commandDatabase.TryGetCommand(commandName, platforms: null, out CommandMetadata? command)
+                || command is null)
             {
-                return null;
+                return false;
             }
 
-            var platforms = new HashSet<PlatformInfo>();
-            for (int i = 0; i < configuredProfiles.Length; i++)
+            return command.IsBuiltin && string.Equals(command.CommandType, "Cmdlet", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool CommandExistsOnTarget(string commandName, PlatformInfo platform)
+        {
+            var target = new HashSet<PlatformInfo> { platform };
+            return _commandDatabase.CommandExistsOnPlatform(commandName, target);
+        }
+
+        private List<PlatformInfo>? ResolveTargetPlatforms()
+        {
+            if (Configuration.PowerShellVersion is { Length: > 0 })
             {
-                string profile = configuredProfiles[i];
-                if (string.IsNullOrWhiteSpace(profile))
+                var resolved = new List<PlatformInfo>(Configuration.PowerShellVersion.Length);
+                for (int i = 0; i < Configuration.PowerShellVersion.Length; i++)
                 {
-                    continue;
+                    string profile = Configuration.PowerShellVersion[i];
+                    if (string.IsNullOrWhiteSpace(profile))
+                    {
+                        continue;
+                    }
+
+                    if (_commandDatabase.TryResolveProfile(profile, out PlatformInfo? resolvedPlatform)
+                        && resolvedPlatform is not null)
+                    {
+                        resolved.Add(resolvedPlatform);
+                    }
                 }
 
-                if (PlatformInfo.TryParseFromLegacyProfileName(profile, out PlatformInfo? platform)
-                    && platform is not null)
+                return resolved.Count > 0 ? resolved : null;
+            }
+
+            if (_platformContext.TargetPlatforms.Count > 0)
+            {
+                var targets = new List<PlatformInfo>(_platformContext.TargetPlatforms.Count);
+                for (int i = 0; i < _platformContext.TargetPlatforms.Count; i++)
                 {
-                    platforms.Add(platform);
+                    targets.Add(_platformContext.TargetPlatforms[i]);
                 }
+
+                return targets;
             }
 
-            return platforms.Count == 0 ? null : platforms;
+            return null;
         }
-
-        private static string GetTargetLabel(HashSet<PlatformInfo>? platforms)
-        {
-            if (platforms == null || platforms.Count == 0)
-            {
-                return "current target platforms";
-            }
-
-            foreach (PlatformInfo platform in platforms)
-            {
-                return platform.ToString();
-            }
-
-            return "configured target platforms";
-        }
-
     }
 }

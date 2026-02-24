@@ -1,11 +1,18 @@
-﻿# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 BeforeAll {
     $violationMessage = "Function 'Set-MyObject' has verb that could change system state. Therefore, the function has to support 'ShouldProcess'"
     $violationName = "PSUseShouldProcessForStateChangingFunctions"
-    $violations = Invoke-ScriptAnalyzer $PSScriptRoot\UseShouldProcessForStateChangingFunctions.ps1 | Where-Object { $_.RuleName -eq $violationName }
-    $noViolations = Invoke-ScriptAnalyzer $PSScriptRoot\UseShouldProcessForStateChangingFunctionsNoViolations.ps1 | Where-Object { $_.RuleName -eq $violationName }
+    $ruleSettings = @{
+        Rules = @{
+            PSUseShouldProcessForStateChangingFunctions = @{
+                Enable = $true
+            }
+        }
+    }
+    $violations = Invoke-ScriptAnalyzer $PSScriptRoot\UseShouldProcessForStateChangingFunctions.ps1 -Settings $ruleSettings | Where-Object { $_.RuleName -eq $violationName }
+    $noViolations = Invoke-ScriptAnalyzer $PSScriptRoot\UseShouldProcessForStateChangingFunctionsNoViolations.ps1 -Settings $ruleSettings | Where-Object { $_.RuleName -eq $violationName }
 }
 
 Describe "It checks UseShouldProcess is enabled when there are state changing verbs in the function names" {
@@ -13,7 +20,7 @@ Describe "It checks UseShouldProcess is enabled when there are state changing ve
         It 'Finds verb "<Verb>" in function name' {
             Param($Verb)
             $scriptDefinition = "Function New-${Verb} () {{ }}"
-            $violations = Invoke-ScriptAnalyzer -ScriptDefinition $scriptDefinition -IncludeRule $violationName
+            $violations = Invoke-ScriptAnalyzer -ScriptDefinition $scriptDefinition -IncludeRule $violationName -Settings $ruleSettings
             $violations.Count | Should -Be 1
         } -TestCases @(
             @{
@@ -63,7 +70,7 @@ Describe "It checks UseShouldProcess is enabled when there are state changing ve
         }
 
         It "Workflows should not trigger a warning because they do not allow SupportsShouldProcess" -Skip:$IsCoreCLR {
-            $violations = Invoke-ScriptAnalyzer -ScriptDefinition 'workflow Set-Something {[CmdletBinding()]Param($Param1)}' | Where-Object {
+            $violations = Invoke-ScriptAnalyzer -ScriptDefinition 'workflow Set-Something {[CmdletBinding()]Param($Param1)}' -Settings $ruleSettings | Where-Object {
                 $_.RuleName -eq 'PSUseShouldProcessForStateChangingFunctions' }
             $violations.Count | Should -Be 0
         }

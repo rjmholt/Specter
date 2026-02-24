@@ -138,6 +138,81 @@ namespace Specter.CommandDatabase.Sqlite
             cmd.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// Recomputes builtin cmdlet markers for the current database contents.
+        /// Builtins are defined as cmdlets present in the latest Windows PowerShell 5.1
+        /// platform plus cmdlets present in the latest PowerShell 7+ platform for
+        /// Windows, Linux, and macOS.
+        /// </summary>
+        internal void RecomputeBuiltinCmdlets()
+        {
+            using SqliteCommand reset = _connection.CreateCommand();
+            reset.Transaction = _transaction;
+            reset.CommandText =
+                $"UPDATE {Db.Command.Table} " +
+                $"SET {Db.Command.IsBuiltin} = 0 " +
+                $"WHERE {Db.Command.CommandType} = 'Cmdlet'";
+            reset.ExecuteNonQuery();
+
+            using SqliteCommand mark = _connection.CreateCommand();
+            mark.Transaction = _transaction;
+            mark.CommandText =
+                "WITH SelectedPlatforms AS (" +
+                $"  SELECT p.{Db.Platform.Id} " +
+                $"  FROM {Db.Platform.Table} p " +
+                $"  WHERE p.{Db.Platform.Edition} = 'Desktop' COLLATE NOCASE " +
+                $"    AND p.{Db.Platform.OsFamily} = 'Windows' COLLATE NOCASE " +
+                $"    AND p.{Db.Platform.PsVersionMajor} = 5 " +
+                $"    AND p.{Db.Platform.PsVersionMinor} = 1 " +
+                $"    AND NOT EXISTS (" +
+                $"      SELECT 1 FROM {Db.Platform.Table} p2 " +
+                $"      WHERE p2.{Db.Platform.Edition} = p.{Db.Platform.Edition} COLLATE NOCASE " +
+                $"        AND p2.{Db.Platform.OsFamily} = p.{Db.Platform.OsFamily} COLLATE NOCASE " +
+                $"        AND p2.{Db.Platform.PsVersionMajor} = p.{Db.Platform.PsVersionMajor} " +
+                $"        AND p2.{Db.Platform.PsVersionMinor} = p.{Db.Platform.PsVersionMinor} " +
+                $"        AND (" +
+                $"             p2.{Db.Platform.PsVersionBuild} > p.{Db.Platform.PsVersionBuild} " +
+                $"          OR (p2.{Db.Platform.PsVersionBuild} = p.{Db.Platform.PsVersionBuild} " +
+                $"              AND p2.{Db.Platform.PsVersionRevision} > p.{Db.Platform.PsVersionRevision})" +
+                $"        )" +
+                $"    ) " +
+                $"  UNION ALL " +
+                $"  SELECT p.{Db.Platform.Id} " +
+                $"  FROM {Db.Platform.Table} p " +
+                $"  WHERE p.{Db.Platform.Edition} = 'Core' COLLATE NOCASE " +
+                $"    AND p.{Db.Platform.OsFamily} IN ('Windows', 'Linux', 'MacOS') " +
+                $"    AND p.{Db.Platform.PsVersionMajor} >= 7 " +
+                $"    AND NOT EXISTS (" +
+                $"      SELECT 1 FROM {Db.Platform.Table} p2 " +
+                $"      WHERE p2.{Db.Platform.Edition} = p.{Db.Platform.Edition} COLLATE NOCASE " +
+                $"        AND p2.{Db.Platform.OsFamily} = p.{Db.Platform.OsFamily} COLLATE NOCASE " +
+                $"        AND p2.{Db.Platform.PsVersionMajor} >= 7 " +
+                $"        AND (" +
+                $"             p2.{Db.Platform.PsVersionMajor} > p.{Db.Platform.PsVersionMajor} " +
+                $"          OR (p2.{Db.Platform.PsVersionMajor} = p.{Db.Platform.PsVersionMajor} " +
+                $"              AND p2.{Db.Platform.PsVersionMinor} > p.{Db.Platform.PsVersionMinor}) " +
+                $"          OR (p2.{Db.Platform.PsVersionMajor} = p.{Db.Platform.PsVersionMajor} " +
+                $"              AND p2.{Db.Platform.PsVersionMinor} = p.{Db.Platform.PsVersionMinor} " +
+                $"              AND p2.{Db.Platform.PsVersionBuild} > p.{Db.Platform.PsVersionBuild}) " +
+                $"          OR (p2.{Db.Platform.PsVersionMajor} = p.{Db.Platform.PsVersionMajor} " +
+                $"              AND p2.{Db.Platform.PsVersionMinor} = p.{Db.Platform.PsVersionMinor} " +
+                $"              AND p2.{Db.Platform.PsVersionBuild} = p.{Db.Platform.PsVersionBuild} " +
+                $"              AND p2.{Db.Platform.PsVersionRevision} > p.{Db.Platform.PsVersionRevision})" +
+                $"        )" +
+                $"    )" +
+                $") " +
+                $"UPDATE {Db.Command.Table} AS c " +
+                $"SET {Db.Command.IsBuiltin} = 1 " +
+                $"WHERE c.{Db.Command.CommandType} = 'Cmdlet' " +
+                $"  AND EXISTS (" +
+                $"      SELECT 1 " +
+                $"      FROM {Db.CommandPlatform.Table} cp " +
+                $"      INNER JOIN SelectedPlatforms sp ON sp.{Db.Platform.Id} = cp.{Db.CommandPlatform.PlatformId} " +
+                $"      WHERE cp.{Db.CommandPlatform.CommandId} = c.{Db.Command.Id}" +
+                $"  )";
+            mark.ExecuteNonQuery();
+        }
+
         public void Dispose()
         {
             if (!_committed)
@@ -230,8 +305,8 @@ namespace Specter.CommandDatabase.Sqlite
             cmd.Transaction = _transaction;
             cmd.CommandText =
                 $"INSERT INTO {Db.Command.Table} " +
-                $"({Db.Command.ModuleId}, {Db.Command.Name}, {Db.Command.CommandType}, {Db.Command.DefaultParameterSet}) " +
-                $"VALUES (@mid, @n, @ct, @dps) " +
+                $"({Db.Command.ModuleId}, {Db.Command.Name}, {Db.Command.CommandType}, {Db.Command.DefaultParameterSet}, {Db.Command.IsBuiltin}) " +
+                $"VALUES (@mid, @n, @ct, @dps, @builtin) " +
                 $"ON CONFLICT({Db.Command.ModuleId}, {Db.Command.Name}) " +
                 $"DO UPDATE SET {Db.Command.Name} = {Db.Command.Name} " +
                 $"RETURNING {Db.Command.Id}";
@@ -239,6 +314,7 @@ namespace Specter.CommandDatabase.Sqlite
             cmd.Parameters.Add(new SqliteParameter("@n", SqliteType.Text));
             cmd.Parameters.Add(new SqliteParameter("@ct", SqliteType.Text));
             cmd.Parameters.Add(new SqliteParameter("@dps", SqliteType.Text));
+            cmd.Parameters.Add(new SqliteParameter("@builtin", SqliteType.Integer));
             cmd.Prepare();
             return cmd;
         }
@@ -359,6 +435,7 @@ namespace Specter.CommandDatabase.Sqlite
             prepared.Parameters["@n"].Value = name;
             prepared.Parameters["@ct"].Value = commandType ?? (object)"Cmdlet";
             prepared.Parameters["@dps"].Value = defaultParameterSet ?? (object)DBNull.Value;
+            prepared.Parameters["@builtin"].Value = 0;
             return (long)(prepared.ExecuteScalar() ?? throw new InvalidOperationException("Expected command ID from upsert"));
         }
 

@@ -132,13 +132,14 @@ iex 'Invoke me'";
         }
 
         [Fact]
-        public void UpdatedErrorMessage_ShouldSuggestAlternatives()
+        public void ErrorMessage_ShouldContainStableGuidance()
         {
             var script = @"Invoke-Expression 'Get-Process'";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             ScriptDiagnostic violation = Assert.Single(violations);
+            Assert.Contains("Invoke-Expression is used", violation.Message);
             Assert.Contains("invocation operator", violation.Message);
         }
     }

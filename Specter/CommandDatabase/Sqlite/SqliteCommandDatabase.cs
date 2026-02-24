@@ -121,7 +121,6 @@ namespace Specter.CommandDatabase.Sqlite
         public bool TryResolveProfile(string profileName, out PlatformInfo? platform)
         {
             platform = null;
-
             lock (_connectionLock)
             {
                 using SqliteCommand cmd = _connection.CreateCommand();
@@ -136,6 +135,51 @@ namespace Specter.CommandDatabase.Sqlite
                     $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = pn.{Db.ProfileName.PlatformId} " +
                     $"WHERE pn.{Db.ProfileName.Name} = @name COLLATE NOCASE LIMIT 1";
                 cmd.Parameters.AddWithValue("@name", profileName);
+
+                using SqliteDataReader reader = cmd.ExecuteReader();
+                if (!reader.Read())
+                {
+                    if (!PlatformInfo.TryParseFromLegacyProfileName(profileName, out PlatformInfo? parsedPlatform)
+                        || parsedPlatform is null)
+                    {
+                        return false;
+                    }
+
+                    return TryResolveNearestPlatform(parsedPlatform, out platform);
+                }
+
+                platform = ReadPlatformInfo(reader, startIndex: 0);
+                return true;
+            }
+        }
+
+        private bool TryResolveNearestPlatform(PlatformInfo target, out PlatformInfo? platform)
+        {
+            platform = null;
+            lock (_connectionLock)
+            {
+                using SqliteCommand cmd = _connection.CreateCommand();
+                cmd.CommandText =
+                    $"SELECT p.{Db.Platform.Edition}," +
+                    $"  p.{Db.Platform.PsVersionMajor}, p.{Db.Platform.PsVersionMinor}," +
+                    $"  p.{Db.Platform.PsVersionBuild}, p.{Db.Platform.PsVersionRevision}," +
+                    $"  p.{Db.Platform.OsFamily}, p.{Db.Platform.OsVersion}," +
+                    $"  p.{Db.Platform.OsSkuId}, p.{Db.Platform.Architecture}," +
+                    $"  p.{Db.Platform.Environment} " +
+                    $"FROM {Db.Platform.Table} p " +
+                    $"WHERE p.{Db.Platform.Edition} = @edition COLLATE NOCASE " +
+                    $"  AND p.{Db.Platform.OsFamily} = @osFamily COLLATE NOCASE " +
+                    $"  AND p.{Db.Platform.PsVersionMajor} = @major " +
+                    $"ORDER BY ABS(p.{Db.Platform.PsVersionMinor} - @minor), " +
+                    $"         ABS(p.{Db.Platform.PsVersionBuild} - @build), " +
+                    $"         ABS(p.{Db.Platform.PsVersionRevision} - @revision) " +
+                    $"LIMIT 1";
+                cmd.Parameters.AddWithValue("@edition", target.Edition);
+                cmd.Parameters.AddWithValue("@osFamily", target.Os.Family);
+                cmd.Parameters.AddWithValue("@major", target.Version.Major);
+                cmd.Parameters.AddWithValue("@minor", target.Version.Minor);
+                cmd.Parameters.AddWithValue("@build", target.Version.Build >= 0 ? target.Version.Build : 0);
+                cmd.Parameters.AddWithValue("@revision", target.Version.Revision >= 0 ? target.Version.Revision : 0);
 
                 using SqliteDataReader reader = cmd.ExecuteReader();
                 if (!reader.Read())
@@ -257,11 +301,12 @@ namespace Specter.CommandDatabase.Sqlite
             string? commandType = null;
             string? moduleName = null;
             string? defaultParameterSet = null;
+            bool isBuiltin = false;
 
             using (SqliteCommand cmd = _connection.CreateCommand())
             {
                 cmd.CommandText =
-                    $"SELECT c.{Db.Command.Name}, c.{Db.Command.CommandType}, c.{Db.Command.DefaultParameterSet}, m.{Db.Module.Name} " +
+                    $"SELECT c.{Db.Command.Name}, c.{Db.Command.CommandType}, c.{Db.Command.DefaultParameterSet}, c.{Db.Command.IsBuiltin}, m.{Db.Module.Name} " +
                     $"FROM {Db.Command.Table} c " +
                     $"LEFT JOIN {Db.Module.Table} m ON m.{Db.Module.Id} = c.{Db.Command.ModuleId} " +
                     $"WHERE c.{Db.Command.Id} = @id";
@@ -276,7 +321,8 @@ namespace Specter.CommandDatabase.Sqlite
                 name = reader.GetString(0) ?? throw new InvalidOperationException("Command name cannot be null");
                 commandType = reader.GetString(1) ?? throw new InvalidOperationException("Command type cannot be null");
                 defaultParameterSet = reader.IsDBNull(2) ? null : reader.GetString(2);
-                moduleName = reader.IsDBNull(3) ? null : reader.GetString(3);
+                isBuiltin = !reader.IsDBNull(3) && reader.GetInt32(3) != 0;
+                moduleName = reader.IsDBNull(4) ? null : reader.GetString(4);
             }
 
             var aliases = LoadAliases(commandId, platforms);
@@ -292,7 +338,8 @@ namespace Specter.CommandDatabase.Sqlite
                 parameterSetNames,
                 aliases,
                 parameters,
-                outputTypes);
+                outputTypes,
+                isBuiltin);
         }
 
         private IReadOnlyList<string> LoadAliases(long commandId, HashSet<PlatformInfo>? platforms)

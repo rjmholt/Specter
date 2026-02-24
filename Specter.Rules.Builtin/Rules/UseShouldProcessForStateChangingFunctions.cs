@@ -43,7 +43,7 @@ namespace Specter.Rules.Builtin.Rules
             {
                 FunctionSymbol function = scriptModel.Functions[i];
                 FunctionDefinitionAst funcDefAst = function.Ast;
-                if (funcDefAst.IsWorkflow || !function.IsCmdletStyle)
+                if (funcDefAst.IsWorkflow)
                 {
                     continue;
                 }

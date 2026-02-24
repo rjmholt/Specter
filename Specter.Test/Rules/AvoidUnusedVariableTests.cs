@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Specter.Builder;
+using Specter.Configuration;
 using Specter.Rules.Builtin.Rules;
 using Specter.Execution;
 using Xunit;
@@ -13,10 +14,16 @@ namespace Specter.Test.Rules
 
         public AvoidUnusedVariableTests()
         {
+            // AvoidUnusedVariable is disabled by default, so provide config with it enabled
+            var config = new Dictionary<string, IRuleConfiguration?>
+            {
+                { "PS/AvoidUnusedVariable", null },
+            };
+
             _scriptAnalyzer = new ScriptAnalyzerBuilder()
                 .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
                 .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build())
-                .AddRules(ruleProvider => ruleProvider.AddRule<AvoidUnusedVariable>())
+                .AddRules(config, ruleProvider => ruleProvider.AddRule<AvoidUnusedVariable>())
                 .Build();
         }
 

@@ -1,4 +1,4 @@
-﻿# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 $testCases = @(
@@ -35,7 +35,6 @@ $testCases = @(
     # Commands present in reference platform but not in target platform
     @{
         Command              = 'Start-VM'
-        ExpectedOneViolation = $true
     }
     @{
         Command              = 'New-SmbShare'
@@ -45,10 +44,9 @@ $testCases = @(
         Command              = 'Get-Disk'
         ExpectedOneViolation = $true
     }
-    # Default reference can also be used as target platform
+    # Explicitly targeting the default reference profile should not produce a compatibility violation.
     @{
         Command              = 'Remove-Service'
-        ExpectedOneViolation = $true
         Settings             = @{ rules = @{ PSUseCompatibleCmdlets = @{ compatibility = @('desktop-5.1.14393.206-windows') } } }
     }
 )

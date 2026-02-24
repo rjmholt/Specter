@@ -71,9 +71,16 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 yield break;
             }
 
+            var commandAsts = new List<CommandAst>();
             foreach (Ast foundAst in ast.FindAll(static node => node is CommandAst, searchNestedScriptBlocks: true))
             {
-                var cmdAst = (CommandAst)foundAst;
+                commandAsts.Add((CommandAst)foundAst);
+            }
+            commandAsts.Sort(static (left, right) =>
+                GetCommandTokenStartOffset(left).CompareTo(GetCommandTokenStartOffset(right)));
+
+            foreach (CommandAst cmdAst in commandAsts)
+            {
                 string? commandName = cmdAst.GetCommandName();
                 if (string.IsNullOrEmpty(commandName))
                 {
@@ -101,8 +108,12 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 foreach (var target in resolvedTargets)
                 {
                     var targetPlatforms = new HashSet<PlatformInfo> { target.Platform };
+                    string resolvedName = ResolveAlias(commandName!);
+                    bool hasRawCommand = _commandDb.CommandExistsOnPlatform(commandName!, targetPlatforms);
+                    bool hasResolvedCommand = !string.Equals(resolvedName, commandName, StringComparison.OrdinalIgnoreCase)
+                        && _commandDb.CommandExistsOnPlatform(resolvedName, targetPlatforms);
 
-                    if (!_commandDb.CommandExistsOnPlatform(commandName!, targetPlatforms))
+                    if (!hasRawCommand && !hasResolvedCommand)
                     {
                         string message = string.Format(
                             CultureInfo.CurrentCulture,
@@ -117,9 +128,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                         continue;
                     }
 
-                    // For parameter checking, resolve aliases so we check against the real command
-                    string resolvedName = ResolveAlias(commandName!);
-                    if (_commandDb.TryGetCommand(resolvedName, targetPlatforms, out CommandMetadata? targetCmd)
+                    string commandNameForMetadata = hasRawCommand ? commandName! : resolvedName;
+                    if (_commandDb.TryGetCommand(commandNameForMetadata, targetPlatforms, out CommandMetadata? targetCmd)
                         && targetCmd is not null)
                     {
                         var targetParamSet = BuildParameterNameSet(targetCmd);
@@ -213,6 +223,16 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             return new HashSet<string>(ignoreCommands, StringComparer.OrdinalIgnoreCase);
         }
 
+        private static int GetCommandTokenStartOffset(CommandAst commandAst)
+        {
+            if (commandAst.CommandElements.Count > 0)
+            {
+                return commandAst.CommandElements[0].Extent.StartOffset;
+            }
+
+            return commandAst.Extent.StartOffset;
+        }
+
         private static HashSet<string> BuildParameterNameSet(CommandMetadata cmd)
         {
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -251,5 +271,6 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 Platform = platform;
             }
         }
+
     }
 }

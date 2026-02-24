@@ -153,7 +153,18 @@ namespace Specter.CommandDatabase
                 return false;
             }
 
+            if (profileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                profileName = profileName.Substring(0, profileName.Length - ".json".Length);
+            }
+
             int firstDash = profileName.IndexOf('-');
+            int underscoreIndex = profileName.IndexOf('_');
+            if (underscoreIndex > 0)
+            {
+                return TryParseFromUnderscoreLegacyProfileName(profileName, out platform);
+            }
+
             if (firstDash < 0)
             {
                 return false;
@@ -197,6 +208,87 @@ namespace Specter.CommandDatabase
             }
 
             platform = Create(edition, versionStr, new OsInfo(osFamily));
+            return true;
+        }
+
+        private static bool TryParseFromUnderscoreLegacyProfileName(string profileName, out PlatformInfo? platform)
+        {
+            platform = null;
+            string[] parts = profileName.Split('_');
+            if (parts.Length < 7)
+            {
+                return false;
+            }
+
+            string osToken = parts[0];
+            string architecture = parts[1];
+            string osVersion = parts[2];
+            string psVersion = parts[3];
+            string editionToken = parts[6];
+            Version parsedPsVersion = ParseVersion(psVersion);
+
+            if (string.IsNullOrEmpty(osToken)
+                || string.IsNullOrEmpty(architecture)
+                || string.IsNullOrEmpty(osVersion)
+                || string.IsNullOrEmpty(psVersion)
+                || string.IsNullOrEmpty(editionToken))
+            {
+                return false;
+            }
+
+            string osFamily;
+            int? skuId = null;
+            if (osToken.StartsWith("win", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "Windows";
+                int dashIndex = osToken.IndexOf('-');
+                if (dashIndex > 0
+                    && dashIndex + 1 < osToken.Length
+                    && int.TryParse(osToken.Substring(dashIndex + 1), out int parsedSkuId))
+                {
+                    skuId = parsedSkuId;
+                }
+            }
+            else if (osToken.StartsWith("ubuntu", StringComparison.OrdinalIgnoreCase)
+                || osToken.StartsWith("linux", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "Linux";
+            }
+            else if (osToken.StartsWith("mac", StringComparison.OrdinalIgnoreCase)
+                || osToken.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "MacOS";
+            }
+            else
+            {
+                return false;
+            }
+
+            string edition;
+            if (string.Equals(editionToken, "core", StringComparison.OrdinalIgnoreCase))
+            {
+                edition = "Core";
+            }
+            else if (string.Equals(editionToken, "framework", StringComparison.OrdinalIgnoreCase))
+            {
+                // Compatibility collector profiles use empty edition for Windows PowerShell 3/4,
+                // and "Desktop" for Windows PowerShell 5.1 profiles.
+                edition = parsedPsVersion.Major <= 4 ? string.Empty : "Desktop";
+            }
+            else
+            {
+                edition = editionToken;
+            }
+
+            platform = Create(
+                edition,
+                psVersion,
+                new OsInfo(
+                    family: osFamily,
+                    version: osVersion,
+                    skuId: skuId,
+                    architecture: architecture.ToUpperInvariant(),
+                    environment: null));
             return true;
         }
 

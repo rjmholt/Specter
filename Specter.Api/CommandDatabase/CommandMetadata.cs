@@ -14,7 +14,8 @@ namespace Specter.CommandDatabase
             IReadOnlyList<string>? parameterSetNames,
             IReadOnlyList<string>? aliases,
             IReadOnlyList<ParameterMetadata>? parameters,
-            IReadOnlyList<string>? outputTypes)
+            IReadOnlyList<string>? outputTypes,
+            bool isBuiltin = false)
         {
             Name = name;
             CommandType = commandType;
@@ -24,6 +25,7 @@ namespace Specter.CommandDatabase
             _aliases = aliases is not null ? new List<string>(aliases) : new List<string>();
             Parameters = parameters ?? System.Array.Empty<ParameterMetadata>();
             OutputTypes = outputTypes ?? System.Array.Empty<string>();
+            IsBuiltin = isBuiltin;
         }
 
         public string Name { get; }
@@ -34,6 +36,7 @@ namespace Specter.CommandDatabase
         public IReadOnlyList<string> Aliases => _aliases;
         public IReadOnlyList<ParameterMetadata> Parameters { get; }
         public IReadOnlyList<string> OutputTypes { get; }
+        public bool IsBuiltin { get; }
 
         public void AddAlias(string alias) => _aliases.Add(alias);
     }

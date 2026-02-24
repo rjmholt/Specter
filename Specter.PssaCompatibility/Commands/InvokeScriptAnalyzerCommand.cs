@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Language;
 using Specter;
 using Specter.Builder;
 using Specter.Configuration;
@@ -153,13 +154,20 @@ namespace Specter.PssaCompatibility.Commands
             }
             else
             {
+                var records = new List<DiagnosticRecord>();
                 foreach (ScriptDiagnostic diagnostic in result.Diagnostics)
                 {
                     DiagnosticRecord record = DiagnosticRecord.FromEngineDiagnostic(diagnostic);
                     if (PassesFilters(record, severityFilter))
                     {
-                        WriteObject(record);
+                        records.Add(record);
                     }
+                }
+
+                records.Sort(static (left, right) => CompareDiagnosticRecords(left, right));
+                for (int i = 0; i < records.Count; i++)
+                {
+                    WriteObject(records[i]);
                 }
 
                 if (IncludeSuppressed.IsPresent)
@@ -231,6 +239,74 @@ namespace Specter.PssaCompatibility.Commands
             }
 
             return true;
+        }
+
+        private static int CompareDiagnosticRecords(DiagnosticRecord left, DiagnosticRecord right)
+        {
+            int cmp = string.Compare(left.ScriptPath, right.ScriptPath, StringComparison.OrdinalIgnoreCase);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            cmp = CompareExtents(left.Extent, right.Extent);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            cmp = string.Compare(left.RuleName, right.RuleName, StringComparison.OrdinalIgnoreCase);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            cmp = string.Compare(left.Command, right.Command, StringComparison.OrdinalIgnoreCase);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            cmp = string.Compare(left.Parameter, right.Parameter, StringComparison.OrdinalIgnoreCase);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            return string.Compare(left.Message, right.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static int CompareExtents(IScriptExtent? left, IScriptExtent? right)
+        {
+            if (left is null)
+            {
+                return right is null ? 0 : 1;
+            }
+
+            if (right is null)
+            {
+                return -1;
+            }
+
+            int cmp = left.StartLineNumber.CompareTo(right.StartLineNumber);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            cmp = left.StartColumnNumber.CompareTo(right.StartColumnNumber);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            cmp = left.EndLineNumber.CompareTo(right.EndLineNumber);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            return left.EndColumnNumber.CompareTo(right.EndColumnNumber);
         }
 
         private string? ResolvePath(string inputPath)
@@ -403,10 +479,11 @@ namespace Specter.PssaCompatibility.Commands
             {
                 string? assemblyDir = System.IO.Path.GetDirectoryName(GetType().Assembly.Location);
                 string? dbDir = assemblyDir ?? moduleBase;
-                string dbPath = System.IO.Path.Combine(dbDir, "Data", "specter.db");
-                if (System.IO.File.Exists(dbPath))
+
+                string specterDbPath = System.IO.Path.Combine(dbDir, "Data", "specter.db");
+                if (System.IO.File.Exists(specterDbPath))
                 {
-                    BuiltinCommandDatabase.DefaultDatabasePath = dbPath;
+                    BuiltinCommandDatabase.DefaultDatabasePath = specterDbPath;
                 }
             }
 

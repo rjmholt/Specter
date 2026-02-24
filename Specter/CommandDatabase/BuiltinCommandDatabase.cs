@@ -177,8 +177,8 @@ namespace Specter.CommandDatabase
                     return null;
                 }
 
-                string candidate = Path.Combine(assemblyDir, "Data", "specter.db");
-                if (File.Exists(candidate))
+                string? candidate = TryResolveDatabasePath(assemblyDir);
+                if (candidate is not null)
                 {
                     return candidate;
                 }
@@ -186,8 +186,8 @@ namespace Specter.CommandDatabase
                 string? parentDir = Path.GetDirectoryName(assemblyDir);
                 if (parentDir is not null)
                 {
-                    candidate = Path.Combine(parentDir, "Data", "specter.db");
-                    if (File.Exists(candidate))
+                    candidate = TryResolveDatabasePath(parentDir);
+                    if (candidate is not null)
                     {
                         return candidate;
                     }
@@ -195,6 +195,17 @@ namespace Specter.CommandDatabase
             }
             catch
             {
+            }
+
+            return null;
+        }
+
+        private static string? TryResolveDatabasePath(string baseDir)
+        {
+            string specterDb = Path.Combine(baseDir, "Data", "specter.db");
+            if (File.Exists(specterDb))
+            {
+                return specterDb;
             }
 
             return null;

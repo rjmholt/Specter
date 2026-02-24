@@ -22,8 +22,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
     [Rule("UseCompatibleCmdlets", typeof(Strings), nameof(Strings.UseCompatibleCmdletsDescription))]
     internal class UseCompatibleCmdlets : ConfigurableScriptRule<UseCompatibleCmdletsConfiguration>
     {
-        private const string DefaultReference = "desktop-5.1.14393.206-windows";
-        private const string AlternativeDefaultReference = "core-6.1.0-windows";
+        private const string DefaultWindowsReference = "desktop-5.1.14393.206-windows";
 
         private readonly IPowerShellCommandDatabase _commandDb;
         private readonly PlatformContext _platformContext;
@@ -56,9 +55,8 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             var targetPlatforms = new List<(string Label, PlatformInfo Platform)>();
             if (useGlobalTargets)
             {
-                for (int i = 0; i < _platformContext.TargetPlatforms.Count; i++)
+                foreach (PlatformInfo platform in ResolveBuiltinTargetPlatforms())
                 {
-                    PlatformInfo platform = _platformContext.TargetPlatforms[i];
                     targetPlatforms.Add((platform.ToString(), platform));
                 }
             }
@@ -67,10 +65,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 string[] configuredCompatibility = compatibility ?? Array.Empty<string>();
                 foreach (string platformStr in configuredCompatibility)
                 {
-                    if (PlatformInfo.TryParseFromLegacyProfileName(platformStr, out PlatformInfo? platform)
-                        && platform is not null)
+                    if (_commandDb.TryResolveProfile(platformStr, out PlatformInfo? resolvedPlatform)
+                        && resolvedPlatform is not null)
                     {
-                        targetPlatforms.Add((platformStr, platform));
+                        targetPlatforms.Add((platformStr, resolvedPlatform));
+                        continue;
+                    }
+
+                    if (PlatformInfo.TryParseFromLegacyProfileName(platformStr, out PlatformInfo? parsedPlatform)
+                        && parsedPlatform is not null)
+                    {
+                        targetPlatforms.Add((platformStr, parsedPlatform));
                     }
                 }
             }
@@ -83,20 +88,16 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             string? referenceStr = Configuration.Reference;
             if (string.IsNullOrEmpty(referenceStr))
             {
-                referenceStr = DefaultReference;
-                if (!useGlobalTargets
-                    && compatibility is not null
-                    && targetPlatforms.Count == 1
-                    && string.Equals(compatibility[0], DefaultReference, StringComparison.OrdinalIgnoreCase))
-                {
-                    referenceStr = AlternativeDefaultReference;
-                }
+                referenceStr = DefaultWindowsReference;
             }
 
-            if (!PlatformInfo.TryParseFromLegacyProfileName(referenceStr!, out PlatformInfo? refPlatform)
-                || refPlatform is null)
+            PlatformInfo? refPlatform = null;
+            if (!_commandDb.TryResolveProfile(referenceStr!, out refPlatform) || refPlatform is null)
             {
-                yield break;
+                if (!PlatformInfo.TryParseFromLegacyProfileName(referenceStr!, out refPlatform) || refPlatform is null)
+                {
+                    yield break;
+                }
             }
 
             var referencePlatforms = new HashSet<PlatformInfo> { refPlatform };
@@ -131,6 +132,69 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                     }
                 }
             }
+        }
+
+        private IEnumerable<PlatformInfo> ResolveBuiltinTargetPlatforms()
+        {
+            var defaults = new List<PlatformInfo>();
+
+            TryAddResolvedPlatform(DefaultWindowsReference, defaults);
+
+            string currentPs7Profile = $"core-7.0.0-{GetCurrentOsToken()}";
+            TryAddResolvedPlatform(currentPs7Profile, defaults);
+
+            if (defaults.Count > 0)
+            {
+                return defaults;
+            }
+
+            return _platformContext.TargetPlatforms;
+        }
+
+        private void TryAddResolvedPlatform(string profileName, List<PlatformInfo> platforms)
+        {
+            if (_commandDb.TryResolveProfile(profileName, out PlatformInfo? resolved) && resolved is not null)
+            {
+                AddUnique(platforms, resolved);
+                return;
+            }
+
+            if (PlatformInfo.TryParseFromLegacyProfileName(profileName, out PlatformInfo? parsed) && parsed is not null)
+            {
+                AddUnique(platforms, parsed);
+            }
+        }
+
+        private static void AddUnique(List<PlatformInfo> platforms, PlatformInfo platform)
+        {
+            for (int i = 0; i < platforms.Count; i++)
+            {
+                if (platforms[i].Equals(platform))
+                {
+                    return;
+                }
+            }
+
+            platforms.Add(platform);
+        }
+
+        private static string GetCurrentOsToken()
+        {
+#if CORECLR
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            {
+                return "windows";
+            }
+
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+            {
+                return "macos";
+            }
+
+            return "linux";
+#else
+            return "windows";
+#endif
         }
     }
 }

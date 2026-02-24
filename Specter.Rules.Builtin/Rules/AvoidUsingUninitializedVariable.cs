@@ -18,6 +18,57 @@ namespace Specter.Rules.Builtin.Rules
     [Rule("AvoidUsingUninitializedVariable", typeof(Strings), nameof(Strings.AvoidUsingUninitializedVariableDescription))]
     internal class AvoidUsingUninitializedVariable : ScriptRule
     {
+        private static readonly HashSet<string> s_automaticVariables = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "_",
+            "?",
+            "^",
+            "args",
+            "ConsoleFileName",
+            "EnabledExperimentalFeatures",
+            "Error",
+            "Event",
+            "EventArgs",
+            "EventSubscriber",
+            "ExecutionContext",
+            "false",
+            "foreach",
+            "HOME",
+            "Host",
+            "input",
+            "IsCoreCLR",
+            "IsLinux",
+            "IsMacOS",
+            "IsWindows",
+            "LASTEXITCODE",
+            "Matches",
+            "MyInvocation",
+            "NestedPromptLevel",
+            "null",
+            "PID",
+            "PROFILE",
+            "PSBoundParameters",
+            "PSCmdlet",
+            "PSCommandPath",
+            "PSCulture",
+            "PSDebugContext",
+            "PSEdition",
+            "PSEmailServer",
+            "PSHOME",
+            "PSItem",
+            "PSScriptRoot",
+            "PSSenderInfo",
+            "PSStyle",
+            "PSUICulture",
+            "PSVersionTable",
+            "PWD",
+            "ShellId",
+            "StackTrace",
+            "switch",
+            "this",
+            "true",
+        };
+
         internal AvoidUsingUninitializedVariable(RuleInfo ruleInfo)
             : base(ruleInfo)
         {
@@ -146,7 +197,16 @@ namespace Specter.Rules.Builtin.Rules
         {
             return IsScopeQualified(varAst)
                 || varAst.IsSpecialVariable()
+                || IsAutomaticVariable(varAst)
+                || IsForeachEnumerableVariable(varAst)
+                || IsWithinBinaryExpression(varAst)
                 || IsInsideUsing(varAst);
+        }
+
+        private static bool IsAutomaticVariable(VariableExpressionAst varAst)
+        {
+            string? userPath = varAst.VariablePath.UserPath;
+            return !string.IsNullOrEmpty(userPath) && s_automaticVariables.Contains(userPath);
         }
 
         private static bool IsScopeQualified(VariableExpressionAst varAst)
@@ -167,6 +227,69 @@ namespace Specter.Rules.Builtin.Rules
                 }
 
                 parent = parent.Parent;
+            }
+
+            return false;
+        }
+
+        private static bool IsForeachEnumerableVariable(VariableExpressionAst varAst)
+        {
+            Ast? parent = varAst.Parent;
+            while (parent is not null)
+            {
+                if (parent is ForEachStatementAst forEachAst)
+                {
+                    if (ReferenceEquals(forEachAst.Variable, varAst))
+                    {
+                        return false;
+                    }
+
+                    return IsDescendantOf(varAst, forEachAst.Condition);
+                }
+
+                parent = parent.Parent;
+            }
+
+            return false;
+        }
+
+        private static bool IsWithinBinaryExpression(VariableExpressionAst varAst)
+        {
+            Ast? parent = varAst.Parent;
+            while (parent is not null)
+            {
+                if (parent is BinaryExpressionAst)
+                {
+                    return true;
+                }
+
+                if (parent is StatementAst or PipelineAst or CommandAst or ScriptBlockAst)
+                {
+                    return false;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return false;
+        }
+
+        private static bool IsDescendantOf(Ast ast, Ast? possibleAncestor)
+        {
+            if (possibleAncestor is null)
+            {
+                return false;
+            }
+
+            Ast? current = ast;
+            while (current is not null)
+            {
+                if (ReferenceEquals(current, possibleAncestor))
+                {
+                    return true;
+                }
+
+                current = current.Parent;
             }
 
             return false;
