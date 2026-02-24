@@ -50,7 +50,7 @@ CompatiblePSEditions = @('Core', 'Desktop')
 PrivateData = @{
     PSData = @{
         Tags = @('lint', 'PSScriptAnalyzer', 'compatibility')
-        Prerelease = 'preview-1'
+        Prerelease = 'preview.1'
     }
 }
 
