@@ -46,13 +46,14 @@ namespace Specter.Builder
             if (policy != ExternalRulePolicy.Disabled && configuration.RulePaths is not null)
             {
                 bool skipOwnershipCheck = policy == ExternalRulePolicy.Unrestricted;
+                IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfiguration = configuration.RuleConfiguration;
 
                 foreach (string rulePath in configuration.RulePaths)
                 {
                     IRuleProviderFactory? factory = ExternalRuleLoader.CreateProviderFactory(
                         rulePath,
                         settingsFileDirectory,
-                        configuration.RuleConfiguration,
+                        ruleConfiguration,
                         skipOwnershipCheck,
                         logger: null);
 

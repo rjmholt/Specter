@@ -11,7 +11,7 @@ namespace Specter.Configuration
     {
         private readonly List<string> _rulePaths;
 
-        private readonly Dictionary<string, IRuleConfiguration> _ruleConfigurations;
+        private readonly Dictionary<string, IRuleConfiguration?> _ruleConfigurations;
 
         private BuiltinRulePreference? _builtinRulePreference;
 
@@ -20,7 +20,7 @@ namespace Specter.Configuration
         public ScriptAnalyzerConfigurationBuilder()
         {
             _rulePaths = new List<string>();
-            _ruleConfigurations = new Dictionary<string, IRuleConfiguration>();
+            _ruleConfigurations = new Dictionary<string, IRuleConfiguration?>();
         }
 
         public ScriptAnalyzerConfigurationBuilder WithBuiltinRuleSet(BuiltinRulePreference builtinRulePreference)
@@ -47,9 +47,9 @@ namespace Specter.Configuration
             return this;
         }
 
-        public ScriptAnalyzerConfigurationBuilder AddRuleConfigurations(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurations)
+        public ScriptAnalyzerConfigurationBuilder AddRuleConfigurations(IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurations)
         {
-            foreach (KeyValuePair<string, IRuleConfiguration> entry in ruleConfigurations)
+            foreach (KeyValuePair<string, IRuleConfiguration?> entry in ruleConfigurations)
             {
                 _ruleConfigurations[entry.Key] = entry.Value;
             }
@@ -134,7 +134,7 @@ namespace Specter.Configuration
             BuiltinRulePreference? builtinRulePreference,
             RuleExecutionMode? ruleExecutionMode,
             IReadOnlyList<string> rulePaths,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurations)
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurations)
         {
             BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
@@ -146,7 +146,7 @@ namespace Specter.Configuration
 
         public RuleExecutionMode? RuleExecution { get; }
 
-        public IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
+        public IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 
         public BuiltinRulePreference? BuiltinRules { get; }
 

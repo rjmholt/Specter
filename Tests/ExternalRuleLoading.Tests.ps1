@@ -190,20 +190,20 @@ Describe "External Rule Loading" {
         }
     }
 
-    Context "RulePrimitives Module" {
-        It "Specter.RulePrimitives module can be imported" {
-            $primitivesPath = Join-Path $PSScriptRoot '..' 'Specter.RulePrimitives' 'bin' 'Debug' 'net8' 'Specter.RulePrimitives.psd1'
+    Context "RuleCmdlets Module" {
+        It "Specter.RuleCmdlets module can be imported" {
+            $primitivesPath = Join-Path $PSScriptRoot '..' 'Specter.RuleCmdlets' 'bin' 'Debug' 'net8' 'Specter.RuleCmdlets.psd1'
             if (-not (Test-Path $primitivesPath)) {
-                $primitivesPath = Join-Path $PSScriptRoot '..' 'Specter.RulePrimitives' 'Specter.RulePrimitives.psd1'
+                $primitivesPath = Join-Path $PSScriptRoot '..' 'Specter.RuleCmdlets' 'Specter.RuleCmdlets.psd1'
             }
             if (Test-Path $primitivesPath) {
                 { Import-Module $primitivesPath -Force -ErrorAction Stop } | Should -Not -Throw
-                Get-Command -Module 'Specter.RulePrimitives' -Name 'Write-Diagnostic' | Should -Not -BeNullOrEmpty
-                Get-Command -Module 'Specter.RulePrimitives' -Name 'New-ScriptCorrection' | Should -Not -BeNullOrEmpty
-                Remove-Module 'Specter.RulePrimitives' -Force -ErrorAction SilentlyContinue
+                Get-Command -Module 'Specter.RuleCmdlets' -Name 'Write-Diagnostic' | Should -Not -BeNullOrEmpty
+                Get-Command -Module 'Specter.RuleCmdlets' -Name 'New-ScriptCorrection' | Should -Not -BeNullOrEmpty
+                Remove-Module 'Specter.RuleCmdlets' -Force -ErrorAction SilentlyContinue
             }
             else {
-                Set-ItResult -Skipped -Because "Specter.RulePrimitives module not found (run dotnet build first)"
+                Set-ItResult -Skipped -Because "Specter.RuleCmdlets module not found (run dotnet build first)"
             }
         }
     }

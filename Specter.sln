@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Module", "Specter.M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.PssaCompatibility", "Specter.PssaCompatibility\Specter.PssaCompatibility.csproj", "{FA0C12C6-F74F-42F4-99DA-A4B24492EE1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.RulePrimitives", "Specter.RulePrimitives\Specter.RulePrimitives.csproj", "{6F0E7F0B-A866-4430-B3DB-063AD07DED87}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.RuleCmdlets", "Specter.RuleCmdlets\Specter.RuleCmdlets.csproj", "{6F0E7F0B-A866-4430-B3DB-063AD07DED87}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Server", "Specter.Server\Specter.Server.csproj", "{B68BDF6D-BD38-4D0C-A94F-6FEB56752F04}"
 EndProject
@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Benchmarks", "Spect
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Api", "Specter.Api\Specter.Api.csproj", "{323F9053-0731-4EC7-994F-8636B848F760}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Rules", "Specter.Rules\Specter.Rules.csproj", "{B50FD82F-EC03-49F0-8627-C96D119FD4B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Rules.Builtin", "Specter.Rules.Builtin\Specter.Rules.Builtin.csproj", "{B50FD82F-EC03-49F0-8627-C96D119FD4B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

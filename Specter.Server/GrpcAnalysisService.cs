@@ -1,4 +1,5 @@
 using Grpc.Core;
+using Specter;
 using Specter.Rules;
 using Specter.Server.Grpc;
 

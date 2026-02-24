@@ -5,7 +5,7 @@ using Specter.Builder;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules;
 using Specter.Execution;
 using Xunit;
-using Specter.Builtin.Rules;
+using Specter.Rules.Builtin.Rules;
 
 namespace Specter.Test.Rules
 {

@@ -56,7 +56,7 @@ namespace Specter.Configuration
 
         IReadOnlyList<string> RulePaths { get; }
 
-        IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
+        IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 
         ExternalRulePolicy ExternalRules { get; }
     }

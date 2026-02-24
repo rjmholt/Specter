@@ -17,7 +17,7 @@ namespace Specter.Security
         internal static IRuleProviderFactory? CreateProviderFactory(
             string rawPath,
             string? settingsFileDirectory,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfiguration,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfiguration,
             bool skipOwnershipCheck,
             IAnalysisLogger? logger)
         {
@@ -60,7 +60,7 @@ namespace Specter.Security
         internal static List<IRuleProviderFactory> CreateProviderFactoriesForDirectory(
             string rawPath,
             string? settingsFileDirectory,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfiguration,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfiguration,
             bool recurse,
             bool skipOwnershipCheck,
             IAnalysisLogger? logger)
@@ -139,7 +139,7 @@ namespace Specter.Security
         private static IRuleProviderFactory? CreateFactoryForKind(
             string canonicalPath,
             RuleFileKind kind,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfiguration,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfiguration,
             IAnalysisLogger? logger)
         {
             switch (kind)
@@ -159,7 +159,7 @@ namespace Specter.Security
 
         private static IRuleProviderFactory? CreateAssemblyFactory(
             string canonicalPath,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfiguration,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfiguration,
             IAnalysisLogger? logger)
         {
             try

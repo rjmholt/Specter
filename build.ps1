@@ -6,7 +6,7 @@
     Builds each shipping project and stages three PowerShell modules under out/:
       - Specter             (primary module)
       - Specter.PssaCompatibility (drop-in PSSA replacement)
-      - Specter.RulePrimitives   (cmdlets for rule authors)
+      - Specter.RuleCmdlets   (cmdlets for rule authors)
 
     When -Pack is set, also produces .nupkg files under out/nupkg/:
       - PSGallery-compatible packages for each module (for Install-PSResource / GitHub releases)
@@ -129,10 +129,10 @@ $projects = @(
         OutName     = 'Specter.PssaCompatibility'
     }
     @{
-        Csproj      = 'Specter.RulePrimitives/Specter.RulePrimitives.csproj'
-        ManifestDir = 'Specter.RulePrimitives'
-        Manifest    = 'Specter.RulePrimitives.psd1'
-        OutName     = 'Specter.RulePrimitives'
+        Csproj      = 'Specter.RuleCmdlets/Specter.RuleCmdlets.csproj'
+        ManifestDir = 'Specter.RuleCmdlets'
+        Manifest    = 'Specter.RuleCmdlets.psd1'
+        OutName     = 'Specter.RuleCmdlets'
     }
 )
 
@@ -197,7 +197,7 @@ if ($Pack) {
     Write-Host "Packing NuGet library packages..." -ForegroundColor Cyan
     $packableProjects = @(
         'Specter.Api/Specter.Api.csproj',
-        'Specter.Rules/Specter.Rules.csproj',
+        'Specter.Rules.Builtin/Specter.Rules.Builtin.csproj',
         'Specter/Specter.csproj'
     )
     foreach ($csproj in $packableProjects) {

@@ -89,7 +89,7 @@ if (-not $SkipPSGallery) {
     $psModules = @(
         @{ Name = 'Specter';                  Path = Join-Path $outRoot 'Specter' }
         @{ Name = 'Specter.PssaCompatibility'; Path = Join-Path $outRoot 'Specter.PssaCompatibility' }
-        @{ Name = 'Specter.RulePrimitives';    Path = Join-Path $outRoot 'Specter.RulePrimitives' }
+        @{ Name = 'Specter.RuleCmdlets';    Path = Join-Path $outRoot 'Specter.RuleCmdlets' }
     )
 
     foreach ($mod in $psModules) {

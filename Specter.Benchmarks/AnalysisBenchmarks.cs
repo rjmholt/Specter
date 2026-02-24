@@ -1,8 +1,8 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Specter.Builder;
-using Specter.Builtin;
 using Specter.Execution;
+using Specter.Rules.Builtin;
 using System.Management.Automation.Language;
 
 namespace Specter.Benchmarks;

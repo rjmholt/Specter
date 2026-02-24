@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Specter.Builder;
-using Specter.Builtin.Editors;
-using Specter.Builtin.Rules;
+using Specter.Rules.Builtin.Editors;
+using Specter.Rules.Builtin.Rules;
 using Specter.Configuration;
 using Specter.Execution;
 using Xunit;

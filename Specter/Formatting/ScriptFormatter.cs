@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Specter.Builtin;
+using Specter.Rules.Builtin;
 using Specter.Rules;
 
 namespace Specter.Formatting

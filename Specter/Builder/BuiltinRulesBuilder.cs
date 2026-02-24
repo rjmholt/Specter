@@ -1,6 +1,6 @@
-using Specter.Builtin;
 using Specter.Configuration;
 using Specter.Instantiation;
+using Specter.Rules.Builtin;
 using System;
 using System.Collections.Generic;
 
@@ -8,11 +8,11 @@ namespace Specter.Builder
 {
     public class BuiltinRulesBuilder
     {
-        private IReadOnlyDictionary<string, IRuleConfiguration>? _ruleConfiguration;
+        private IReadOnlyDictionary<string, IRuleConfiguration?>? _ruleConfiguration;
 
         private RuleComponentProvider? _ruleComponents;
 
-        public BuiltinRulesBuilder WithRuleConfiguration(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+        public BuiltinRulesBuilder WithRuleConfiguration(IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection)
         {
             _ruleConfiguration = ruleConfigurationCollection;
             return this;
@@ -34,7 +34,7 @@ namespace Specter.Builder
 
         public IRuleProviderFactory Build()
         {
-            return new BuiltinRuleProviderFactory(_ruleConfiguration ?? (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
+            return new BuiltinRuleProviderFactory(_ruleConfiguration ?? Default.RuleConfiguration);
         }
     }
 }

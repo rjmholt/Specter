@@ -4,7 +4,7 @@ using System.Linq;
 using System.Management.Automation.Language;
 using Specter;
 using Specter.Builder;
-using Specter.Builtin.Rules.Dsc;
+using Specter.Rules.Builtin.Rules.Dsc;
 using Specter.Execution;
 using Xunit;
 using Xunit.Abstractions;

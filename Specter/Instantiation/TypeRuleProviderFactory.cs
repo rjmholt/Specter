@@ -10,12 +10,12 @@ namespace Specter.Instantiation
 {
     public class TypeRuleProviderFactoryBuilder
     {
-        private readonly Dictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
+        private readonly Dictionary<string, IRuleConfiguration?> _ruleConfigurationCollection;
 
         private readonly Dictionary<Type, RuleInfo?> _ruleTypes;
 
         public TypeRuleProviderFactoryBuilder(
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection)
         {
             _ruleTypes = new Dictionary<Type, RuleInfo?>();
             _ruleConfigurationCollection = ruleConfigurationCollection.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
@@ -46,25 +46,25 @@ namespace Specter.Instantiation
     public class TypeRuleProviderFactory : IRuleProviderFactory
     {
         public static TypeRuleProviderFactory FromAssemblyFile(
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection,
             string assemblyPath)
         {
             return FromAssembly(ruleConfigurationCollection, Assembly.LoadFile(assemblyPath));
         }
 
         public static TypeRuleProviderFactory FromAssembly(
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection,
             Assembly ruleAssembly)
         {
             return new TypeRuleProviderFactory(ruleConfigurationCollection, ruleAssembly.GetExportedTypes().ToDictionary(t => t, _ => (RuleInfo?)null));
         }
 
-        private readonly IReadOnlyDictionary<string, IRuleConfiguration> _ruleConfigurationCollection;
+        private readonly IReadOnlyDictionary<string, IRuleConfiguration?> _ruleConfigurationCollection;
 
         private readonly IReadOnlyDictionary<Type, RuleInfo?> _ruleTypes;
 
         public TypeRuleProviderFactory(
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection,
             IReadOnlyDictionary<Type, RuleInfo?> ruleTypes)
         {
             _ruleConfigurationCollection = ruleConfigurationCollection;

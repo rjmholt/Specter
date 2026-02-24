@@ -50,7 +50,7 @@ namespace Specter.Configuration.Psd
             BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
             RulePaths = rulePaths;
-            var ruleConfigDict = new Dictionary<string, IRuleConfiguration>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
+            var ruleConfigDict = new Dictionary<string, IRuleConfiguration?>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in ruleConfigurations)
             {
                 CommonConfiguration common;
@@ -74,7 +74,7 @@ namespace Specter.Configuration.Psd
 
         public IReadOnlyList<string> RulePaths { get; }
 
-        public IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
+        public IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 
         public ExternalRulePolicy ExternalRules => ExternalRulePolicy.Explicit;
     }

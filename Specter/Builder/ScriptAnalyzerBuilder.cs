@@ -1,8 +1,8 @@
-using Specter.Builtin;
 using Specter.Configuration;
 using Specter.Execution;
 using Specter.Instantiation;
 using Specter.Logging;
+using Specter.Rules.Builtin;
 using Specter.Security;
 using System;
 using System.Collections.Generic;
@@ -67,9 +67,9 @@ namespace Specter.Builder
         }
 
         public ScriptAnalyzerBuilder AddBuiltinRules()
-            => AddBuiltinRules((IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
+            => AddBuiltinRules(Default.RuleConfiguration);
 
-        public ScriptAnalyzerBuilder AddBuiltinRules(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+        public ScriptAnalyzerBuilder AddBuiltinRules(IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection)
         {
             _ruleProviderFactories.Add(
                 new BuiltinRuleProviderFactory(ruleConfigurationCollection));
@@ -77,9 +77,9 @@ namespace Specter.Builder
         }
 
         public ScriptAnalyzerBuilder AddRules(Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
-            => AddRules((IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration, configureRuleProviderFactory);
+            => AddRules(Default.RuleConfiguration, configureRuleProviderFactory);
 
-        public ScriptAnalyzerBuilder AddRules(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection, Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
+        public ScriptAnalyzerBuilder AddRules(IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection, Action<TypeRuleProviderFactoryBuilder> configureRuleProviderFactory)
         {
             var ruleProviderFactoryBuilder = new TypeRuleProviderFactoryBuilder(ruleConfigurationCollection);
             configureRuleProviderFactory(ruleProviderFactoryBuilder);
@@ -88,9 +88,9 @@ namespace Specter.Builder
         }
 
         public ScriptAnalyzerBuilder AddRulesFromAssembly(Assembly ruleAssembly)
-            => AddRulesFromAssembly((IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration, ruleAssembly);
+            => AddRulesFromAssembly(Default.RuleConfiguration, ruleAssembly);
 
-        public ScriptAnalyzerBuilder AddRulesFromAssembly(IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection, Assembly ruleAssembly)
+        public ScriptAnalyzerBuilder AddRulesFromAssembly(IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection, Assembly ruleAssembly)
         {
             AddRuleProviderFactory(TypeRuleProviderFactory.FromAssembly(ruleConfigurationCollection, ruleAssembly));
             return this;
@@ -102,11 +102,11 @@ namespace Specter.Builder
         /// Throws if the policy is Disabled.
         /// </summary>
         public ScriptAnalyzerBuilder AddRulesFromPath(string absolutePath)
-            => AddRulesFromPath(absolutePath, (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
+            => AddRulesFromPath(absolutePath, Default.RuleConfiguration);
 
         public ScriptAnalyzerBuilder AddRulesFromPath(
             string absolutePath,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection)
         {
             EnsureExternalRulesAllowed();
 
@@ -140,12 +140,12 @@ namespace Specter.Builder
         public ScriptAnalyzerBuilder AddRulesFromPath(
             string absolutePath,
             bool recurse)
-            => AddRulesFromPath(absolutePath, recurse, (IReadOnlyDictionary<string, IRuleConfiguration>)(object)Default.RuleConfiguration);
+            => AddRulesFromPath(absolutePath, recurse, Default.RuleConfiguration);
 
         public ScriptAnalyzerBuilder AddRulesFromPath(
             string absolutePath,
             bool recurse,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection)
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection)
         {
             EnsureExternalRulesAllowed();
 

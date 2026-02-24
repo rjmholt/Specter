@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
-using Specter.Builtin;
 using Specter.Formatting;
+using Specter.Rules.Builtin;
 
 namespace Specter.Benchmarks;
 

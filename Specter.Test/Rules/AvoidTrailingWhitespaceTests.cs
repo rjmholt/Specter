@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Specter;
 using Specter.Builder;
-using Specter.Builtin.Rules;
+using Specter.Rules.Builtin.Rules;
 using Specter.Execution;
 using Xunit;
 

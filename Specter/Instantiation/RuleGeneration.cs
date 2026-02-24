@@ -10,7 +10,7 @@ namespace Specter.Instantiation
     internal static class RuleGeneration
     {
         public static bool TryGetRuleFromType(
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection,
             RuleComponentProvider ruleComponentProvider,
             Type type,
             ref RuleInfo? ruleInfo,
@@ -31,7 +31,7 @@ namespace Specter.Instantiation
         private static bool TryGetRuleFactory<TRuleBase>(
             RuleInfo ruleInfo,
             Type ruleType,
-            IReadOnlyDictionary<string, IRuleConfiguration> ruleConfigurationCollection,
+            IReadOnlyDictionary<string, IRuleConfiguration?> ruleConfigurationCollection,
             RuleComponentProvider ruleComponentProvider,
             out TypeRuleFactory<TRuleBase>? factory)
         {

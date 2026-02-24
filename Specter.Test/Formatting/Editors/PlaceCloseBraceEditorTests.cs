@@ -1,5 +1,5 @@
 using System;
-using Specter.Builtin.Editors;
+using Specter.Rules.Builtin.Editors;
 using Specter.Formatting;
 using Xunit;
 

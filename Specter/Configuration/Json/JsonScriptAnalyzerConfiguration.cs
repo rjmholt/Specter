@@ -45,7 +45,7 @@ namespace Specter.Configuration.Json
             BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
             RulePaths = rulePaths;
-            var ruleConfigDict = new Dictionary<string, IRuleConfiguration>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
+            var ruleConfigDict = new Dictionary<string, IRuleConfiguration?>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in ruleConfigurations)
             {
                 ruleConfigDict[kvp.Key] = kvp.Value;
@@ -59,7 +59,7 @@ namespace Specter.Configuration.Json
 
         public IReadOnlyList<string> RulePaths { get; }
 
-        public IReadOnlyDictionary<string, IRuleConfiguration> RuleConfiguration { get; }
+        public IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 
         public ExternalRulePolicy ExternalRules { get; set; } = ExternalRulePolicy.Explicit;
     }

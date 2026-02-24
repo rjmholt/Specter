@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Specter.Builtin;
-using Specter.Builtin.Editors;
+using Specter.Rules.Builtin.Editors;
 using Specter.Formatting;
+using Specter.Rules.Builtin;
 using Microsoft.Windows.PowerShell.ScriptAnalyzer;
 
 namespace Specter.PssaCompatibility

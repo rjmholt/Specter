@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Specter\Specter.csproj" />
+    <ProjectReference Include="..\Specter.Api\Specter.Api.csproj" />
+    <ProjectReference Include="..\Specter.Rules.Builtin\Specter.Rules.Builtin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
