@@ -17,7 +17,7 @@ Specter is a reimplementation of [PSScriptAnalyzer](https://github.com/PowerShel
 ```
 Specter/                   Core analysis library (rules, formatting, configuration, command database)
 Specter.Module/            PowerShell module exposing Specter cmdlets (Update-SpecterDatabase, etc.)
-Specter.RulePrimitives/    C# module providing cmdlets for custom rule authors
+Specter.RuleCmdlets/      C# module providing cmdlets for custom rule authors
 Specter.PssaCompatibility/ Drop-in PSScriptAnalyzer-compatible PowerShell module
 Specter.Server/            Linting daemon with gRPC and LSP endpoints
 Specter.Test/              xUnit test suite
@@ -63,6 +63,17 @@ dotnet test Specter.Test/Specter.Test.csproj
 pwsh -NoProfile -Command "./Tests/RunCompatibilityTests.ps1"
 ```
 
+## C# Rule Authoring Package
+
+C# rule authors should reference the thin `Specter.Api` package rather than `Specter`:
+
+```bash
+dotnet add package Specter.Api
+dotnet add package System.Management.Automation
+```
+
+`Specter.Api` contains rule authoring contracts and diagnostics types without pulling in engine/runtime dependencies like SQLite or JSON configuration components.
+
 ## Publishing
 
 The publish script builds in Release mode, runs tests, and pushes to the PowerShell Gallery and nuget.org:
@@ -96,7 +107,7 @@ The `Specter` module (`Specter.Module`) is the primary PowerShell interface. It 
 - **`Invoke-Specter`** -- Analyse a script file or string. Returns `ScriptDiagnostic` objects from the Specter engine directly, with full fidelity (rule metadata, corrections, extent information).
 - **`Update-SpecterDatabase`** -- Refresh the SQLite command database from a live PowerShell session or from legacy JSON compatibility profiles.
 
-The **Specter.RulePrimitives** module provides cmdlets for custom rule authors:
+The **Specter.RuleCmdlets** module provides cmdlets for custom rule authors:
 
 - **`Write-Diagnostic`** -- Emit a `ScriptDiagnostic` from a rule function, auto-detecting the calling rule from the call stack. Use `-CorrectionText` for simple inline fixes.
 - **`New-ScriptCorrection`** -- Create a `Correction` object for advanced scenarios (different extent or multiple corrections). Pass to `Write-Diagnostic -Correction`.

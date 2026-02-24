@@ -95,9 +95,9 @@ On .NET Framework 4.6.2 (Windows PowerShell), `AssemblyLoadContext` is not avail
 - **Settings file ownership**: Settings files containing `CustomRulePath` entries are subject to the same ownership/permission checks as rule files.
 - **PSModulePath**: Specter never consults `$env:PSModulePath` for rule loading.
 
-## Rule Authoring (Specter.RulePrimitives)
+## Rule Authoring (Specter.RuleCmdlets)
 
-The `Specter.RulePrimitives` module provides cmdlets for rule authors:
+The `Specter.RuleCmdlets` module provides cmdlets for rule authors:
 
 - `Write-Diagnostic` -- Emits a `ScriptDiagnostic`, auto-detecting the calling rule from the call stack. Use `-CorrectionText` and `-CorrectionDescription` for simple inline fixes, or `-Correction` with pre-built `Correction` objects for advanced scenarios.
 - `New-ScriptCorrection` -- Creates a `Correction` object for cases where the fix targets a different extent than the diagnostic or where multiple corrections are needed. Pass the result to `Write-Diagnostic -Correction`.

@@ -1,8 +1,13 @@
 # Writing Custom Rules
 
-Specter supports custom rules written in PowerShell and loaded via `-CustomRulePath` or the `RulePaths` configuration key. This guide walks through creating a rule module from scratch.
+Specter supports custom rules in two forms:
 
-## Writing Rules in C#
+- **PowerShell modules** (`.psm1`/`.psd1`)
+- **Compiled assemblies** (`.dll`)
+
+This guide first covers each authoring model with examples, then covers general guidance that applies to both.
+
+## Writing Rules in C# Assemblies
 
 Specter also supports custom rules compiled into a .NET class library (`.dll`).
 
@@ -14,7 +19,10 @@ Create a class library and reference the `Specter.Api` NuGet package:
 dotnet new classlib -n MySpecterRules
 cd MySpecterRules
 dotnet add package Specter.Api
+dotnet add package System.Management.Automation
 ```
+
+`Specter.Api` provides rule contracts and diagnostics types. `System.Management.Automation` provides PowerShell AST/token types used in rule method signatures.
 
 Target frameworks should match your compatibility goals. `net8.0` is the simplest starting point.
 
@@ -62,7 +70,9 @@ Invoke-Specter -Path ./script.ps1 -CustomRulePath ./bin/Debug/net8.0/MySpecterRu
 
 On .NET (Core/5+/6+/7+/8+), external assemblies are loaded with an isolated `AssemblyLoadContext` to reduce dependency conflicts. On .NET Framework (`net462`), this isolation model is not available and assembly loading uses the default AppDomain.
 
-## Module Structure
+## Writing Rules in PowerShell Modules
+
+### Module Structure
 
 A rule module is a standard PowerShell module. At minimum you need a `.psm1` file and a `.psd1` manifest:
 
@@ -72,11 +82,11 @@ MyRules/
   MyRules.psm1
 ```
 
-## Rule Conventions
+### Rule Conventions
 
 Specter discovers rules using two conventions:
 
-### Native convention (recommended)
+#### Native convention (recommended)
 
 Decorate your function with the `[SpecterRule]` attribute. The function receives `$Ast`, `$Tokens`, and `$ScriptPath` parameters and emits diagnostics with `Write-Diagnostic`:
 
@@ -110,7 +120,7 @@ The `[SpecterRule]` attribute accepts these arguments:
 | `Severity` | `DiagnosticSeverity` | No | `Error`, `Warning` (default), or `Information` |
 | `Namespace` | `string` | No | Rule namespace (defaults to the module name) |
 
-### PSSA legacy convention
+#### PSSA legacy convention
 
 Functions named `Measure-*` with a `[ScriptBlockAst]` parameter are discovered automatically. This ensures compatibility with existing PSScriptAnalyzer custom rule modules:
 
@@ -138,9 +148,9 @@ function Measure-EmptyDescription {
 }
 ```
 
-## Emitting Diagnostics
+### Emitting Diagnostics
 
-### `Write-Diagnostic`
+#### `Write-Diagnostic`
 
 The primary cmdlet for reporting findings. It auto-detects the calling rule from the call stack, so the emitted diagnostic carries the correct rule name, severity, and metadata automatically.
 
@@ -183,7 +193,7 @@ Write-Diagnostic "Critical problem" -Extent $node.Extent -Severity Error
 |-----------|------|----------|---------|
 | `-Correction` | `Correction[]` | Yes | -- |
 
-### `New-ScriptCorrection`
+#### `New-ScriptCorrection`
 
 Creates a `Correction` object for use with `Write-Diagnostic -Correction`. You only need this when `-CorrectionText` is not enough. There are two reasons to reach for it:
 
@@ -215,7 +225,7 @@ Write-Diagnostic "Variable should be renamed." -Extent $declaration.Extent -Corr
 | `-CorrectionText` | `string` | Yes (position 1) | -- |
 | `-Description` | `string` | No (position 2) | `""` |
 
-## Module Manifest
+### Module Manifest
 
 The manifest must export the rule functions. Keep it minimal:
 
@@ -240,11 +250,11 @@ Specter audits manifests before loading. The following fields cause the module t
 - `FormatsToProcess` -- loads format files
 - `NestedModules` referencing paths outside the module directory
 
-## Complete Example
+### Complete Example
 
 Here is a full example module with two rules -- one that detects `Write-Host` usage (with an auto-fix) and one that flags hardcoded credentials:
 
-### `SecurityRules.psd1`
+#### `SecurityRules.psd1`
 
 ```powershell
 @{
@@ -260,7 +270,7 @@ Here is a full example module with two rules -- one that detects `Write-Host` us
 }
 ```
 
-### `SecurityRules.psm1`
+#### `SecurityRules.psm1`
 
 ```powershell
 function Test-NoWriteHost {
@@ -327,7 +337,9 @@ function Test-NoHardcodedCredentials {
 }
 ```
 
-## Loading Custom Rules
+## General Considerations
+
+### Loading Custom Rules
 
 ```powershell
 # Via Invoke-Specter
@@ -350,17 +362,17 @@ Or in a JSON settings file:
 }
 ```
 
-### Legacy PSScriptAnalyzer rule modules
+#### Legacy PSScriptAnalyzer rule modules
 
 Specter supports existing PSScriptAnalyzer custom rule modules that follow the `Measure-*` convention. These modules typically create `Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord` objects via `New-Object`. Specter's compatibility layer provides these types, so legacy modules work without modification when the `Specter.PssaCompatibility` module is loaded.
 
 Modules that use `Import-LocalizedData` for string resources are also supported.
 
-## Security Considerations
+### Security Considerations
 
 Loading a custom rule module means Specter will **execute code you provide**. The security model is designed to prevent accidental or malicious code execution, but you should understand the boundaries.
 
-### The external rule policy
+#### The external rule policy
 
 The `ExternalRules` configuration key is the central policy gate. It determines whether external code loading is permitted at all:
 
@@ -378,7 +390,7 @@ Set it in your JSON settings:
 }
 ```
 
-### File ownership checks
+#### File ownership checks
 
 Before loading any external module or assembly, Specter verifies that the file and every parent directory are owned by the current user (or root/SYSTEM) and are not writable by other users. This prevents a lower-privileged attacker from substituting a malicious file at a path you've configured.
 
@@ -391,7 +403,7 @@ chmod 755 ./MyRules/
 chown $USER ./MyRules/MyRules.psm1
 ```
 
-### Manifest auditing
+#### Manifest auditing
 
 Specter audits `.psd1` manifests before importing a module. Manifests that contain any of the following fields are rejected:
 
@@ -403,7 +415,7 @@ Specter audits `.psd1` manifests before importing a module. Manifests that conta
 
 Keep your manifest minimal. Export only your rule functions and avoid these fields entirely.
 
-### Best practices for rule authors
+#### Best practices for rule authors
 
 1. **Ship a `.psd1` manifest** -- bare `.psm1` files work, but a manifest lets you declare exactly which functions to export and gives Specter a surface to audit.
 2. **Export only `Measure-*` or `Test-*` functions** -- don't export helper functions. Use `FunctionsToExport` in the manifest to control visibility.
@@ -412,7 +424,7 @@ Keep your manifest minimal. Export only your rule functions and avoid these fiel
 5. **Keep rules fast** -- rules that take longer than 30 seconds are killed, and three consecutive timeouts disable the rule for the session. Avoid unbounded AST traversals on large scripts.
 6. **Use version control for rule modules** -- treat them as code. Review changes before deploying to shared environments.
 
-### Best practices for consumers
+#### Best practices for consumers
 
 1. **Prefer `explicit` mode** (the default) -- this ensures rules only load when you deliberately ask for them.
 2. **Pin rule paths to version-controlled locations** -- don't point `RulePaths` at shared network drives or directories writable by other users.
@@ -420,7 +432,7 @@ Keep your manifest minimal. Export only your rule functions and avoid these fiel
 4. **Audit rule modules before use** -- inspect the `.psm1` and `.psd1` of any third-party rule module before adding it to your configuration. Look for `Invoke-Expression`, `Add-Type`, `Start-Process`, and other side-effect-heavy patterns.
 5. **Don't suppress ownership warnings** -- if Specter warns about file permissions, fix the permissions rather than switching to `unrestricted`.
 
-## Available Commands in the Rule Runspace
+### Available Commands in the Rule Runspace
 
 Rule modules run in a restricted runspace. You have access to the full PowerShell language (object construction, .NET method calls, hashtables, etc.) but only a subset of commands is visible:
 
@@ -428,7 +440,7 @@ Rule modules run in a restricted runspace. You have access to the full PowerShel
 
 **Not available**: File-write cmdlets, `Invoke-Expression`, `Add-Type`, `Start-Process`, network cmdlets, and others. This prevents rules from causing side effects outside the analysis.
 
-## Tips
+### Tips
 
 - Use `$Ast.FindAll({ ... }, $true)` to search the full AST tree recursively.
 - Check the type of AST nodes with `-is` to find specific constructs (commands, variables, string literals, etc.).
