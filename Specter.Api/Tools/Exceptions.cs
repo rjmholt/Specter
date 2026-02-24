@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Management.Automation.Language;
 
 namespace Specter.Tools

@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="Pluralize.NET" />
+    <PackageReference Include="System.ValueTuple" />
   </ItemGroup>
 
   <ItemGroup>

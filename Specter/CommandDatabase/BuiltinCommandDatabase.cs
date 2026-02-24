@@ -137,7 +137,8 @@ namespace Specter.CommandDatabase
                 return _sqliteDb.CommandExistsOnPlatform(nameOrAlias, platforms);
             }
 
-            return _aliasToCommand.ContainsKey(nameOrAlias);
+            return _aliasToCommand.ContainsKey(nameOrAlias)
+                || _commandToAliases.ContainsKey(nameOrAlias);
         }
 
         public bool TryResolveProfile(string profileName, out PlatformInfo? platform)

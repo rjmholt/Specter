@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Management.Automation.Runspaces;
 using Specter.CommandDatabase;
 using Specter.Configuration;
 using Specter.Rules;
@@ -22,9 +20,6 @@ namespace Specter.Builtin.Rules
     [Rule("AvoidOverwritingBuiltInCmdlets", typeof(Strings), nameof(Strings.AvoidOverwritingBuiltInCmdletsDescription))]
     internal class AvoidOverwritingBuiltInCmdlets : ConfigurableScriptRule<AvoidOverwritingBuiltInCmdletsConfiguration>
     {
-        private static readonly object s_lookupLock = new object();
-        private static HashSet<string>? s_defaultCmdletLookup;
-
         private readonly IPowerShellCommandDatabase _commandDatabase;
 
         internal AvoidOverwritingBuiltInCmdlets(
@@ -66,12 +61,7 @@ namespace Specter.Builtin.Rules
 
         private bool IsBuiltinCommand(string commandName, HashSet<PlatformInfo>? targetPlatforms)
         {
-            if (_commandDatabase.CommandExistsOnPlatform(commandName, targetPlatforms))
-            {
-                return true;
-            }
-
-            return targetPlatforms == null && GetDefaultCmdletLookup().Contains(commandName);
+            return _commandDatabase.CommandExistsOnPlatform(commandName, targetPlatforms);
         }
 
         private static HashSet<PlatformInfo>? ResolveTargetPlatforms(string[] configuredProfiles)
@@ -115,45 +105,5 @@ namespace Specter.Builtin.Rules
             return "configured target platforms";
         }
 
-        private static HashSet<string> GetDefaultCmdletLookup()
-        {
-            if (s_defaultCmdletLookup is not null)
-            {
-                return s_defaultCmdletLookup;
-            }
-
-            lock (s_lookupLock)
-            {
-                if (s_defaultCmdletLookup is null)
-                {
-                    s_defaultCmdletLookup = BuildDefaultCmdletNameSet();
-                }
-            }
-
-            return s_defaultCmdletLookup;
-        }
-
-        private static HashSet<string> BuildDefaultCmdletNameSet()
-        {
-            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                foreach (SessionStateCommandEntry entry in iss.Commands)
-                {
-                    if (entry.CommandType == CommandTypes.Cmdlet
-                        && !string.IsNullOrEmpty(entry.Name))
-                    {
-                        names.Add(entry.Name);
-                    }
-                }
-            }
-            catch
-            {
-                // Keep empty fallback if discovery fails; command DB check still runs.
-            }
-
-            return names;
-        }
     }
 }

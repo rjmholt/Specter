@@ -22,29 +22,4 @@
     <PackageReference Include="Microsoft.PowerShell.5.ReferenceAssemblies" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="../Specter/Configuration/IRuleConfiguration.cs" Link="Configuration/IRuleConfiguration.cs" />
-    <Compile Include="../Specter/Configuration/Psd/PsdDataParser.cs" Link="Configuration/Psd/PsdDataParser.cs" />
-
-    <Compile Include="../Specter/Formatting/IScriptEditor.cs" Link="Formatting/IScriptEditor.cs" />
-    <Compile Include="../Specter/Formatting/ScriptEdit.cs" Link="Formatting/ScriptEdit.cs" />
-    <Compile Include="../Specter/Formatting/IEditorConfiguration.cs" Link="Formatting/IEditorConfiguration.cs" />
-    <Compile Include="../Specter/Formatting/EditorAttribute.cs" Link="Formatting/EditorAttribute.cs" />
-    <Compile Include="../Specter/Formatting/EditorInfo.cs" Link="Formatting/EditorInfo.cs" />
-
-    <Compile Include="../Specter/CommandDatabase/IPowerShellCommandDatabase.cs" Link="CommandDatabase/IPowerShellCommandDatabase.cs" />
-    <Compile Include="../Specter/CommandDatabase/CommandMetadata.cs" Link="CommandDatabase/CommandMetadata.cs" />
-    <Compile Include="../Specter/CommandDatabase/PlatformInfo.cs" Link="CommandDatabase/PlatformInfo.cs" />
-
-    <Compile Include="../Specter/Tools/AstExtensions.cs" Link="Tools/AstExtensions.cs" />
-    <Compile Include="../Specter/Tools/ExtentExtensions.cs" Link="Tools/ExtentExtensions.cs" />
-    <Compile Include="../Specter/Tools/AstTools.cs" Link="Tools/AstTools.cs" />
-    <Compile Include="../Specter/Tools/PowerShellConstants.cs" Link="Tools/PowerShellConstants.cs" />
-    <Compile Include="../Specter/Tools/SpecialVariables.cs" Link="Tools/SpecialVariables.cs" />
-    <Compile Include="../Specter/Tools/Exceptions.cs" Link="Tools/Exceptions.cs" />
-
-    <Compile Include="../Specter/Utils/GlobMatcher.cs" Link="Utils/GlobMatcher.cs" />
-    <Compile Include="../Specter/Utils/Polyfill.cs" Link="Utils/Polyfill.cs" />
-    <Compile Include="../Specter/Utils/StringExtensions.cs" Link="Utils/StringExtensions.cs" />
-  </ItemGroup>
 </Project>
