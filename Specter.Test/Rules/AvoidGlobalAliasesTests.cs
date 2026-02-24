@@ -36,6 +36,19 @@ namespace Specter.Test.Rules
         }
 
         [Fact]
+        public void NewAliasWithPrefixScopeInModule_ShouldReturnViolation()
+        {
+            var script = @"New-Alias -Sc Global -Name x -Value y";
+            var ast = Parser.ParseInput(script, out Token[] tokens, out _);
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScript(ast, tokens, "test.psm1").ToList();
+
+            ScriptDiagnostic violation = Assert.Single(violations);
+            Assert.Equal("AvoidGlobalAliases", violation.Rule!.Name);
+            Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
+        }
+
+        [Fact]
         public void NewAliasWithoutGlobalScope_ShouldNotReturnViolation()
         {
             var script = @"New-Alias -Scope Script -Name x -Value y";

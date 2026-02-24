@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Specter.CommandDatabase;
 using System.Management.Automation.Language;
 using Specter.Rules;
 using Specter.Tools;
@@ -14,9 +15,14 @@ namespace Specter.Rules.Builtin.Rules
     [Rule("AvoidGlobalAliases", typeof(Strings), nameof(Strings.AvoidGlobalAliasesDescription))]
     internal class AvoidGlobalAliases : ScriptRule
     {
-        internal AvoidGlobalAliases(RuleInfo ruleInfo)
+        private readonly IPowerShellCommandDatabase _commandDatabase;
+
+        internal AvoidGlobalAliases(
+            RuleInfo ruleInfo,
+            IPowerShellCommandDatabase commandDatabase)
             : base(ruleInfo)
         {
+            _commandDatabase = commandDatabase;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
@@ -48,16 +54,18 @@ namespace Specter.Rules.Builtin.Rules
                     continue;
                 }
 
-                var parameterBindings = StaticParameterBinder.BindCommand(commandAst);
-
-                if (!parameterBindings.BoundParameters.ContainsKey("Scope"))
+                _commandDatabase.TryGetCommand(commandName, platforms: null, out CommandMetadata? commandMetadata);
+                if (!CommandAstInspector.TryGetBoundParameterConstantValue(
+                    commandAst,
+                    commandMetadata,
+                    parameterName: "Scope",
+                    out object? scopeValue))
                 {
                     continue;
                 }
 
-                object scopeValue = parameterBindings.BoundParameters["Scope"].ConstantValue;
-
-                if (scopeValue != null && string.Equals(scopeValue.ToString(), "Global", StringComparison.OrdinalIgnoreCase))
+                if (scopeValue is not null
+                    && string.Equals(scopeValue.ToString(), "Global", StringComparison.OrdinalIgnoreCase))
                 {
                     yield return CreateDiagnostic(Strings.AvoidGlobalAliasesError, commandAst);
                 }

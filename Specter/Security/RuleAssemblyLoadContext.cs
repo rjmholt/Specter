@@ -27,6 +27,12 @@ namespace Specter.Security
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
+            Assembly? alreadyLoaded = ResolveFromDefaultContext(assemblyName);
+            if (alreadyLoaded is not null)
+            {
+                return alreadyLoaded;
+            }
+
             string candidate = Path.Combine(_basePath, assemblyName.Name + ".dll");
             if (File.Exists(candidate))
             {
@@ -57,6 +63,30 @@ namespace Specter.Security
             OperatingSystem.IsWindows() ? ".dll"
             : OperatingSystem.IsMacOS() ? ".dylib"
             : ".so";
+
+        private static Assembly? ResolveFromDefaultContext(AssemblyName assemblyName)
+        {
+            // Share core Specter assemblies with the default context to keep type identity stable.
+            string? name = assemblyName.Name;
+            if (name is null
+                || (!name.Equals("Specter", StringComparison.OrdinalIgnoreCase)
+                    && !name.Equals("Specter.Api", StringComparison.OrdinalIgnoreCase)))
+            {
+                return null;
+            }
+
+            foreach (Assembly assembly in Default.Assemblies)
+            {
+                string? loadedName = assembly.GetName().Name;
+                if (loadedName is not null
+                    && loadedName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return assembly;
+                }
+            }
+
+            return null;
+        }
     }
 }
 #endif

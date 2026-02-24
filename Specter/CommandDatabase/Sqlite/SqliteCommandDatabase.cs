@@ -14,6 +14,7 @@ namespace Specter.CommandDatabase.Sqlite
         private readonly SqliteConnection _connection;
         private readonly SegmentedLruCache<CacheKey, CommandMetadata?> _cache;
         private readonly object _syncLock = new object();
+        private readonly object _connectionLock = new object();
 
         /// <summary>
         /// Opens a read-only connection to the SQLite command database.
@@ -60,8 +61,12 @@ namespace Specter.CommandDatabase.Sqlite
                 }
             }
 
-            // Keep database IO outside the cache lock to avoid serializing all lookups.
-            CommandMetadata? loaded = LoadCommand(nameOrAlias, platforms);
+            // Keep database IO outside the cache lock, but serialize access to the shared connection.
+            CommandMetadata? loaded;
+            lock (_connectionLock)
+            {
+                loaded = LoadCommand(nameOrAlias, platforms);
+            }
 
             lock (_syncLock)
             {
@@ -117,27 +122,30 @@ namespace Specter.CommandDatabase.Sqlite
         {
             platform = null;
 
-            using SqliteCommand cmd = _connection.CreateCommand();
-            cmd.CommandText =
-                $"SELECT p.{Db.Platform.Edition}," +
-                $"  p.{Db.Platform.PsVersionMajor}, p.{Db.Platform.PsVersionMinor}," +
-                $"  p.{Db.Platform.PsVersionBuild}, p.{Db.Platform.PsVersionRevision}," +
-                $"  p.{Db.Platform.OsFamily}, p.{Db.Platform.OsVersion}," +
-                $"  p.{Db.Platform.OsSkuId}, p.{Db.Platform.Architecture}," +
-                $"  p.{Db.Platform.Environment} " +
-                $"FROM {Db.ProfileName.Table} pn " +
-                $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = pn.{Db.ProfileName.PlatformId} " +
-                $"WHERE pn.{Db.ProfileName.Name} = @name COLLATE NOCASE LIMIT 1";
-            cmd.Parameters.AddWithValue("@name", profileName);
-
-            using SqliteDataReader reader = cmd.ExecuteReader();
-            if (!reader.Read())
+            lock (_connectionLock)
             {
-                return false;
-            }
+                using SqliteCommand cmd = _connection.CreateCommand();
+                cmd.CommandText =
+                    $"SELECT p.{Db.Platform.Edition}," +
+                    $"  p.{Db.Platform.PsVersionMajor}, p.{Db.Platform.PsVersionMinor}," +
+                    $"  p.{Db.Platform.PsVersionBuild}, p.{Db.Platform.PsVersionRevision}," +
+                    $"  p.{Db.Platform.OsFamily}, p.{Db.Platform.OsVersion}," +
+                    $"  p.{Db.Platform.OsSkuId}, p.{Db.Platform.Architecture}," +
+                    $"  p.{Db.Platform.Environment} " +
+                    $"FROM {Db.ProfileName.Table} pn " +
+                    $"INNER JOIN {Db.Platform.Table} p ON p.{Db.Platform.Id} = pn.{Db.ProfileName.PlatformId} " +
+                    $"WHERE pn.{Db.ProfileName.Name} = @name COLLATE NOCASE LIMIT 1";
+                cmd.Parameters.AddWithValue("@name", profileName);
 
-            platform = ReadPlatformInfo(reader, startIndex: 0);
-            return true;
+                using SqliteDataReader reader = cmd.ExecuteReader();
+                if (!reader.Read())
+                {
+                    return false;
+                }
+
+                platform = ReadPlatformInfo(reader, startIndex: 0);
+                return true;
+            }
         }
 
         private static PlatformInfo ReadPlatformInfo(SqliteDataReader reader, int startIndex)

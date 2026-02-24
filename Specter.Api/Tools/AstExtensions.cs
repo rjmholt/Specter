@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Management.Automation;
 using System.Management.Automation.Language;
 
 namespace Specter.Tools
@@ -129,26 +128,75 @@ namespace Specter.Tools
                     exportedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 }
 
-                var bindings = StaticParameterBinder.BindCommand(cmdAst);
+                bool seenNamedFunction = false;
+                bool collectPositionalFunctions = true;
 
-                if (bindings.BoundParameters.TryGetValue("Function", out var binding)
-                    && binding.ConstantValue is string funcName)
+                for (int i = 1; i < cmdAst.CommandElements.Count; i++)
                 {
-                    exportedNames.Add(funcName);
-                }
-
-                // Also pick up positional arguments (first positional = -Function)
-                foreach (CommandElementAst element in cmdAst.CommandElements)
-                {
-                    if (element is StringConstantExpressionAst strConst
-                        && !string.Equals(strConst.Value, "Export-ModuleMember", StringComparison.OrdinalIgnoreCase))
+                    CommandElementAst element = cmdAst.CommandElements[i];
+                    if (element is CommandParameterAst parameterAst)
                     {
-                        exportedNames.Add(strConst.Value);
+                        collectPositionalFunctions = false;
+                        seenNamedFunction = parameterAst.ParameterName.StartsWith("Function", StringComparison.OrdinalIgnoreCase);
+                        if (!seenNamedFunction)
+                        {
+                            continue;
+                        }
+
+                        if (parameterAst.Argument is not null)
+                        {
+                            CollectExportedFunctionNames(parameterAst.Argument, exportedNames);
+                        }
+
+                        continue;
+                    }
+
+                    if (seenNamedFunction || collectPositionalFunctions)
+                    {
+                        CollectExportedFunctionNames(element, exportedNames);
                     }
                 }
             }
 
             return exportedNames;
+        }
+
+        private static void CollectExportedFunctionNames(CommandElementAst element, HashSet<string> exportedNames)
+        {
+            if (element is StringConstantExpressionAst stringExpression)
+            {
+                exportedNames.Add(stringExpression.Value);
+                return;
+            }
+
+            if (element is ArrayLiteralAst arrayLiteral)
+            {
+                for (int i = 0; i < arrayLiteral.Elements.Count; i++)
+                {
+                    if (arrayLiteral.Elements[i] is StringConstantExpressionAst arrayElement)
+                    {
+                        exportedNames.Add(arrayElement.Value);
+                    }
+                }
+
+                return;
+            }
+
+            if (element is ArrayExpressionAst arrayExpression
+                && arrayExpression.SubExpression is not null)
+            {
+                IReadOnlyList<StatementAst> statements = arrayExpression.SubExpression.Statements;
+                for (int i = 0; i < statements.Count; i++)
+                {
+                    if (statements[i] is PipelineAst pipelineAst
+                        && pipelineAst.PipelineElements.Count == 1
+                        && pipelineAst.PipelineElements[0] is CommandExpressionAst commandExpressionAst
+                        && commandExpressionAst.Expression is StringConstantExpressionAst stringAst)
+                    {
+                        exportedNames.Add(stringAst.Value);
+                    }
+                }
+            }
         }
 
         public static bool IsSpecialVariable(this VariableExpressionAst variableExpressionAst)
