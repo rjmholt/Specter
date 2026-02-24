@@ -142,7 +142,7 @@ public sealed class AnalysisService : IDisposable
         var builder = new ScriptAnalyzerBuilder()
             .WithLogger(logger)
             .WithRuleComponentProvider(b => b.UseBuiltinDatabase())
-            .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory(logger));
+            .WithRuleExecutorFactory(new ParallelRuleExecutorFactory(logger));
 
         if (ruleConfiguration is not null)
         {

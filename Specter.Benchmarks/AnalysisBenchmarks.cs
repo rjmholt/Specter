@@ -12,6 +12,7 @@ namespace Specter.Benchmarks;
 public class AnalysisBenchmarks
 {
     private ScriptAnalyzer _parallelAnalyzer = null!;
+    private ScriptAnalyzer _parallelAnalyzerSingleThread = null!;
     private ScriptAnalyzer _sequentialAnalyzer = null!;
 
     private Ast _smallAst = null!;
@@ -28,13 +29,19 @@ public class AnalysisBenchmarks
     {
         _parallelAnalyzer = new ScriptAnalyzerBuilder()
             .WithRuleComponentProvider(b => b.UseBuiltinDatabase())
-            .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
+            .WithRuleExecutorFactory(new ParallelRuleExecutorFactory())
             .AddBuiltinRules()
             .Build();
 
         _sequentialAnalyzer = new ScriptAnalyzerBuilder()
             .WithRuleComponentProvider(b => b.UseBuiltinDatabase())
             .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
+            .AddBuiltinRules()
+            .Build();
+
+        _parallelAnalyzerSingleThread = new ScriptAnalyzerBuilder()
+            .WithRuleComponentProvider(b => b.UseBuiltinDatabase())
+            .WithRuleExecutorFactory(new ParallelRuleExecutorFactory(maxDegreeOfParallelism: 1))
             .AddBuiltinRules()
             .Build();
 
@@ -56,6 +63,12 @@ public class AnalysisBenchmarks
     public int SmallScript_Sequential()
     {
         return _sequentialAnalyzer.AnalyzeScript(_smallAst, _smallTokens).Count;
+    }
+
+    [Benchmark]
+    public int SmallScript_Parallel_Degree1()
+    {
+        return _parallelAnalyzerSingleThread.AnalyzeScript(_smallAst, _smallTokens).Count;
     }
 
     [Benchmark]

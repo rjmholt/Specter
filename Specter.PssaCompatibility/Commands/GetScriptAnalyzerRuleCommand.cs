@@ -46,7 +46,7 @@ namespace Specter.PssaCompatibility.Commands
 
             var builder = new ScriptAnalyzerBuilder()
                 .WithRuleComponentProvider(rcpb => rcpb.UseSessionDatabase(SessionState.InvokeCommand))
-                .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory())
+                .WithRuleExecutorFactory(new ParallelRuleExecutorFactory())
                 .AddBuiltinRules();
 
             if (CustomRulePath is not null)

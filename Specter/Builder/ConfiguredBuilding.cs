@@ -35,7 +35,7 @@ namespace Specter.Builder
             {
                 case RuleExecutionMode.Default:
                 case RuleExecutionMode.Parallel:
-                    analyzerBuilder.WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory());
+                    analyzerBuilder.WithRuleExecutorFactory(new ParallelRuleExecutorFactory());
                     break;
 
                 case RuleExecutionMode.Sequential:

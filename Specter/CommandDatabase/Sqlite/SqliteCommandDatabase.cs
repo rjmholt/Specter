@@ -58,8 +58,19 @@ namespace Specter.CommandDatabase.Sqlite
                 {
                     return command is not null;
                 }
+            }
 
-                command = LoadCommand(nameOrAlias, platforms);
+            // Keep database IO outside the cache lock to avoid serializing all lookups.
+            CommandMetadata? loaded = LoadCommand(nameOrAlias, platforms);
+
+            lock (_syncLock)
+            {
+                if (_cache.TryGet(key, out command))
+                {
+                    return command is not null;
+                }
+
+                command = loaded;
                 _cache.Set(key, command);
                 return command is not null;
             }

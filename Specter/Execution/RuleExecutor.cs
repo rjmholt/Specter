@@ -1,9 +1,10 @@
 using Specter.Logging;
 using Specter.Rules;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation.Language;
+using System.Threading.Tasks;
 
 namespace Specter.Execution
 {
@@ -57,28 +58,35 @@ namespace Specter.Execution
         }
     }
 
-    internal class ParallelLinqRuleExecutor : IRuleExecutor
+    internal class ParallelRuleExecutor : IRuleExecutor
     {
         private readonly Ast _scriptAst;
         private readonly IReadOnlyList<Token> _scriptTokens;
         private readonly string? _scriptPath;
         private readonly IAnalysisLogger _logger;
+        private readonly int _maxDegreeOfParallelism;
         private readonly List<ScriptRule> _parallelRules;
         private readonly List<ScriptRule> _sequentialRules;
-        private readonly List<RuleExecutionError> _errors;
+        private readonly ConcurrentQueue<RuleExecutionError> _errors;
 
-        public ParallelLinqRuleExecutor(Ast scriptAst, IReadOnlyList<Token> scriptTokens, string? scriptPath, IAnalysisLogger logger)
+        public ParallelRuleExecutor(
+            Ast scriptAst,
+            IReadOnlyList<Token> scriptTokens,
+            string? scriptPath,
+            IAnalysisLogger logger,
+            int maxDegreeOfParallelism)
         {
             _scriptAst = scriptAst;
             _scriptTokens = scriptTokens;
             _scriptPath = scriptPath;
             _logger = logger;
+            _maxDegreeOfParallelism = maxDegreeOfParallelism > 0 ? maxDegreeOfParallelism : Environment.ProcessorCount;
             _parallelRules = new List<ScriptRule>();
             _sequentialRules = new List<ScriptRule>();
-            _errors = new List<RuleExecutionError>();
+            _errors = new ConcurrentQueue<RuleExecutionError>();
         }
 
-        public IReadOnlyList<RuleExecutionError> Errors => _errors;
+        public IReadOnlyList<RuleExecutionError> Errors => _errors.ToArray();
 
         public void AddRule(ScriptRule rule)
         {
@@ -93,34 +101,44 @@ namespace Specter.Execution
 
         public IReadOnlyCollection<ScriptDiagnostic> CollectDiagnostics()
         {
-            var parallelErrors = new List<RuleExecutionError>();
-            List<ScriptDiagnostic> diagnostics = _parallelRules.AsParallel()
-                .SelectMany(rule => ExecuteRuleSafe(rule, parallelErrors))
-                .ToList();
-
-            lock (_errors)
+            var diagnostics = new ConcurrentBag<ScriptDiagnostic>();
+            var parallelOptions = new ParallelOptions
             {
-                _errors.AddRange(parallelErrors);
+                MaxDegreeOfParallelism = _maxDegreeOfParallelism,
+            };
+
+            Parallel.ForEach(_parallelRules, parallelOptions, rule =>
+            {
+                foreach (ScriptDiagnostic diagnostic in ExecuteRuleSafe(rule, _errors))
+                {
+                    diagnostics.Add(diagnostic);
+                }
+            });
+
+            var orderedDiagnostics = new List<ScriptDiagnostic>(diagnostics.Count);
+            foreach (ScriptDiagnostic diagnostic in diagnostics)
+            {
+                orderedDiagnostics.Add(diagnostic);
             }
 
             foreach (ScriptRule sequentialRule in _sequentialRules)
             {
                 try
                 {
-                    diagnostics.AddRange(sequentialRule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
+                    orderedDiagnostics.AddRange(sequentialRule.AnalyzeScript(_scriptAst, _scriptTokens, _scriptPath));
                 }
                 catch (Exception ex)
                 {
                     var error = new RuleExecutionError(sequentialRule.RuleInfo.Name, ex);
-                    _errors.Add(error);
+                    _errors.Enqueue(error);
                     _logger.Warning($"Rule '{sequentialRule.RuleInfo.Name}' failed during execution: {ex.Message}");
                 }
             }
 
-            return diagnostics;
+            return orderedDiagnostics;
         }
 
-        private IEnumerable<ScriptDiagnostic> ExecuteRuleSafe(ScriptRule rule, List<RuleExecutionError> errors)
+        private IEnumerable<ScriptDiagnostic> ExecuteRuleSafe(ScriptRule rule, ConcurrentQueue<RuleExecutionError> errors)
         {
             try
             {
@@ -128,10 +146,7 @@ namespace Specter.Execution
             }
             catch (Exception ex)
             {
-                lock (errors)
-                {
-                    errors.Add(new RuleExecutionError(rule.RuleInfo.Name, ex));
-                }
+                errors.Enqueue(new RuleExecutionError(rule.RuleInfo.Name, ex));
                 _logger.Warning($"Rule '{rule.RuleInfo.Name}' failed during execution: {ex.Message}");
                 return Array.Empty<ScriptDiagnostic>();
             }

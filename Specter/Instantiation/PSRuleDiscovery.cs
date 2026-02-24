@@ -14,16 +14,18 @@ namespace Specter.Instantiation
         /// convention and PSSA legacy Measure-* convention.
         /// </summary>
         internal static List<DiscoveredPSRule> DiscoverRules(
-            Runspace runspace,
+            RunspacePool runspacePool,
+            string moduleName,
             IAnalysisLogger? logger)
         {
             var results = new List<DiscoveredPSRule>();
 
             using var ps = PowerShell.Create();
-            ps.Runspace = runspace;
+            ps.RunspacePool = runspacePool;
 
             ps.AddCommand("Get-Command")
-                .AddParameter("CommandType", CommandTypes.Function);
+                .AddParameter("CommandType", CommandTypes.Function)
+                .AddParameter("Module", moduleName);
 
             var functions = ps.Invoke<FunctionInfo>();
 

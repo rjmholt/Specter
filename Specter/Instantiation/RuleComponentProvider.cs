@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Specter.CommandDatabase;
 using Specter.CommandDatabase.Sqlite;
 using Specter.Configuration;
+using Specter.Security;
 
 namespace Specter.Builder
 {
@@ -163,6 +164,12 @@ namespace Specter.Builder
                 && !_componentRegistrations.ContainsKey(typeof(PlatformContext)))
             {
                 _singletonComponents[typeof(PlatformContext)] = PlatformContext.Empty;
+            }
+
+            if (!_singletonComponents.ContainsKey(typeof(SharedRuleRunspacePool))
+                && !_componentRegistrations.ContainsKey(typeof(SharedRuleRunspacePool)))
+            {
+                _singletonComponents[typeof(SharedRuleRunspacePool)] = new SharedRuleRunspacePool(logger: null);
             }
 
             return new SimpleRuleComponentProvider(_componentRegistrations, _singletonComponents);

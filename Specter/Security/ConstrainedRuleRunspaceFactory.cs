@@ -62,11 +62,11 @@ namespace Specter.Security
             "Import-LocalizedData",
             "ConvertFrom-StringData",
 
-            // Setup-only (removed after module import)
+            // Setup/runtime module loading (required for shared pool loading)
             "Import-Module",
         };
 
-        internal static Runspace CreateConstrainedRunspace(IAnalysisLogger? logger)
+        internal static RunspacePool CreateConstrainedRunspacePool(IAnalysisLogger? logger)
         {
             var iss = InitialSessionState.CreateDefault();
 
@@ -74,37 +74,13 @@ namespace Specter.Security
             RemoveDangerousProviders(iss);
             ClearPSModulePath(iss);
 
-            var runspace = RunspaceFactory.CreateRunspace(iss);
-            runspace.Open();
+            int maxRunspaces = Math.Max(1, Environment.ProcessorCount);
+            var runspacePool = RunspaceFactory.CreateRunspacePool(1, maxRunspaces, iss, host: null);
+            runspacePool.Open();
 
-            logger?.Debug("Created rule runspace with restricted command visibility.");
-            return runspace;
-        }
-
-        internal static void ImportModuleAndLockDown(
-            Runspace runspace,
-            string absoluteModulePath,
-            IAnalysisLogger? logger)
-        {
-            using var ps = PowerShell.Create();
-            ps.Runspace = runspace;
-
-            ps.AddCommand("Import-Module")
-                .AddParameter("Name", absoluteModulePath)
-                .AddParameter("Force")
-                .AddParameter("DisableNameChecking");
-
-            ps.Invoke();
-
-            if (ps.HadErrors)
-            {
-                foreach (var error in ps.Streams.Error)
-                {
-                    logger?.Warning($"Error importing module '{absoluteModulePath}': {error}");
-                }
-            }
-
-            RemoveCommandPostImport(runspace, "Import-Module", logger);
+            logger?.Debug(
+                $"Created rule runspace pool with restricted command visibility (size 1..{maxRunspaces}).");
+            return runspacePool;
         }
 
         private static void RestrictCommands(InitialSessionState iss)
@@ -154,26 +130,5 @@ namespace Specter.Security
 #endif
         }
 
-        private static void RemoveCommandPostImport(
-            Runspace runspace,
-            string commandName,
-            IAnalysisLogger? logger)
-        {
-            using var ps = PowerShell.Create();
-            ps.Runspace = runspace;
-
-            ps.AddScript($"Remove-Item -Path 'Function:{commandName}' -ErrorAction SilentlyContinue");
-            ps.Invoke();
-
-            foreach (SessionStateCommandEntry entry in runspace.InitialSessionState.Commands)
-            {
-                if (entry.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase))
-                {
-                    entry.Visibility = SessionStateEntryVisibility.Private;
-                }
-            }
-
-            logger?.Debug($"Removed '{commandName}' from rule runspace after module import.");
-        }
     }
 }

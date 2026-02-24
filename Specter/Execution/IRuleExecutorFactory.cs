@@ -1,4 +1,5 @@
 using Specter.Logging;
+using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
 
@@ -24,18 +25,21 @@ namespace Specter.Execution
         }
     }
 
-    public class ParallelLinqRuleExecutorFactory : IRuleExecutorFactory
+    public class ParallelRuleExecutorFactory : IRuleExecutorFactory
     {
         private readonly IAnalysisLogger _logger;
+        private readonly int _maxDegreeOfParallelism;
 
-        public ParallelLinqRuleExecutorFactory(IAnalysisLogger? logger = null)
+        public ParallelRuleExecutorFactory(IAnalysisLogger? logger = null, int? maxDegreeOfParallelism = null)
         {
             _logger = logger ?? NullAnalysisLogger.Instance;
+            int configuredParallelism = maxDegreeOfParallelism ?? Environment.ProcessorCount;
+            _maxDegreeOfParallelism = configuredParallelism > 0 ? configuredParallelism : Environment.ProcessorCount;
         }
 
         public IRuleExecutor CreateRuleExecutor(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            return new ParallelLinqRuleExecutor(ast, tokens, scriptPath, _logger);
+            return new ParallelRuleExecutor(ast, tokens, scriptPath, _logger, _maxDegreeOfParallelism);
         }
     }
 }

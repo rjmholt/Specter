@@ -11,7 +11,7 @@ using Specter.Logging;
 namespace Specter.Rules
 {
     /// <summary>
-    /// A rule implemented as a PowerShell function running in a restricted runspace.
+    /// A rule implemented as a PowerShell function running in a restricted runspace pool.
     /// Wraps function invocations with per-call timeout, output sanitisation, and
     /// consecutive-failure auto-disable logic.
     /// </summary>
@@ -21,25 +21,25 @@ namespace Specter.Rules
         private const int MaxConsecutiveTimeouts = 3;
         private const long MemoryWarningThresholdBytes = 100L * 1024 * 1024;
 
-        private readonly Runspace _runspace;
+        private readonly RunspacePool _runspacePool;
         private readonly string _functionName;
         private readonly PSRuleConvention _convention;
         private readonly IAnalysisLogger? _logger;
         private readonly int _timeoutMs;
 
         private int _consecutiveTimeouts;
-        private bool _disabled;
+        private int _disabled;
 
         internal PSFunctionRule(
             RuleInfo ruleInfo,
-            Runspace runspace,
+            RunspacePool runspacePool,
             string functionName,
             PSRuleConvention convention,
             IAnalysisLogger? logger,
             int timeoutMs = DefaultTimeoutMs)
             : base(ruleInfo)
         {
-            _runspace = runspace;
+            _runspacePool = runspacePool;
             _functionName = functionName;
             _convention = convention;
             _logger = logger;
@@ -51,7 +51,7 @@ namespace Specter.Rules
             IReadOnlyList<Token> tokens,
             string? scriptPath)
         {
-            if (_disabled)
+            if (Volatile.Read(ref _disabled) != 0)
             {
                 yield break;
             }
@@ -99,7 +99,7 @@ namespace Specter.Rules
             string? scriptPath)
         {
             using var ps = PowerShell.Create();
-            ps.Runspace = _runspace;
+            ps.RunspacePool = _runspacePool;
 
             ps.AddCommand(_functionName);
 
@@ -291,14 +291,14 @@ namespace Specter.Rules
 
             if (count >= MaxConsecutiveTimeouts)
             {
-                _disabled = true;
+                Interlocked.Exchange(ref _disabled, 1);
                 _logger?.Warning($"Rule '{RuleInfo.FullName}' disabled after {MaxConsecutiveTimeouts} consecutive timeouts.");
             }
         }
 
         public void Dispose()
         {
-            _runspace?.Dispose();
+            // Runspace pools are owned and disposed by the provider.
         }
     }
 }

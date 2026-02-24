@@ -34,6 +34,7 @@ namespace Specter.Instantiation
         private readonly RuleInfo _ruleInfo;
 
         private readonly ConstructorInfo _ctorInfo;
+        private readonly ParameterInfo[] _ctorParameters;
 
         private readonly IRuleConfiguration? _ruleConfiguration;
 
@@ -60,6 +61,7 @@ namespace Specter.Instantiation
             _ruleComponentProvider = ruleComponentProvider;
             _ruleInfo = ruleInfo;
             _ctorInfo = ctorInfo;
+            _ctorParameters = _ctorInfo.GetParameters();
             _ruleConfiguration = ruleConfiguration;
             _factoryDelegateLazy = new Lazy<Func<TRule>>(CreateFactoryDelegate);
             _callCount = 0;
@@ -84,50 +86,50 @@ namespace Specter.Instantiation
 
         private object[] GetCtorArgs()
         {
-            var ctorArgs = new List<object>();
-            foreach (ParameterInfo ctorParameter in _ctorInfo.GetParameters())
+            var ctorArgs = new object[_ctorParameters.Length];
+            for (int i = 0; i < _ctorParameters.Length; i++)
             {
+                ParameterInfo ctorParameter = _ctorParameters[i];
                 if (ctorParameter.ParameterType == typeof(RuleInfo))
                 {
-                    ctorArgs.Add(_ruleInfo);
+                    ctorArgs[i] = _ruleInfo;
                     continue;
                 }
 
                 if (_ruleConfiguration != null
                     && ctorParameter.ParameterType == _ruleConfiguration.GetType())
                 {
-                    ctorArgs.Add(_ruleConfiguration);
+                    ctorArgs[i] = _ruleConfiguration;
                     continue;
                 }
 
                 if (typeof(IRuleConfiguration).IsAssignableFrom(ctorParameter.ParameterType)
                     && _ruleConfiguration is null)
                 {
-                    ctorArgs.Add(Activator.CreateInstance(ctorParameter.ParameterType)!);
+                    ctorArgs[i] = Activator.CreateInstance(ctorParameter.ParameterType)!;
                     continue;
                 }
 
                 if (_ruleComponentProvider.TryGetComponentInstance(ctorParameter.ParameterType, out object? ctorArg) && ctorArg is not null)
                 {
-                    ctorArgs.Add(ctorArg);
+                    ctorArgs[i] = ctorArg;
                     continue;
                 }
 
                 throw new ArgumentException($"Rule constructor requires unknown argument: '{ctorParameter.Name}' of type '{ctorParameter.ParameterType.FullName}'");
             }
 
-            return ctorArgs.ToArray();
+            return ctorArgs;
         }
 
         private Func<TRule> CreateFactoryDelegate()
         {
             object[] args = GetCtorArgs();
-            ParameterInfo[] parameters = _ctorInfo.GetParameters();
 
             var argExpressions = new Expression[args.Length];
             for (int i = 0; i < args.Length; i++)
             {
-                argExpressions[i] = Expression.Constant(args[i], parameters[i].ParameterType);
+                argExpressions[i] = Expression.Constant(args[i], _ctorParameters[i].ParameterType);
             }
 
             return Expression.Lambda<Func<TRule>>(

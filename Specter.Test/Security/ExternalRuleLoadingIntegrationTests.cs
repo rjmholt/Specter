@@ -64,14 +64,14 @@ namespace Specter.Test.Security
             ManifestAuditResult auditResult = ModuleManifestAuditor.Audit(modulePath, logger: null);
             Assert.True(auditResult.IsValid);
 
-            var runspace = ConstrainedRuleRunspaceFactory.CreateConstrainedRunspace(NullAnalysisLogger.Instance);
+            var sharedPool = new SharedRuleRunspacePool(NullAnalysisLogger.Instance);
             try
             {
-                ConstrainedRuleRunspaceFactory.ImportModuleAndLockDown(
-                    runspace, modulePath, NullAnalysisLogger.Instance);
-
+                string moduleName = sharedPool.EnsureModuleLoaded(modulePath);
                 List<DiscoveredPSRule> discovered = PSRuleDiscovery.DiscoverRules(
-                    runspace, NullAnalysisLogger.Instance);
+                    sharedPool.RunspacePool,
+                    moduleName,
+                    NullAnalysisLogger.Instance);
 
                 Assert.NotEmpty(discovered);
                 Assert.Contains(discovered, r =>
@@ -80,7 +80,7 @@ namespace Specter.Test.Security
             }
             finally
             {
-                runspace.Dispose();
+                sharedPool.RunspacePool.Dispose();
             }
         }
 

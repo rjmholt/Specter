@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Xunit;
 using Specter.CommandDatabase;
@@ -400,6 +402,34 @@ namespace Specter.Test.CommandDatabase
 
             Assert.Equal(first!.Name, second!.Name);
             Assert.Equal(first!.CommandType, second!.CommandType);
+        }
+
+        [Fact]
+        public void ConcurrentLookups_AreStableAndThreadSafe()
+        {
+            const int iterations = 200;
+            var failures = new List<Exception>();
+            object gate = new object();
+
+            Parallel.For(0, iterations, i =>
+            {
+                try
+                {
+                    bool found = _db.TryGetCommand("Get-ChildItem", null!, out CommandMetadata? cmd);
+                    Assert.True(found);
+                    Assert.NotNull(cmd);
+                    Assert.Equal("Get-ChildItem", cmd!.Name);
+                }
+                catch (Exception ex)
+                {
+                    lock (gate)
+                    {
+                        failures.Add(ex);
+                    }
+                }
+            });
+
+            Assert.Empty(failures);
         }
 
         [Fact]

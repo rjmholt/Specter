@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Specter.CommandDatabase;
@@ -51,5 +52,20 @@ public class DatabaseBenchmarks
     public bool CommandExists()
     {
         return _db.CommandExistsOnPlatform("Invoke-WebRequest", platforms: null);
+    }
+
+    [Benchmark]
+    public int ParallelLookupKnownCommand()
+    {
+        int foundCount = 0;
+        Parallel.For(0, 64, i =>
+        {
+            if (_db.TryGetCommand("Get-ChildItem", platforms: null, out _))
+            {
+                System.Threading.Interlocked.Increment(ref foundCount);
+            }
+        });
+
+        return foundCount;
     }
 }

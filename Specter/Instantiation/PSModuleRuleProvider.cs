@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Management.Automation.Runspaces;
 using Specter.Logging;
@@ -8,27 +9,27 @@ using Specter.Security;
 namespace Specter.Instantiation
 {
     /// <summary>
-    /// Provides rules discovered from a PowerShell module loaded in a constrained runspace.
-    /// Each provider owns its runspace and disposes it when no longer needed.
+    /// Provides rules discovered from a PowerShell module loaded in a constrained runspace pool.
+    /// Runspace pool lifetime is shared and owned by the component provider.
     /// </summary>
     internal sealed class PSModuleRuleProvider : IRuleProvider, IDisposable
     {
-        private readonly string _modulePath;
-        private readonly Runspace _runspace;
+        private readonly string _moduleName;
+        private readonly RunspacePool _runspacePool;
         private readonly IAnalysisLogger? _logger;
         private readonly List<DiscoveredPSRule> _discoveredRules;
-        private readonly Dictionary<string, PSFunctionRule> _ruleInstances;
+        private readonly ConcurrentDictionary<string, PSFunctionRule> _ruleInstances;
 
         internal PSModuleRuleProvider(
-            string absoluteModulePath,
-            Runspace runspace,
+            string moduleName,
+            RunspacePool runspacePool,
             IAnalysisLogger? logger)
         {
-            _modulePath = absoluteModulePath;
-            _runspace = runspace;
+            _moduleName = moduleName;
+            _runspacePool = runspacePool;
             _logger = logger;
-            _discoveredRules = PSRuleDiscovery.DiscoverRules(runspace, logger);
-            _ruleInstances = new Dictionary<string, PSFunctionRule>(StringComparer.OrdinalIgnoreCase);
+            _discoveredRules = PSRuleDiscovery.DiscoverRules(runspacePool, moduleName, logger);
+            _ruleInstances = new ConcurrentDictionary<string, PSFunctionRule>(StringComparer.OrdinalIgnoreCase);
         }
 
         public IEnumerable<RuleInfo> GetRuleInfos()
@@ -45,17 +46,14 @@ namespace Specter.Instantiation
             {
                 DiscoveredPSRule discovered = _discoveredRules[i];
                 string key = discovered.FunctionName;
+                string qualifiedCommandName = $"{_moduleName}\\{discovered.FunctionName}";
 
-                if (!_ruleInstances.TryGetValue(key, out PSFunctionRule? rule))
-                {
-                    rule = new PSFunctionRule(
-                        discovered.RuleInfo,
-                        _runspace,
-                        discovered.FunctionName,
-                        discovered.Convention,
-                        _logger);
-                    _ruleInstances[key] = rule;
-                }
+                PSFunctionRule rule = _ruleInstances.GetOrAdd(key, _ => new PSFunctionRule(
+                    discovered.RuleInfo,
+                    _runspacePool,
+                    qualifiedCommandName,
+                    discovered.Convention,
+                    _logger));
 
                 yield return rule;
             }
@@ -68,23 +66,15 @@ namespace Specter.Instantiation
 
         public void Dispose()
         {
-            foreach (var kvp in _ruleInstances)
-            {
-                kvp.Value.Dispose();
-            }
-
             _ruleInstances.Clear();
-            _runspace?.Dispose();
         }
     }
 
     /// <summary>
     /// Factory that creates a PSModuleRuleProvider by:
-    /// 1. Creating a constrained runspace
-    /// 2. Auditing the module manifest (if .psd1)
-    /// 3. Importing the module
-    /// 4. Locking down the runspace
-    /// 5. Discovering rules
+    /// 1. Auditing the module manifest (if .psd1)
+    /// 2. Loading the module into the shared constrained runspace pool
+    /// 3. Discovering module-specific rules
     /// </summary>
     internal sealed class PSModuleRuleProviderFactory : IRuleProviderFactory
     {
@@ -109,20 +99,25 @@ namespace Specter.Instantiation
                 }
             }
 
-            Runspace runspace = ConstrainedRuleRunspaceFactory.CreateConstrainedRunspace(_logger);
-
-            try
+            if (!ruleComponentProvider.TryGetComponentInstance<SharedRuleRunspacePool>(out SharedRuleRunspacePool? sharedPool)
+                || sharedPool is null)
             {
-                ConstrainedRuleRunspaceFactory.ImportModuleAndLockDown(runspace, _absoluteModulePath, _logger);
-            }
-            catch (Exception ex)
-            {
-                _logger?.Error($"Failed to import module '{_absoluteModulePath}': {ex.Message}");
-                runspace.Dispose();
+                _logger?.Error("SharedRuleRunspacePool component is not registered.");
                 return new EmptyRuleProvider();
             }
 
-            return new PSModuleRuleProvider(_absoluteModulePath, runspace, _logger);
+            string moduleName;
+            try
+            {
+                moduleName = sharedPool.EnsureModuleLoaded(_absoluteModulePath);
+            }
+            catch (Exception ex)
+            {
+                _logger?.Error($"Failed to load module '{_absoluteModulePath}' into shared runspace pool: {ex.Message}");
+                return new EmptyRuleProvider();
+            }
+
+            return new PSModuleRuleProvider(moduleName, sharedPool.RunspacePool, _logger);
         }
     }
 

@@ -415,7 +415,7 @@ namespace Specter.PssaCompatibility.Commands
             var builder = new ScriptAnalyzerBuilder()
                 .WithLogger(logger)
                 .WithRuleComponentProvider(rcpb => rcpb.UseBuiltinDatabase())
-                .WithRuleExecutorFactory(new ParallelLinqRuleExecutorFactory(logger))
+                .WithRuleExecutorFactory(new ParallelRuleExecutorFactory(logger))
                 .AddBuiltinRules(configDict);
 
             string[]? customRulePaths = CustomRulePath ?? parsedSettings?.CustomRulePath?.ToArray();
