@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Types>
+  <Type>
+    <Name>Specter.ScriptDiagnostic</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>RuleName</Name>
+        <GetScriptBlock>if ($this.Rule) { $this.Rule.FullName } else { $null }</GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Line</Name>
+        <GetScriptBlock>if ($this.ScriptExtent) { $this.ScriptExtent.StartLineNumber } else { $null }</GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Column</Name>
+        <GetScriptBlock>if ($this.ScriptExtent) { $this.ScriptExtent.StartColumnNumber } else { $null }</GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>ScriptName</Name>
+        <GetScriptBlock>if ($this.ScriptExtent -and $this.ScriptExtent.File) { [System.IO.Path]::GetFileName($this.ScriptExtent.File) } else { "Script" }</GetScriptBlock>
+      </ScriptProperty>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>RuleName</Name>
+              <Name>Severity</Name>
+              <Name>ScriptName</Name>
+              <Name>Line</Name>
+              <Name>Message</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+    </Members>
+  </Type>
+</Types>

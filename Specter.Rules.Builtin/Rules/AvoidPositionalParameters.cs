@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Management.Automation.Language;
 using Specter.CommandDatabase;
 using Specter.Configuration;
 using Specter.Rules;
+using Specter.Tools;
 
 namespace Specter.Rules.Builtin.Rules
 {
@@ -44,15 +44,7 @@ namespace Specter.Rules.Builtin.Rules
                 Configuration.CommandAllowList ?? Array.Empty<string>(),
                 StringComparer.OrdinalIgnoreCase);
 
-            var declaredFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (Ast node in ast.FindAll(static a => a is FunctionDefinitionAst, searchNestedScriptBlocks: true))
-            {
-                var funcAst = (FunctionDefinitionAst)node;
-                if (!string.IsNullOrEmpty(funcAst.Name))
-                {
-                    declaredFunctionNames.Add(funcAst.Name);
-                }
-            }
+            ScriptModel scriptModel = ScriptModel.GetOrCreate(ast, tokens, scriptPath);
 
             foreach (Ast node in ast.FindAll(static a => a is CommandAst, searchNestedScriptBlocks: true))
             {
@@ -68,11 +60,15 @@ namespace Specter.Rules.Builtin.Rules
                     continue;
                 }
 
-                bool isKnown = declaredFunctionNames.Contains(commandName)
-                    || IsKnownCmdlet(commandName)
-                    || LooksLikeCmdlet(commandName);
-
-                if (!isKnown)
+                FunctionSymbol? functionSymbol = scriptModel.GetFunctionSymbol(commandName);
+                if (functionSymbol is not null)
+                {
+                    if (!functionSymbol.IsCmdletStyle || functionSymbol.IsVariadic)
+                    {
+                        continue;
+                    }
+                }
+                else if (!IsKnownCmdlet(commandName) && !LooksLikeCmdlet(commandName))
                 {
                     continue;
                 }

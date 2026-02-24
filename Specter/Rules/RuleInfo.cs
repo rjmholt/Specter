@@ -107,6 +107,8 @@ namespace Specter.Rules
 
         public string FullName { get; }
 
+        public override string ToString() => FullName;
+
         public string? Description { get; private set; }
 
         public DiagnosticSeverity DefaultSeverity { get; private set; }

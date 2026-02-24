@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration>
+  <ViewDefinitions>
+    <View>
+      <Name>Specter.ScriptDiagnostic.Table</Name>
+      <ViewSelectedBy>
+        <TypeName>Specter.ScriptDiagnostic</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>RuleName</Label>
+            <Width>36</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Severity</Label>
+            <Width>12</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Line</Label>
+            <Width>6</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Message</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>RuleName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Severity</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Line</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Message</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <View>
+      <Name>Specter.ScriptDiagnostic.Detail</Name>
+      <ViewSelectedBy>
+        <TypeName>Specter.ScriptDiagnostic</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <ScriptBlock>
+$severity = $this.Severity.ToString().ToLowerInvariant()
+$rule = if ($this.Rule) { $this.Rule.FullName } else { "UnknownRule" }
+$line = if ($this.ScriptExtent) { $this.ScriptExtent.StartLineNumber } else { 0 }
+$col = if ($this.ScriptExtent) { $this.ScriptExtent.StartColumnNumber } else { 0 }
+$fileName = if ($this.ScriptExtent -and $this.ScriptExtent.File) { [System.IO.Path]::GetFileName($this.ScriptExtent.File) } else { "Script" }
+$lineText = if ($this.ScriptExtent) { $this.ScriptExtent.Text } else { "" }
+
+"$severity[$rule]: $($this.Message)"
+"  --> $fileName:$line:$col"
+"   |"
+if ($line -gt 0) {
+  "$line | $lineText"
+}
+if ($lineText) {
+  $highlightPrefix = " " * ([Math]::Max(0, $line.ToString().Length) + 3 + $col - 1)
+  $highlight = "~" * ([Math]::Max(1, $this.ScriptExtent.EndColumnNumber - $col))
+  "$highlightPrefix$highlight"
+}
+              </ScriptBlock>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+  </ViewDefinitions>
+</Configuration>

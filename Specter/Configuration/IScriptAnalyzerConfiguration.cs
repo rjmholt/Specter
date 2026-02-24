@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Specter.CommandDatabase;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -55,6 +56,8 @@ namespace Specter.Configuration
         RuleExecutionMode? RuleExecution { get; }
 
         IReadOnlyList<string> RulePaths { get; }
+
+        IReadOnlyList<PlatformInfo>? TargetPlatforms { get; }
 
         IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 

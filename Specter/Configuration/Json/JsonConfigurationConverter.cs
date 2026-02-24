@@ -1,6 +1,8 @@
 using Specter.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Specter.CommandDatabase;
+using Specter.CommandDatabase.Import;
 using System;
 using System.Collections.Generic;
 
@@ -39,6 +41,7 @@ namespace Specter.Configuration.Json
                 configObject[ConfigurationKeys.BuiltinRulePreference]?.ToObject<BuiltinRulePreference>(),
                 configObject[ConfigurationKeys.RuleExecutionMode]?.ToObject<RuleExecutionMode>(),
                 configObject[ConfigurationKeys.RulePaths]?.ToObject<string[]>() ?? Polyfill.GetEmptyArray<string>(),
+                ParseTargetPlatforms(configObject[ConfigurationKeys.TargetPlatforms]?.ToObject<string[]>()),
                 configDictionary);
         }
 
@@ -46,6 +49,26 @@ namespace Specter.Configuration.Json
         {
             // Not needed - CanWrite is false
             throw new NotImplementedException();
+        }
+
+        private static IReadOnlyList<PlatformInfo>? ParseTargetPlatforms(string[]? profileNames)
+        {
+            if (profileNames is null || profileNames.Length == 0)
+            {
+                return null;
+            }
+
+            var targets = new List<PlatformInfo>(profileNames.Length);
+            for (int i = 0; i < profileNames.Length; i++)
+            {
+                if (LegacySettingsImporter.TryParsePlatformFromFileName(profileNames[i], out PlatformInfo? platform)
+                    && platform is not null)
+                {
+                    targets.Add(platform);
+                }
+            }
+
+            return targets;
         }
     }
 }

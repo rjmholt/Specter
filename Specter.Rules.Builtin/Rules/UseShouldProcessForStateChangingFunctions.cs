@@ -38,48 +38,27 @@ namespace Specter.Rules.Builtin.Rules
         /// <returns>A List of diagnostic results of this rule</returns>
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
         {
-            IEnumerable<Ast> funcDefWithNoShouldProcessAttrAsts = ast.FindAll(IsStateChangingFunctionWithNoShouldProcessAttribute, true);            
-
-            foreach (FunctionDefinitionAst funcDefAst in funcDefWithNoShouldProcessAttrAsts)
+            ScriptModel scriptModel = ScriptModel.GetOrCreate(ast, tokens, scriptPath);
+            for (int i = 0; i < scriptModel.Functions.Count; i++)
             {
+                FunctionSymbol function = scriptModel.Functions[i];
+                FunctionDefinitionAst funcDefAst = function.Ast;
+                if (funcDefAst.IsWorkflow || !function.IsCmdletStyle)
+                {
+                    continue;
+                }
+
+                if (!IsStateChangingFunctionName(function.Name) || function.SupportsShouldProcess)
+                {
+                    continue;
+                }
+
                 yield return new ScriptDiagnostic(
                     RuleInfo,
                     string.Format(CultureInfo.CurrentCulture, Strings.UseShouldProcessForStateChangingFunctionsError, funcDefAst.Name),
                     funcDefAst.GetFunctionNameExtent(tokens) ?? funcDefAst.Extent,
                     DiagnosticSeverity.Warning);
             }
-                            
-        }
-        /// <summary>
-        /// Checks if the ast defines a state changing function
-        /// </summary>
-        /// <param name="ast"></param>
-        /// <returns>Returns true or false</returns>
-        private bool IsStateChangingFunctionWithNoShouldProcessAttribute(Ast ast)
-        {
-            var funcDefAst = ast as FunctionDefinitionAst;
-            // SupportsShouldProcess is not supported in workflows
-            if (funcDefAst == null || funcDefAst.IsWorkflow)
-            {
-                return false;
-            }
-
-            return IsStateChangingFunctionName(funcDefAst.Name) 
-                    && (funcDefAst.Body.ParamBlock == null
-                        || funcDefAst.Body.ParamBlock.Attributes == null
-                        || !HasShouldProcessTrue(funcDefAst.Body.ParamBlock.Attributes));
-        }
-
-        /// <summary>
-        /// Checks if an attribute has SupportShouldProcess set to $true
-        /// </summary>
-        /// <param name="attributeAsts"></param>
-        /// <returns>Returns true or false</returns>
-        private bool HasShouldProcessTrue(IEnumerable<AttributeAst> attributeAsts)
-        {
-            return AstTools.TryGetShouldProcessAttributeArgumentAst(attributeAsts, out NamedAttributeArgumentAst? shouldProcessArgument)
-                && shouldProcessArgument is not null
-                && AstTools.IsTrue(shouldProcessArgument.GetValue());
         }
 
         private static bool IsStateChangingFunctionName(string functionName)

@@ -12,6 +12,8 @@ namespace Specter.Configuration
 
         public const string RulePaths = "RulePaths";
 
+        public const string TargetPlatforms = "TargetPlatforms";
+
         public const string RuleConfigurations = "Rules";
     }
 }

@@ -24,7 +24,7 @@ namespace Specter.Test.Rules
         [Fact]
         public void UnapprovedVerb_ShouldReturnViolation()
         {
-            var script = @"function Do-Something {}";
+            var script = @"function Do-Something { [CmdletBinding()] param() }";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
@@ -37,7 +37,17 @@ namespace Specter.Test.Rules
         [Fact]
         public void ApprovedVerb_ShouldNotReturnViolation()
         {
-            var script = @"function Get-Something {}";
+            var script = @"function Get-Something { [CmdletBinding()] param() }";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void NonCmdletStyleFunction_ShouldNotReturnViolation()
+        {
+            var script = @"function Do-Something { param() }";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 

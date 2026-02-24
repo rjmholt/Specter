@@ -1,5 +1,7 @@
 using Specter.Rules;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Management.Automation.Language;
 
 namespace Specter
@@ -48,6 +50,32 @@ namespace Specter
         /// layers can expose as first-class properties.
         /// </summary>
         public Dictionary<string, object>? Properties { get; set; }
+
+        public override string ToString()
+        {
+            string scriptName = "Script";
+            int line = 0;
+            int column = 0;
+            if (ScriptExtent is not null)
+            {
+                line = ScriptExtent.StartLineNumber;
+                column = ScriptExtent.StartColumnNumber;
+                scriptName = string.IsNullOrEmpty(ScriptExtent.File)
+                    ? "Script"
+                    : System.IO.Path.GetFileName(ScriptExtent.File);
+            }
+
+            string ruleName = Rule?.FullName ?? "UnknownRule";
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                "{0}:{1}:{2}: {3} {4} - {5}",
+                scriptName,
+                line,
+                column,
+                Severity,
+                ruleName,
+                Message);
+        }
     }
 
     public class ScriptAstDiagnostic : ScriptDiagnostic

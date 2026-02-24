@@ -34,14 +34,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         };
 
         private readonly IPowerShellCommandDatabase _commandDb;
+        private readonly PlatformContext _platformContext;
 
         internal UseCompatibleCommands(
             RuleInfo ruleInfo,
             UseCompatibleCommandsConfiguration configuration,
-            IPowerShellCommandDatabase commandDb)
+            IPowerShellCommandDatabase commandDb,
+            PlatformContext platformContext)
             : base(ruleInfo, configuration)
         {
             _commandDb = commandDb;
+            _platformContext = platformContext;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
@@ -52,13 +55,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             }
 
             string[] targetProfiles = Configuration.TargetProfiles;
+            List<ResolvedTarget> resolvedTargets;
             if (targetProfiles is null || targetProfiles.Length == 0)
             {
-                yield break;
+                resolvedTargets = ResolveTargetPlatforms(_platformContext.TargetPlatforms);
+            }
+            else
+            {
+                resolvedTargets = ResolveTargetProfiles(targetProfiles);
             }
 
             var ignoreSet = BuildIgnoreSet(Configuration.IgnoreCommands);
-            var resolvedTargets = ResolveTargetProfiles(targetProfiles);
             if (resolvedTargets.Count == 0)
             {
                 yield break;
@@ -179,6 +186,18 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 {
                     targets.Add(new ResolvedTarget(profileName, platform));
                 }
+            }
+
+            return targets;
+        }
+
+        private static List<ResolvedTarget> ResolveTargetPlatforms(IReadOnlyList<PlatformInfo> platforms)
+        {
+            var targets = new List<ResolvedTarget>(platforms.Count);
+            for (int i = 0; i < platforms.Count; i++)
+            {
+                PlatformInfo platform = platforms[i];
+                targets.Add(new ResolvedTarget(platform.ToString(), platform));
             }
 
             return targets;

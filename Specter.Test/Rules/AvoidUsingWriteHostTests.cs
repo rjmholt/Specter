@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Specter;
 using Specter.Builder;
+using Specter.CommandDatabase;
+using Specter.Configuration;
 using Specter.Rules.Builtin.Rules;
 using Specter.Execution;
 using Xunit;
@@ -30,7 +32,7 @@ namespace Specter.Test.Rules
 
             ScriptDiagnostic violation = Assert.Single(violations);
             Assert.Equal("AvoidUsingWriteHost", violation.Rule!.Name);
-            Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
+            Assert.Equal(DiagnosticSeverity.Information, violation.Severity);
         }
 
         [Fact]
@@ -98,6 +100,25 @@ function Show-Message {
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
             Assert.Single(violations);
+        }
+
+        [Fact]
+        public void WriteHost_TargetingBelowPowerShell5_ShouldReturnWarning()
+        {
+            var analyzer = new ScriptAnalyzerBuilder()
+                .WithRuleExecutorFactory(new SequentialRuleExecutorFactory())
+                .WithRuleComponentProvider(new RuleComponentProviderBuilder()
+                    .AddSingleton(new PlatformContext(new[]
+                    {
+                        new PlatformInfo("Desktop", new System.Version(4, 0), new OsInfo("Windows")),
+                    }))
+                    .Build())
+                .AddRules(ruleProvider => ruleProvider.AddRule<AvoidUsingWriteHost>())
+                .Build();
+
+            IReadOnlyList<ScriptDiagnostic> violations = analyzer.AnalyzeScriptInput("Write-Host 'Hello World'").ToList();
+            ScriptDiagnostic violation = Assert.Single(violations);
+            Assert.Equal(DiagnosticSeverity.Warning, violation.Severity);
         }
     }
 }

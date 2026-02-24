@@ -36,6 +36,11 @@ namespace Specter.Tools
         internal const string Matches = "Matches";
         internal const string PSVersionTable = "PSVersionTable";
         internal const string OFS = "OFS";
+        internal const string IsWindows = "IsWindows";
+        internal const string IsLinux = "IsLinux";
+        internal const string IsMacOS = "IsMacOS";
+        internal const string IsCoreCLR = "IsCoreCLR";
+        internal const string EnabledExperimentalFeatures = "EnabledExperimentalFeatures";
 
         internal static readonly string[] InitializedVariables;
 
@@ -77,7 +82,12 @@ namespace Specter.Tools
                                                                    ExecutionContext,
                                                                    Matches,
                                                                    PSVersionTable,
-                                                                   OFS
+                                                                   OFS,
+                                                                   IsWindows,
+                                                                   IsLinux,
+                                                                   IsMacOS,
+                                                                   IsCoreCLR,
+                                                                   EnabledExperimentalFeatures
                                                                };
         internal static readonly Type[] AutomaticVariableTypes = new Type[]  
                                                                  {  
@@ -93,7 +103,12 @@ namespace Specter.Tools
                                                                    /* ExecutionContext */  typeof(EngineIntrinsics),
                                                                    /* Matches */           typeof(System.Collections.Hashtable),
                                                                    /* PSVersionTable */    typeof(System.Collections.Hashtable),
-                                                                   /* OFS */               typeof(object)
+                                                                   /* OFS */               typeof(object),
+                                                                   /* IsWindows */         typeof(bool),
+                                                                   /* IsLinux */           typeof(bool),
+                                                                   /* IsMacOS */           typeof(bool),
+                                                                   /* IsCoreCLR */         typeof(bool),
+                                                                   /* EnabledExperimentalFeatures */ typeof(System.Collections.Generic.IReadOnlyList<string>)
                                                                  };
 
 

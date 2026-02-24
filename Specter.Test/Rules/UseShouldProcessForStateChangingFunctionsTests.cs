@@ -26,6 +26,7 @@ namespace Specter.Test.Rules
         {
             var script = @"
 function Set-Foo {
+    [CmdletBinding()]
     param([string]$Name)
     Write-Output $Name
 }";
@@ -42,6 +43,7 @@ function Set-Foo {
         {
             var script = @"
 function Remove-Foo {
+    [CmdletBinding()]
     param([string]$Name)
 }";
 
@@ -70,12 +72,26 @@ function Set-Foo {
         {
             var script = @"
 function Get-Foo {
+    [CmdletBinding()]
     param([string]$Name)
     Write-Output $Name
 }";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
 
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void NonCmdletStyleStateChangingFunction_ShouldNotReturnViolation()
+        {
+            var script = @"
+function Set-Foo {
+    param([string]$Name)
+    Write-Output $Name
+}";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
             Assert.Empty(violations);
         }
     }

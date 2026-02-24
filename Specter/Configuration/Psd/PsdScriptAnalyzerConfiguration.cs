@@ -1,4 +1,6 @@
 using Specter.Tools;
+using Specter.CommandDatabase;
+using Specter.CommandDatabase.Import;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,9 +28,16 @@ namespace Specter.Configuration.Psd
             var builtinRulePreference = psdConverter.Convert<BuiltinRulePreference?>(configuration[ConfigurationKeys.BuiltinRulePreference]);
             var ruleExecutionMode = psdConverter.Convert<RuleExecutionMode?>(configuration[ConfigurationKeys.RuleExecutionMode]);
             var rulePaths = psdConverter.Convert<IReadOnlyList<string>>(configuration[ConfigurationKeys.RulePaths]);
+            IReadOnlyList<PlatformInfo>? targetPlatforms = null;
+            if (configuration.TryGetValue(ConfigurationKeys.TargetPlatforms, out ExpressionAst? targetPlatformsAst)
+                && targetPlatformsAst is not null)
+            {
+                IReadOnlyList<string> platformNames = psdConverter.Convert<IReadOnlyList<string>>(targetPlatformsAst);
+                targetPlatforms = ParseTargetPlatforms(platformNames);
+            }
             var ruleConfigurations = psdConverter.Convert<IReadOnlyDictionary<string, HashtableAst>>(configuration[ConfigurationKeys.RuleConfigurations]);
 
-            return new PsdScriptAnalyzerConfiguration(psdConverter, builtinRulePreference, ruleExecutionMode, rulePaths, ruleConfigurations);
+            return new PsdScriptAnalyzerConfiguration(psdConverter, builtinRulePreference, ruleExecutionMode, rulePaths, targetPlatforms, ruleConfigurations);
         }
 
         private readonly IReadOnlyDictionary<string, HashtableAst> _ruleConfigurations;
@@ -42,6 +51,7 @@ namespace Specter.Configuration.Psd
             BuiltinRulePreference? builtinRulePreference,
             RuleExecutionMode? ruleExecutionMode,
             IReadOnlyList<string> rulePaths,
+            IReadOnlyList<PlatformInfo>? targetPlatforms,
             IReadOnlyDictionary<string, HashtableAst> ruleConfigurations)
         {
             _ruleConfigurations = ruleConfigurations;
@@ -50,6 +60,7 @@ namespace Specter.Configuration.Psd
             BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
             RulePaths = rulePaths;
+            TargetPlatforms = targetPlatforms;
             var ruleConfigDict = new Dictionary<string, IRuleConfiguration?>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in ruleConfigurations)
             {
@@ -74,9 +85,31 @@ namespace Specter.Configuration.Psd
 
         public IReadOnlyList<string> RulePaths { get; }
 
+        public IReadOnlyList<PlatformInfo>? TargetPlatforms { get; }
+
         public IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 
         public ExternalRulePolicy ExternalRules => ExternalRulePolicy.Explicit;
+
+        private static IReadOnlyList<PlatformInfo>? ParseTargetPlatforms(IReadOnlyList<string>? profileNames)
+        {
+            if (profileNames is null || profileNames.Count == 0)
+            {
+                return null;
+            }
+
+            var platforms = new List<PlatformInfo>(profileNames.Count);
+            for (int i = 0; i < profileNames.Count; i++)
+            {
+                if (LegacySettingsImporter.TryParsePlatformFromFileName(profileNames[i], out PlatformInfo? platform)
+                    && platform is not null)
+                {
+                    platforms.Add(platform);
+                }
+            }
+
+            return platforms;
+        }
     }
 
     public class PsdRuleConfiguration : LazyConvertedRuleConfiguration<HashtableAst>

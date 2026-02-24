@@ -27,15 +27,16 @@ namespace Specter.Rules.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            IEnumerable<Ast> funcAsts = ast.FindAll(static testAst => testAst is FunctionDefinitionAst, true);
-            if (funcAsts == null)
+            ScriptModel scriptModel = ScriptModel.GetOrCreate(ast, tokens, scriptPath);
+            for (int i = 0; i < scriptModel.Functions.Count; i++)
             {
-                yield break;
-            }
+                FunctionSymbol function = scriptModel.Functions[i];
+                if (!function.IsCmdletStyle)
+                {
+                    continue;
+                }
 
-            foreach (FunctionDefinitionAst funcAst in funcAsts)
-            {
-                string? funcName = funcAst.GetNameWithoutScope();
+                string? funcName = function.Name;
                 if (funcName == null || !funcName.Contains("-"))
                 {
                     continue;
@@ -45,7 +46,7 @@ namespace Specter.Rules.Builtin.Rules
 
                 if (!PowerShellConstants.ApprovedVerbs.Contains(verb))
                 {
-                    IScriptExtent nameExtent = funcAst.GetFunctionNameExtent(tokens) ?? funcAst.Extent;
+                    IScriptExtent nameExtent = function.Ast.GetFunctionNameExtent(tokens) ?? function.Ast.Extent;
                     yield return CreateDiagnostic(
                         string.Format(CultureInfo.CurrentCulture, Strings.UseApprovedVerbsError, funcName),
                         nameExtent);

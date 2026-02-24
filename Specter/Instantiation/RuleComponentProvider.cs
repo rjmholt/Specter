@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Specter.CommandDatabase;
 using Specter.CommandDatabase.Sqlite;
+using Specter.Configuration;
 
 namespace Specter.Builder
 {
@@ -156,6 +157,12 @@ namespace Specter.Builder
                 && !_componentRegistrations.ContainsKey(typeof(IPowerShellCommandDatabase)))
             {
                 _singletonComponents[typeof(IPowerShellCommandDatabase)] = BuiltinCommandDatabase.Instance;
+            }
+
+            if (!_singletonComponents.ContainsKey(typeof(PlatformContext))
+                && !_componentRegistrations.ContainsKey(typeof(PlatformContext)))
+            {
+                _singletonComponents[typeof(PlatformContext)] = PlatformContext.Empty;
             }
 
             return new SimpleRuleComponentProvider(_componentRegistrations, _singletonComponents);

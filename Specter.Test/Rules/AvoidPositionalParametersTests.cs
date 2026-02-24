@@ -26,7 +26,7 @@ namespace Specter.Test.Rules
         {
             // Rule flags when > 2 positional args; use a declared function with 3 positional args
             var script = @"
-function Test-Func { param($a, $b, $c) }
+function Test-Func { [CmdletBinding()] param($a, $b, $c) }
 Test-Func one two three";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
@@ -40,7 +40,7 @@ Test-Func one two three";
         public void NamedParameters_ShouldNotReturnViolation()
         {
             var script = @"
-function Test-Func { param($a, $b, $c) }
+function Test-Func { [CmdletBinding()] param($a, $b, $c) }
 Test-Func -a one -b two -c three";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script)
@@ -53,8 +53,21 @@ Test-Func -a one -b two -c three";
         public void FewPositionalParameters_ShouldNotReturnViolation()
         {
             var script = @"
-function Test-Func { param($a) }
+function Test-Func { [CmdletBinding()] param($a) }
 Test-Func one";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script)
+                .Where(v => v.Rule!.Name == "AvoidUsingPositionalParameters").ToList();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void VariadicFunction_ShouldNotReturnViolation()
+        {
+            var script = @"
+function Invoke-Example { [CmdletBinding()] param([Parameter(ValueFromRemainingArguments)] [string[]] $Arguments) }
+Invoke-Example one two three four";
 
             IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script)
                 .Where(v => v.Rule!.Name == "AvoidUsingPositionalParameters").ToList();

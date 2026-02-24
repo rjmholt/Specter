@@ -26,14 +26,17 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
         private const string AlternativeDefaultReference = "core-6.1.0-windows";
 
         private readonly IPowerShellCommandDatabase _commandDb;
+        private readonly PlatformContext _platformContext;
 
         internal UseCompatibleCmdlets(
             RuleInfo ruleInfo,
             UseCompatibleCmdletsConfiguration configuration,
-            IPowerShellCommandDatabase commandDb)
+            IPowerShellCommandDatabase commandDb,
+            PlatformContext platformContext)
             : base(ruleInfo, configuration)
         {
             _commandDb = commandDb;
+            _platformContext = platformContext;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
@@ -44,18 +47,31 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             }
 
             string[] compatibility = Configuration.Compatibility;
-            if (compatibility is null || compatibility.Length == 0)
+            bool useGlobalTargets = compatibility is null || compatibility.Length == 0;
+            if (useGlobalTargets && _platformContext.TargetPlatforms.Count == 0)
             {
                 yield break;
             }
 
             var targetPlatforms = new List<(string Label, PlatformInfo Platform)>();
-            foreach (string platformStr in compatibility)
+            if (useGlobalTargets)
             {
-                if (PlatformInfo.TryParseFromLegacyProfileName(platformStr, out PlatformInfo? platform)
-                    && platform is not null)
+                for (int i = 0; i < _platformContext.TargetPlatforms.Count; i++)
                 {
-                    targetPlatforms.Add((platformStr, platform));
+                    PlatformInfo platform = _platformContext.TargetPlatforms[i];
+                    targetPlatforms.Add((platform.ToString(), platform));
+                }
+            }
+            else
+            {
+                string[] configuredCompatibility = compatibility ?? Array.Empty<string>();
+                foreach (string platformStr in configuredCompatibility)
+                {
+                    if (PlatformInfo.TryParseFromLegacyProfileName(platformStr, out PlatformInfo? platform)
+                        && platform is not null)
+                    {
+                        targetPlatforms.Add((platformStr, platform));
+                    }
                 }
             }
 
@@ -68,7 +84,9 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             if (string.IsNullOrEmpty(referenceStr))
             {
                 referenceStr = DefaultReference;
-                if (targetPlatforms.Count == 1
+                if (!useGlobalTargets
+                    && compatibility is not null
+                    && targetPlatforms.Count == 1
                     && string.Equals(compatibility[0], DefaultReference, StringComparison.OrdinalIgnoreCase))
                 {
                     referenceStr = AlternativeDefaultReference;

@@ -96,6 +96,18 @@ function Foo {
         }
 
         [Fact]
+        public void PowerShellCoreAutomaticVariable_ShouldNotReturnViolation()
+        {
+            var script = @"
+function Foo {
+    if ($IsWindows) { Write-Host 'Windows' }
+}";
+
+            IReadOnlyList<ScriptDiagnostic> violations = _scriptAnalyzer.AnalyzeScriptInput(script).ToList();
+            Assert.Empty(violations);
+        }
+
+        [Fact]
         public void PreferenceVariable_ShouldNotReturnViolation()
         {
             var script = @"

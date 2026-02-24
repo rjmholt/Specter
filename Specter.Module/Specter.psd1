@@ -39,10 +39,10 @@ PowerShellVersion = '5.1'
 DotNetFrameworkVersion = '4.6.2'
 
 # Type files (.ps1xml) to be loaded when importing this module
-TypesToProcess = @()
+TypesToProcess = @('Specter.Types.ps1xml')
 
 # Format files (.ps1xml) to be loaded when importing this module
-FormatsToProcess = @()
+FormatsToProcess = @('Specter.Format.ps1xml')
 
 # Functions to export from this module
 FunctionsToExport = @()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation.Language;
+using Specter.Configuration;
 using Specter.Rules;
 using Specter.Tools;
 
@@ -12,9 +13,13 @@ namespace Specter.Rules.Builtin.Rules
     [Rule("AvoidUsingWriteHost", typeof(Strings), nameof(Strings.AvoidUsingWriteHostDescription))]
     internal class AvoidUsingWriteHost : ScriptRule
     {
-        internal AvoidUsingWriteHost(RuleInfo ruleInfo)
+        private static readonly Version s_ps5 = new Version(5, 0);
+        private readonly PlatformContext _platformContext;
+
+        internal AvoidUsingWriteHost(RuleInfo ruleInfo, PlatformContext platformContext)
             : base(ruleInfo)
         {
+            _platformContext = platformContext;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
@@ -62,7 +67,17 @@ namespace Specter.Rules.Builtin.Rules
                         ? Strings.AvoidUsingWriteHostErrorScriptDefinition
                         : string.Format(CultureInfo.CurrentCulture, Strings.AvoidUsingWriteHostError, System.IO.Path.GetFileName(_scriptPath));
 
-                    _diagnostics.Add(_rule.CreateDiagnostic(message, cmdAst));
+                    DiagnosticSeverity severity = DiagnosticSeverity.Information;
+                    if (_rule._platformContext.AnyTargetBelow(s_ps5))
+                    {
+                        severity = DiagnosticSeverity.Warning;
+                    }
+                    else
+                    {
+                        message += " Write-Host writes to the Information stream in PowerShell 5.0+.";
+                    }
+
+                    _diagnostics.Add(_rule.CreateDiagnostic(message, cmdAst, severity));
                 }
 
                 return AstVisitAction.Continue;

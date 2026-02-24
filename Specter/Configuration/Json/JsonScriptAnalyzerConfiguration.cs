@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Specter.CommandDatabase;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -39,12 +40,14 @@ namespace Specter.Configuration.Json
             BuiltinRulePreference? builtinRulePreference,
             RuleExecutionMode? ruleExecutionMode,
             IReadOnlyList<string> rulePaths,
+            IReadOnlyList<PlatformInfo>? targetPlatforms,
             IReadOnlyDictionary<string, JsonRuleConfiguration> ruleConfigurations)
         {
             _ruleConfigurations = ruleConfigurations;
             BuiltinRules = builtinRulePreference;
             RuleExecution = ruleExecutionMode;
             RulePaths = rulePaths;
+            TargetPlatforms = targetPlatforms;
             var ruleConfigDict = new Dictionary<string, IRuleConfiguration?>(ruleConfigurations.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in ruleConfigurations)
             {
@@ -58,6 +61,8 @@ namespace Specter.Configuration.Json
         public BuiltinRulePreference? BuiltinRules { get; }
 
         public IReadOnlyList<string> RulePaths { get; }
+
+        public IReadOnlyList<PlatformInfo>? TargetPlatforms { get; }
 
         public IReadOnlyDictionary<string, IRuleConfiguration?> RuleConfiguration { get; }
 

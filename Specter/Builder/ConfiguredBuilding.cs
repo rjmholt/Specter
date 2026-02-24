@@ -17,8 +17,11 @@ namespace Specter.Builder
             this IScriptAnalyzerConfiguration configuration,
             string? settingsFileDirectory)
         {
+            var platformContext = new PlatformContext(configuration.TargetPlatforms);
             var analyzerBuilder = new ScriptAnalyzerBuilder()
-                .WithRuleComponentProvider(new RuleComponentProviderBuilder().Build());
+                .WithRuleComponentProvider(new RuleComponentProviderBuilder()
+                    .AddSingleton(platformContext)
+                    .Build());
 
             switch (configuration.BuiltinRules ?? BuiltinRulePreference.Default)
             {
