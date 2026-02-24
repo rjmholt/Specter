@@ -211,7 +211,7 @@ if ($Pack) {
     )
     foreach ($csproj in $packableProjects) {
         $fullPath = Join-Path $repoRoot $csproj
-        Invoke-DotNet pack $fullPath -c $Configuration -o $nupkgDir --no-restore -p:NuGetAudit=false
+        Invoke-DotNet pack $fullPath -c $Configuration -o $nupkgDir --no-restore -p:NuGetAudit=false -p:WarnOnPackingNonPackableProject=false
     }
 
     Write-Host "  -> $nupkgDir" -ForegroundColor Green

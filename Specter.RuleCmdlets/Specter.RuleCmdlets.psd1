@@ -1,5 +1,12 @@
 @{
-    RootModule = 'Specter.RuleCmdlets.dll'
+    RootModule = if ($PSEdition -eq 'Core')
+    {
+        'net8/Specter.RuleCmdlets.dll'
+    }
+    else
+    {
+        'net462/Specter.RuleCmdlets.dll'
+    }
     ModuleVersion = '0.1.0'
     GUID = '3e9c4e7a-8f2d-4b6c-a1d0-5f3e8c7b9a02'
     Author = 'Robert Holt'
@@ -13,4 +20,5 @@
     )
     VariablesToExport = @()
     AliasesToExport = @()
+    CompatiblePSEditions = @('Core', 'Desktop')
 }

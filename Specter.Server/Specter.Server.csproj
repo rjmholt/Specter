@@ -8,6 +8,8 @@
     <RootNamespace>Specter.Server</RootNamespace>
     <AssemblyName>Specter.Server</AssemblyName>
     <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <PackageId>Specter.Server</PackageId>
     <Description>Specter analysis server with gRPC and Language Server Protocol support for IDE integration.</Description>
     <PackageTags>PowerShell;Linting;LSP;gRPC;LanguageServer</PackageTags>
