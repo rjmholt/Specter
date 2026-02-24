@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
+using System.Management.Automation;
 using System.Management.Automation.Language;
-using Newtonsoft.Json.Linq;
+using System.Management.Automation.Runspaces;
+using Specter.CommandDatabase;
 using Specter.Configuration;
 using Specter.Rules;
 
@@ -21,9 +22,18 @@ namespace Specter.Builtin.Rules
     [Rule("AvoidOverwritingBuiltInCmdlets", typeof(Strings), nameof(Strings.AvoidOverwritingBuiltInCmdletsDescription))]
     internal class AvoidOverwritingBuiltInCmdlets : ConfigurableScriptRule<AvoidOverwritingBuiltInCmdletsConfiguration>
     {
-        internal AvoidOverwritingBuiltInCmdlets(RuleInfo ruleInfo, AvoidOverwritingBuiltInCmdletsConfiguration configuration)
+        private static readonly object s_lookupLock = new object();
+        private static HashSet<string>? s_defaultCmdletLookup;
+
+        private readonly IPowerShellCommandDatabase _commandDatabase;
+
+        internal AvoidOverwritingBuiltInCmdlets(
+            RuleInfo ruleInfo,
+            AvoidOverwritingBuiltInCmdletsConfiguration configuration,
+            IPowerShellCommandDatabase commandDatabase)
             : base(ruleInfo, configuration)
         {
+            _commandDatabase = commandDatabase;
         }
 
         public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
@@ -33,116 +43,117 @@ namespace Specter.Builtin.Rules
                 throw new ArgumentNullException(nameof(ast));
             }
 
-            string[] psVersions = Configuration.PowerShellVersion;
-            if (psVersions == null || psVersions.Length == 0 || string.IsNullOrEmpty(psVersions[0]))
-            {
-#if CORECLR
-                psVersions = new[] { "core-6.1.0-windows" };
-#else
-                psVersions = new[] { "desktop-5.1.14393.206-windows" };
-#endif
-            }
-
-            string? settingsPath = FindSettingsDirectory();
-            if (settingsPath == null)
-            {
-                yield break;
-            }
-
-            var cmdletMap = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-            foreach (string version in psVersions)
-            {
-                if (version.IndexOfAny(new[] { '/', '\\', ':' }) >= 0
-                    || version.Contains(".."))
-                {
-                    continue;
-                }
-
-                string jsonPath = Path.Combine(settingsPath, version + ".json");
-                if (!File.Exists(jsonPath))
-                {
-                    continue;
-                }
-
-                if (!cmdletMap.ContainsKey(version))
-                {
-                    cmdletMap[version] = LoadCmdletsFromJson(jsonPath);
-                }
-            }
-
-            if (cmdletMap.Count == 0)
-            {
-                yield break;
-            }
+            HashSet<PlatformInfo>? targetPlatforms = ResolveTargetPlatforms(Configuration.PowerShellVersion);
+            string targetLabel = GetTargetLabel(targetPlatforms);
 
             foreach (Ast node in ast.FindAll(static testAst => testAst is FunctionDefinitionAst, searchNestedScriptBlocks: true))
             {
                 var funcAst = (FunctionDefinitionAst)node;
                 string functionName = funcAst.Name;
 
-                foreach (var entry in cmdletMap)
+                if (IsBuiltinCommand(functionName, targetPlatforms))
                 {
-                    if (entry.Value.Contains(functionName))
-                    {
-                        yield return CreateDiagnostic(
-                            string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.AvoidOverwritingBuiltInCmdletsError,
-                                functionName,
-                                entry.Key),
-                            funcAst.Extent);
-                    }
+                    yield return CreateDiagnostic(
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.AvoidOverwritingBuiltInCmdletsError,
+                            functionName,
+                            targetLabel),
+                        funcAst.Extent);
                 }
             }
         }
 
-        private static HashSet<string> LoadCmdletsFromJson(string jsonPath)
+        private bool IsBuiltinCommand(string commandName, HashSet<PlatformInfo>? targetPlatforms)
         {
-            var cmdlets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            JObject data = JObject.Parse(File.ReadAllText(jsonPath));
-
-            JArray? modules = data["Modules"] as JArray;
-            if (modules == null)
+            if (_commandDatabase.CommandExistsOnPlatform(commandName, targetPlatforms))
             {
-                return cmdlets;
+                return true;
             }
 
-            foreach (JToken module in modules)
-            {
-                JArray? commands = module["ExportedCommands"] as JArray;
-                if (commands == null)
-                {
-                    continue;
-                }
-
-                foreach (JToken command in commands)
-                {
-                    string? name = command["Name"]?.ToString();
-                    if (!string.IsNullOrEmpty(name))
-                    {
-                        cmdlets.Add(name!);
-                    }
-                }
-            }
-
-            return cmdlets;
+            return targetPlatforms == null && GetDefaultCmdletLookup().Contains(commandName);
         }
 
-        private static string? FindSettingsDirectory()
+        private static HashSet<PlatformInfo>? ResolveTargetPlatforms(string[] configuredProfiles)
         {
-            string? assemblyLocation = typeof(AvoidOverwritingBuiltInCmdlets).Assembly.Location;
-            if (string.IsNullOrWhiteSpace(assemblyLocation))
+            if (configuredProfiles == null || configuredProfiles.Length == 0)
             {
                 return null;
             }
 
-            string settingsPath = Path.Combine(Path.GetDirectoryName(assemblyLocation)!, "Settings");
-            if (Directory.Exists(settingsPath))
+            var platforms = new HashSet<PlatformInfo>();
+            for (int i = 0; i < configuredProfiles.Length; i++)
             {
-                return settingsPath;
+                string profile = configuredProfiles[i];
+                if (string.IsNullOrWhiteSpace(profile))
+                {
+                    continue;
+                }
+
+                if (PlatformInfo.TryParseFromLegacyProfileName(profile, out PlatformInfo? platform)
+                    && platform is not null)
+                {
+                    platforms.Add(platform);
+                }
             }
 
-            return null;
+            return platforms.Count == 0 ? null : platforms;
+        }
+
+        private static string GetTargetLabel(HashSet<PlatformInfo>? platforms)
+        {
+            if (platforms == null || platforms.Count == 0)
+            {
+                return "current target platforms";
+            }
+
+            foreach (PlatformInfo platform in platforms)
+            {
+                return platform.ToString();
+            }
+
+            return "configured target platforms";
+        }
+
+        private static HashSet<string> GetDefaultCmdletLookup()
+        {
+            if (s_defaultCmdletLookup is not null)
+            {
+                return s_defaultCmdletLookup;
+            }
+
+            lock (s_lookupLock)
+            {
+                if (s_defaultCmdletLookup is null)
+                {
+                    s_defaultCmdletLookup = BuildDefaultCmdletNameSet();
+                }
+            }
+
+            return s_defaultCmdletLookup;
+        }
+
+        private static HashSet<string> BuildDefaultCmdletNameSet()
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                foreach (SessionStateCommandEntry entry in iss.Commands)
+                {
+                    if (entry.CommandType == CommandTypes.Cmdlet
+                        && !string.IsNullOrEmpty(entry.Name))
+                    {
+                        names.Add(entry.Name);
+                    }
+                }
+            }
+            catch
+            {
+                // Keep empty fallback if discovery fails; command DB check still runs.
+            }
+
+            return names;
         }
     }
 }

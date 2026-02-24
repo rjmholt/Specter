@@ -15,6 +15,11 @@ namespace Specter.CommandDatabase.Import
     /// </summary>
     internal static class LegacySettingsImporter
     {
+        internal static bool TryParsePlatformFromFileName(string fileName, out PlatformInfo? platform)
+        {
+            return PlatformInfo.TryParseFromLegacyProfileName(fileName, out platform);
+        }
+
         /// <summary>
         /// Imports all JSON files from a settings directory into the database.
         /// </summary>
@@ -30,7 +35,7 @@ namespace Specter.CommandDatabase.Import
             foreach (string filePath in Directory.GetFiles(settingsDirectory, "*.json"))
             {
                 string fileName = Path.GetFileNameWithoutExtension(filePath);
-                if (!TryParsePlatformFromFileName(fileName, out PlatformInfo? platform) || platform is null)
+                if (!PlatformInfo.TryParseFromLegacyProfileName(fileName, out PlatformInfo? platform) || platform is null)
                 {
                     continue;
                 }
@@ -115,59 +120,5 @@ namespace Specter.CommandDatabase.Import
             return result;
         }
 
-        /// <summary>
-        /// Parses a filename like "core-6.1.0-windows" into a <see cref="PlatformInfo"/>.
-        /// Legacy filenames do not encode OS version, SKU, or environment.
-        /// </summary>
-        internal static bool TryParsePlatformFromFileName(string fileName, out PlatformInfo? platform)
-        {
-            platform = null;
-
-            int firstDash = fileName.IndexOf('-');
-            if (firstDash < 0)
-            {
-                return false;
-            }
-
-            int lastDash = fileName.LastIndexOf('-');
-            if (lastDash <= firstDash)
-            {
-                return false;
-            }
-
-            string edition = fileName.Substring(0, firstDash);
-            string versionStr = fileName.Substring(firstDash + 1, lastDash - firstDash - 1);
-            string osFamily = fileName.Substring(lastDash + 1);
-
-            if (string.IsNullOrEmpty(edition) || string.IsNullOrEmpty(versionStr) || string.IsNullOrEmpty(osFamily))
-            {
-                return false;
-            }
-
-            if (string.Equals(edition, "core", StringComparison.OrdinalIgnoreCase))
-            {
-                edition = "Core";
-            }
-            else if (string.Equals(edition, "desktop", StringComparison.OrdinalIgnoreCase))
-            {
-                edition = "Desktop";
-            }
-
-            if (string.Equals(osFamily, "windows", StringComparison.OrdinalIgnoreCase))
-            {
-                osFamily = "Windows";
-            }
-            else if (string.Equals(osFamily, "linux", StringComparison.OrdinalIgnoreCase))
-            {
-                osFamily = "Linux";
-            }
-            else if (string.Equals(osFamily, "macos", StringComparison.OrdinalIgnoreCase))
-            {
-                osFamily = "MacOS";
-            }
-
-            platform = PlatformInfo.Create(edition, versionStr, new OsInfo(osFamily));
-            return true;
-        }
     }
 }

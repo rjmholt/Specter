@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Server.Test", "Spec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Benchmarks", "Specter.Benchmarks\Specter.Benchmarks.csproj", "{A2D33813-C6A8-442F-8219-D665A66C22FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Api", "Specter.Api\Specter.Api.csproj", "{323F9053-0731-4EC7-994F-8636B848F760}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Specter.Rules", "Specter.Rules\Specter.Rules.csproj", "{B50FD82F-EC03-49F0-8627-C96D119FD4B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +64,13 @@ Global
 		{A2D33813-C6A8-442F-8219-D665A66C22FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2D33813-C6A8-442F-8219-D665A66C22FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2D33813-C6A8-442F-8219-D665A66C22FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{323F9053-0731-4EC7-994F-8636B848F760}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{323F9053-0731-4EC7-994F-8636B848F760}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{323F9053-0731-4EC7-994F-8636B848F760}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{323F9053-0731-4EC7-994F-8636B848F760}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B50FD82F-EC03-49F0-8627-C96D119FD4B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B50FD82F-EC03-49F0-8627-C96D119FD4B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B50FD82F-EC03-49F0-8627-C96D119FD4B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B50FD82F-EC03-49F0-8627-C96D119FD4B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

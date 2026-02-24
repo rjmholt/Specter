@@ -285,7 +285,7 @@ namespace Specter.Module.Commands
                 string json = File.ReadAllText(path);
                 string fileName = Path.GetFileNameWithoutExtension(path);
 
-                if (!LegacySettingsImporter.TryParsePlatformFromFileName(
+                if (!PlatformInfo.TryParseFromLegacyProfileName(
                     fileName, out PlatformInfo? platform) || platform is null)
                 {
                     WriteWarning($"Could not parse platform from filename '{fileName}'. Using defaults.");

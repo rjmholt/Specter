@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Specter\Specter.csproj" />
+    <ProjectReference Include="..\Specter.Api\Specter.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

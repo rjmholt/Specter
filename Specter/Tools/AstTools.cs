@@ -83,7 +83,7 @@ namespace Specter.Tools
             return false;
         }
 
-        internal static ExpressionAst GetExpressionAstFromScriptAst(Ast ast)
+        public static ExpressionAst GetExpressionAstFromScriptAst(Ast ast)
         {
             var scriptBlockAst = (ScriptBlockAst)ast;
 

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation;
 
 namespace Specter.Tools
 {
-    internal static class SpecialVariables
+    public static class SpecialVariables
     {
         public static bool IsSpecialVariable(string unscopedVariableName)
         {
@@ -42,17 +41,26 @@ namespace Specter.Tools
 
         static SpecialVariables()
         {
-            InitializedVariables = new string[]
-                                    {
-                                        @foreach,
-                                        @switch,
-                                        Question
-                                    };
+            int totalLength = 3 + AutomaticVariables.Length + PreferenceVariables.Length + OtherInitializedVariables.Length;
+            var values = new string[totalLength];
+            int i = 0;
+            values[i++] = @foreach;
+            values[i++] = @switch;
+            values[i++] = Question;
 
-            InitializedVariables = InitializedVariables.Concat(
-                AutomaticVariables.Concat(
-                PreferenceVariables.Concat(
-                OtherInitializedVariables))).ToArray();
+            CopyTo(AutomaticVariables, values, ref i);
+            CopyTo(PreferenceVariables, values, ref i);
+            CopyTo(OtherInitializedVariables, values, ref i);
+
+            InitializedVariables = values;
+        }
+
+        private static void CopyTo(string[] source, string[] destination, ref int offset)
+        {
+            for (int i = 0; i < source.Length; i++)
+            {
+                destination[offset++] = source[i];
+            }
         }
 
         internal static readonly string[] AutomaticVariables = new string[]  

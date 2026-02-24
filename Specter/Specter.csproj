@@ -42,9 +42,59 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Specter.Api\Specter.Api.csproj" />
+    <ProjectReference Include="..\Specter.Rules\Specter.Rules.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Legacy\**" />
     <EmbeddedResource Remove="Legacy\**" />
     <None Remove="Legacy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Rules\Rule.cs" />
+    <Compile Remove="Rules\RuleInfo.cs" />
+    <Compile Remove="Rules\RuleAttribute.cs" />
+    <Compile Remove="Rules\RuleCollectionAttribute.cs" />
+    <Compile Remove="Rules\SourceType.cs" />
+    <Compile Remove="Rules\SpecterRuleAttribute.cs" />
+    <Compile Remove="Rules\FormattingRule.cs" />
+
+    <Compile Remove="Output\Correction.cs" />
+    <Compile Remove="Output\DiagnosticSeverity.cs" />
+    <Compile Remove="Output\Exceptions.cs" />
+    <Compile Remove="Output\ScriptDiagnostic.cs" />
+    <Compile Remove="Output\ScriptExtent.cs" />
+
+    <Compile Remove="Configuration\IRuleConfiguration.cs" />
+    <Compile Remove="Configuration\Psd\PsdDataParser.cs" />
+
+    <Compile Remove="Formatting\IScriptEditor.cs" />
+    <Compile Remove="Formatting\ScriptEdit.cs" />
+    <Compile Remove="Formatting\IEditorConfiguration.cs" />
+    <Compile Remove="Formatting\EditorAttribute.cs" />
+    <Compile Remove="Formatting\EditorInfo.cs" />
+
+    <Compile Remove="CommandDatabase\IPowerShellCommandDatabase.cs" />
+    <Compile Remove="CommandDatabase\CommandMetadata.cs" />
+    <Compile Remove="CommandDatabase\PlatformInfo.cs" />
+
+    <Compile Remove="Tools\AstExtensions.cs" />
+    <Compile Remove="Tools\ExtentExtensions.cs" />
+    <Compile Remove="Tools\AstTools.cs" />
+    <Compile Remove="Tools\PowerShellConstants.cs" />
+    <Compile Remove="Tools\SpecialVariables.cs" />
+    <Compile Remove="Tools\Exceptions.cs" />
+
+    <Compile Remove="Utils\GlobMatcher.cs" />
+    <Compile Remove="Utils\Polyfill.cs" />
+    <Compile Remove="Utils\StringExtensions.cs" />
+
+    <Compile Remove="Builtin\Rules\**\*.cs" />
+    <Compile Remove="Builtin\Editors\**\*.cs" />
+    <Compile Remove="Builtin\BuiltinEditors.cs" />
+    <EmbeddedResource Remove="Builtin\Rules\Strings.resx" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8'">
@@ -63,21 +113,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Settings\%(Filename)%(Extension)</Link>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Builtin\Rules\Strings.Designer.cs">
-      <DependentUpon>Strings.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Builtin\Rules\Strings.resx">
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

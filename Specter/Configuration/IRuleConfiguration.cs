@@ -1,9 +1,5 @@
-using Specter.Builtin;
-using Specter.Utils;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using Specter.Utils;
 
 namespace Specter.Configuration
 {
@@ -11,7 +7,6 @@ namespace Specter.Configuration
     {
         public static CommonConfiguration Default = new CommonConfiguration(enable: true);
 
-        [JsonConstructor]
         public CommonConfiguration(bool enable = true)
         {
             Enable = enable;

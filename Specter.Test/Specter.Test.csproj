@@ -25,4 +25,12 @@
     <ProjectReference Include="..\Specter.PssaCompatibility\Specter.PssaCompatibility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="TestFixtures\**\*.cs" />
+    <Compile Remove="TestFixtures\**\obj\**\*.cs" />
+    <Compile Remove="TestFixtures\**\bin\**\*.cs" />
+    <None Include="TestFixtures\**\*.csproj" />
+    <None Include="TestFixtures\**\*.cs" />
+  </ItemGroup>
+
 </Project>

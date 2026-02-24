@@ -193,9 +193,11 @@ if ($Pack) {
         Unregister-PSResourceRepository -Name $repoName -ErrorAction Ignore
     }
 
-    # NuGet library package for C# consumers (dotnet add package Specter).
+    # NuGet library packages for C# consumers (dotnet add package ...).
     Write-Host "Packing NuGet library packages..." -ForegroundColor Cyan
     $packableProjects = @(
+        'Specter.Api/Specter.Api.csproj',
+        'Specter.Rules/Specter.Rules.csproj',
         'Specter/Specter.csproj'
     )
     foreach ($csproj in $packableProjects) {

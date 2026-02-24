@@ -57,24 +57,24 @@ namespace Specter.Builtin
         /// <summary>
         /// Default preset: K&amp;R / Stroustrup brace style.
         /// </summary>
-        internal static IReadOnlyDictionary<string, IEditorConfiguration> Default
+        public static IReadOnlyDictionary<string, IEditorConfiguration> Default
             => BuiltinEditors.DefaultConfigurations;
 
         /// <summary>
         /// Stroustrup preset: identical to Default.
         /// </summary>
-        internal static IReadOnlyDictionary<string, IEditorConfiguration> Stroustrup
+        public static IReadOnlyDictionary<string, IEditorConfiguration> Stroustrup
             => Default;
 
         /// <summary>
         /// OTBS preset: open braces on same line, branches cuddled (} else {).
         /// </summary>
-        internal static IReadOnlyDictionary<string, IEditorConfiguration> OTBS { get; } = CreateOTBS();
+        public static IReadOnlyDictionary<string, IEditorConfiguration> OTBS { get; } = CreateOTBS();
 
         /// <summary>
         /// Allman preset: open braces on their own line, close braces followed by newline.
         /// </summary>
-        internal static IReadOnlyDictionary<string, IEditorConfiguration> Allman { get; } = CreateAllman();
+        public static IReadOnlyDictionary<string, IEditorConfiguration> Allman { get; } = CreateAllman();
 
         private static IReadOnlyDictionary<string, IEditorConfiguration> CreateOTBS()
         {

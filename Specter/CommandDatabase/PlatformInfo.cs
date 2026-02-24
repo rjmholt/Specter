@@ -142,7 +142,65 @@ namespace Specter.CommandDatabase
 
         public override string ToString() => $"{Edition}/{Version}/{Os}";
 
-        internal static Version ParseVersion(string versionStr)
+        /// <summary>
+        /// Parses a filename stem like "core-6.1.0-windows" into a platform.
+        /// </summary>
+        public static bool TryParseFromLegacyProfileName(string profileName, out PlatformInfo? platform)
+        {
+            platform = null;
+            if (string.IsNullOrEmpty(profileName))
+            {
+                return false;
+            }
+
+            int firstDash = profileName.IndexOf('-');
+            if (firstDash < 0)
+            {
+                return false;
+            }
+
+            int lastDash = profileName.LastIndexOf('-');
+            if (lastDash <= firstDash)
+            {
+                return false;
+            }
+
+            string edition = profileName.Substring(0, firstDash);
+            string versionStr = profileName.Substring(firstDash + 1, lastDash - firstDash - 1);
+            string osFamily = profileName.Substring(lastDash + 1);
+
+            if (string.IsNullOrEmpty(edition) || string.IsNullOrEmpty(versionStr) || string.IsNullOrEmpty(osFamily))
+            {
+                return false;
+            }
+
+            if (string.Equals(edition, "core", StringComparison.OrdinalIgnoreCase))
+            {
+                edition = "Core";
+            }
+            else if (string.Equals(edition, "desktop", StringComparison.OrdinalIgnoreCase))
+            {
+                edition = "Desktop";
+            }
+
+            if (string.Equals(osFamily, "windows", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "Windows";
+            }
+            else if (string.Equals(osFamily, "linux", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "Linux";
+            }
+            else if (string.Equals(osFamily, "macos", StringComparison.OrdinalIgnoreCase))
+            {
+                osFamily = "MacOS";
+            }
+
+            platform = Create(edition, versionStr, new OsInfo(osFamily));
+            return true;
+        }
+
+        public static Version ParseVersion(string versionStr)
         {
             if (string.IsNullOrEmpty(versionStr))
             {

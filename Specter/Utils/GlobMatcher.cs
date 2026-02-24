@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -12,7 +11,11 @@ namespace Specter.Utils
     internal static class GlobMatcher
     {
         private static readonly bool s_caseInsensitive =
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#if CORECLR
+            OperatingSystem.IsWindows();
+#else
+            Environment.OSVersion.Platform == PlatformID.Win32NT;
+#endif
 
         public static bool IsMatch(string path, string pattern)
         {

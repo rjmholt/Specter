@@ -5,7 +5,6 @@ using System.Management.Automation.Language;
 using Specter;
 using Specter.Builtin.Rules;
 using Specter.CommandDatabase;
-using Specter.CommandDatabase.Import;
 using Specter.Configuration;
 using Specter.Rules;
 
@@ -53,7 +52,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
             var targetPlatforms = new List<(string Label, PlatformInfo Platform)>();
             foreach (string platformStr in compatibility)
             {
-                if (LegacySettingsImporter.TryParsePlatformFromFileName(platformStr, out PlatformInfo? platform)
+                if (PlatformInfo.TryParseFromLegacyProfileName(platformStr, out PlatformInfo? platform)
                     && platform is not null)
                 {
                     targetPlatforms.Add((platformStr, platform));
@@ -76,7 +75,7 @@ namespace Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules
                 }
             }
 
-            if (!LegacySettingsImporter.TryParsePlatformFromFileName(referenceStr!, out PlatformInfo? refPlatform)
+            if (!PlatformInfo.TryParseFromLegacyProfileName(referenceStr!, out PlatformInfo? refPlatform)
                 || refPlatform is null)
             {
                 yield break;

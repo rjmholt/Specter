@@ -2,6 +2,66 @@
 
 Specter supports custom rules written in PowerShell and loaded via `-CustomRulePath` or the `RulePaths` configuration key. This guide walks through creating a rule module from scratch.
 
+## Writing Rules in C#
+
+Specter also supports custom rules compiled into a .NET class library (`.dll`).
+
+### Project setup
+
+Create a class library and reference the `Specter.Api` NuGet package:
+
+```bash
+dotnet new classlib -n MySpecterRules
+cd MySpecterRules
+dotnet add package Specter.Api
+```
+
+Target frameworks should match your compatibility goals. `net8.0` is the simplest starting point.
+
+### Minimal rule example
+
+```csharp
+using Specter;
+using Specter.Rules;
+using System.Collections.Generic;
+using System.Management.Automation.Language;
+
+namespace MySpecterRules;
+
+[Rule("SampleTestRule", "Flags all Invoke-Expression calls")]
+public sealed class SampleTestRule : ScriptRule
+{
+    public SampleTestRule(RuleInfo ruleInfo) : base(ruleInfo) { }
+
+    public override IEnumerable<ScriptDiagnostic> AnalyzeScript(Ast ast, IReadOnlyList<Token> tokens, string? scriptPath)
+    {
+        foreach (Ast node in ast.FindAll(
+            static n => n is CommandAst cmd && cmd.GetCommandName() == "Invoke-Expression",
+            searchNestedScriptBlocks: true))
+        {
+            yield return CreateDiagnostic("Avoid using Invoke-Expression.", node.Extent);
+        }
+    }
+}
+```
+
+### Optional attributes and base types
+
+- `[RuleCollection(Name = "...")]` on the assembly sets a default namespace for contained rules.
+- `ConfigurableScriptRule<TConfiguration>` supports strongly-typed rule configuration.
+- `FormattingRule<TConfiguration>` supports editor-backed formatting diagnostics.
+
+### Local testing
+
+Build the library and pass it as a custom rule path:
+
+```powershell
+dotnet build ./MySpecterRules.csproj
+Invoke-Specter -Path ./script.ps1 -CustomRulePath ./bin/Debug/net8.0/MySpecterRules.dll
+```
+
+On .NET (Core/5+/6+/7+/8+), external assemblies are loaded with an isolated `AssemblyLoadContext` to reduce dependency conflicts. On .NET Framework (`net462`), this isolation model is not available and assembly loading uses the default AppDomain.
+
 ## Module Structure
 
 A rule module is a standard PowerShell module. At minimum you need a `.psm1` file and a `.psd1` manifest:

@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace Specter.Internal
 {
-    internal static class Polyfill
+    public static class Polyfill
     {
 #if !CORECLR
         private static ConcurrentDictionary<Type, Array> s_emptyArrays = new ConcurrentDictionary<Type, Array>();

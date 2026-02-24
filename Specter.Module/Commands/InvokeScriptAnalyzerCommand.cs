@@ -31,6 +31,9 @@ namespace Specter.Module.Commands
         [Parameter]
         public string[]? ExcludeRules { get; set; }
 
+        [Parameter]
+        public string[]? CustomRulePath { get; set; }
+
         protected override void BeginProcessing()
         {
             _scriptAnalyzer = GetScriptAnalyzer();
@@ -84,6 +87,11 @@ namespace Specter.Module.Commands
                 configBuilder.AddConfigurationFile(parameters.ConfigurationPath);
             }
 
+            if (parameters.CustomRulePath is { Length: > 0 })
+            {
+                configBuilder.AddRulePaths(parameters.CustomRulePath);
+            }
+
             return configBuilder.Build().CreateScriptAnalyzer();
         }
 
@@ -92,17 +100,38 @@ namespace Specter.Module.Commands
             public ParameterSetting(InvokeScriptAnalyzerCommand command)
             {
                 ConfigurationPath = command.ConfigurationPath;
+                CustomRulePath = command.CustomRulePath;
             }
 
             public string? ConfigurationPath { get; }
 
+            public string[]? CustomRulePath { get; }
+
             public override int GetHashCode()
             {
+                string customRuleSignature = string.Empty;
+                if (CustomRulePath is { Length: > 0 })
+                {
+                    var signatureBuilder = new System.Text.StringBuilder();
+                    for (int i = 0; i < CustomRulePath.Length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            signatureBuilder.Append('|');
+                        }
+
+                        signatureBuilder.Append(CustomRulePath[i] ?? string.Empty);
+                    }
+
+                    customRuleSignature = signatureBuilder.ToString();
+                }
+
 #if CORECLR
-                return HashCode.Combine(ConfigurationPath);
+                return HashCode.Combine(ConfigurationPath, customRuleSignature);
 #else
                 return HashCodeCombinator.Create()
                     .Add(ConfigurationPath!)
+                    .Add(customRuleSignature)
                     .GetHashCode();
 #endif
             }

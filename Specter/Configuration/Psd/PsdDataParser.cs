@@ -7,7 +7,7 @@ using System.Management.Automation.Language;
 
 namespace Specter.Configuration.Psd
 {
-    internal class PsdDataParser
+    public class PsdDataParser
     {
         /// <summary>
         /// Evaluates all statically evaluable, side-effect-free expressions under an
@@ -17,7 +17,7 @@ namespace Specter.Configuration.Psd
         /// </summary>
         /// <param name="exprAst">The expression AST to try to evaluate.</param>
         /// <returns>The .NET value represented by the PowerShell expression.</returns>
-        internal object? ConvertAstValue(ExpressionAst exprAst)
+        public object? ConvertAstValue(ExpressionAst exprAst)
         {
             switch (exprAst)
             {
@@ -110,7 +110,7 @@ namespace Specter.Configuration.Psd
         /// </summary>
         /// <param name="arrLiteralAst">The PowerShell array AST to turn into a value.</param>
         /// <returns>The .NET value represented by PowerShell syntax.</returns>
-        internal object[] ConvertAstValue(ArrayLiteralAst arrLiteralAst)
+        public object[] ConvertAstValue(ArrayLiteralAst arrLiteralAst)
         {
             if (arrLiteralAst == null)
             {
@@ -137,7 +137,7 @@ namespace Specter.Configuration.Psd
         /// </summary>
         /// <param name="hashtableAst">The PowerShell representation of the hashtable value.</param>
         /// <returns>The Hashtable as a hydrated .NET value.</returns>
-        internal Hashtable ConvertAstValue(HashtableAst hashtableAst)
+        public Hashtable ConvertAstValue(HashtableAst hashtableAst)
         {
             if (hashtableAst == null)
             {
